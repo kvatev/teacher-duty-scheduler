@@ -204,32 +204,31 @@ export function useSchedule() {
   const autoArrangeTeachers = useCallback(() => {
     if (teachers.length === 0) return;
 
-    // Calculate total cells and how many teachers each cell should have
-    const totalCells = DAYS.length * LOCATIONS.length; // 5 days * 4 locations = 20 cells
-    const teachersPerCell = Math.max(1, Math.floor(teachers.length / totalCells));
-    const extraTeachers = teachers.length % totalCells;
+    // Create all cell combinations
+    const allCells: { day: string; location: string }[] = [];
+    DAYS.forEach((day) => {
+      LOCATIONS.forEach((location) => {
+        allCells.push({ day, location });
+      });
+    });
 
-    // Create a shuffled copy of teachers for random distribution
+    // Shuffle cells for random distribution
+    const shuffledCells = [...allCells].sort(() => Math.random() - 0.5);
+    
+    // Create a shuffled list of teachers
     const shuffledTeachers = [...teachers].sort(() => Math.random() - 0.5);
     
     const newAssignments: DutyAssignment[] = [];
-    let teacherIndex = 0;
-
-    // Distribute teachers evenly across all cells
-    DAYS.forEach((day, dayIndex) => {
-      LOCATIONS.forEach((location, locationIndex) => {
-        const cellIndex = dayIndex * LOCATIONS.length + locationIndex;
-        // Some cells get an extra teacher if we have remainder
-        const teachersForThisCell = teachersPerCell + (cellIndex < extraTeachers ? 1 : 0);
-        
-        for (let i = 0; i < teachersForThisCell && teacherIndex < shuffledTeachers.length; i++) {
-          newAssignments.push({
-            teacherId: shuffledTeachers[teacherIndex].id,
-            day,
-            location,
-          });
-          teacherIndex++;
-        }
+    
+    // Round-robin: assign one teacher to each cell, cycling through teachers
+    // This ensures each teacher gets roughly equal assignments
+    shuffledCells.forEach((cell, index) => {
+      // Use modulo to cycle through teachers evenly
+      const teacherIndex = index % shuffledTeachers.length;
+      newAssignments.push({
+        teacherId: shuffledTeachers[teacherIndex].id,
+        day: cell.day,
+        location: cell.location,
       });
     });
 
