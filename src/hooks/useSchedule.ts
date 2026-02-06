@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { Teacher, DutyAssignment, SchoolPeriod, getPeriodKey, getCurrentPeriod } from "@/types/schedule";
+import { Teacher, DutyAssignment, SchoolPeriod, getPeriodKey, getCurrentPeriod, DAYS, LOCATIONS } from "@/types/schedule";
 
 const STORAGE_PREFIX = "teacher-schedule-";
 const CURRENT_PERIOD_KEY = "teacher-schedule-current-period";
@@ -201,6 +201,41 @@ export function useSchedule() {
     [assignments, teachers]
   );
 
+  const autoArrangeTeachers = useCallback(() => {
+    if (teachers.length === 0) return;
+
+    // Calculate total cells and how many teachers each cell should have
+    const totalCells = DAYS.length * LOCATIONS.length; // 5 days * 4 locations = 20 cells
+    const teachersPerCell = Math.max(1, Math.floor(teachers.length / totalCells));
+    const extraTeachers = teachers.length % totalCells;
+
+    // Create a shuffled copy of teachers for random distribution
+    const shuffledTeachers = [...teachers].sort(() => Math.random() - 0.5);
+    
+    const newAssignments: DutyAssignment[] = [];
+    let teacherIndex = 0;
+
+    // Distribute teachers evenly across all cells
+    DAYS.forEach((day, dayIndex) => {
+      LOCATIONS.forEach((location, locationIndex) => {
+        const cellIndex = dayIndex * LOCATIONS.length + locationIndex;
+        // Some cells get an extra teacher if we have remainder
+        const teachersForThisCell = teachersPerCell + (cellIndex < extraTeachers ? 1 : 0);
+        
+        for (let i = 0; i < teachersForThisCell && teacherIndex < shuffledTeachers.length; i++) {
+          newAssignments.push({
+            teacherId: shuffledTeachers[teacherIndex].id,
+            day,
+            location,
+          });
+          teacherIndex++;
+        }
+      });
+    });
+
+    setAssignments(newAssignments);
+  }, [teachers]);
+
   return {
     teachers,
     assignments,
@@ -214,5 +249,6 @@ export function useSchedule() {
     unassignTeacher,
     moveTeacher,
     getAssignmentsForCell,
+    autoArrangeTeachers,
   };
 }
