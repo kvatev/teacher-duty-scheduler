@@ -10,15 +10,15 @@ interface ScheduleCellProps {
   location: string;
   teachers: Teacher[];
   counts: Record<string, number>;
-  onAssign: (teacherId: string, day: string, location: string) => boolean;
-  onUnassign: (teacherId: string, day: string, location: string) => void;
+  onAssign: (teacherId: string, day: string, location: string) => boolean | Promise<boolean>;
+  onUnassign: (teacherId: string, day: string, location: string) => void | Promise<void>;
   onMove: (
     teacherId: string,
     fromDay: string,
     fromLocation: string,
     toDay: string,
     toLocation: string
-  ) => void;
+  ) => void | Promise<void>;
 }
 
 export function ScheduleCell({
@@ -56,7 +56,7 @@ export function ScheduleCell({
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     if (!isAdmin) return;
     e.preventDefault();
     setIsDragOver(false);
@@ -74,7 +74,7 @@ export function ScheduleCell({
     }
 
     if (source === "list") {
-      const success = onAssign(teacherId, day, location);
+      const success = await onAssign(teacherId, day, location);
       if (!success) {
         toast.error("Този учител вече е в тази клетка!");
       }
@@ -83,7 +83,7 @@ export function ScheduleCell({
       const fromLocation = e.dataTransfer.getData("fromLocation");
       if (fromDay && fromLocation) {
         if (fromDay !== day || fromLocation !== location) {
-          onMove(teacherId, fromDay, fromLocation, day, location);
+          await onMove(teacherId, fromDay, fromLocation, day, location);
         }
       }
     }
