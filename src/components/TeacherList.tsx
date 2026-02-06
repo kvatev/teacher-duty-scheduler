@@ -17,9 +17,9 @@ import {
 interface TeacherListProps {
   teachers: Teacher[];
   counts: Record<string, number>;
-  onAddTeacher: (name: string) => boolean;
-  onRemoveTeacher: (id: string) => void;
-  onAutoArrange?: () => void;
+  onAddTeacher: (name: string) => boolean | Promise<boolean>;
+  onRemoveTeacher: (id: string) => void | Promise<void>;
+  onAutoArrange?: () => void | Promise<void>;
 }
 
 export function TeacherList({
@@ -33,18 +33,18 @@ export function TeacherList({
   const [newTeacherName, setNewTeacherName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleAutoArrange = () => {
+  const handleAutoArrange = async () => {
     if (teachers.length === 0) {
       toast.error("Няма учители за разпределяне!");
       return;
     }
-    onAutoArrange?.();
+    await onAutoArrange?.();
     toast.success("Учителите са разпределени равномерно!");
   };
 
-  const handleAddTeacher = () => {
+  const handleAddTeacher = async () => {
     if (newTeacherName.trim()) {
-      const success = onAddTeacher(newTeacherName.trim());
+      const success = await onAddTeacher(newTeacherName.trim());
       if (success) {
         setNewTeacherName("");
         setIsDialogOpen(false);

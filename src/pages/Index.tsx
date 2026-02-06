@@ -4,7 +4,7 @@ import { TeacherList } from "@/components/TeacherList";
 import { ScheduleTable } from "@/components/ScheduleTable";
 import { Legend } from "@/components/Legend";
 import { PeriodSelector } from "@/components/PeriodSelector";
-import { useSchedule } from "@/hooks/useSchedule";
+import { useScheduleDB } from "@/hooks/useScheduleDB";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
@@ -21,7 +21,7 @@ const Index = () => {
     moveTeacher,
     getAssignmentsForCell,
     autoArrangeTeachers,
-  } = useSchedule();
+  } = useScheduleDB();
 
   const { isAdmin } = useAuth();
 

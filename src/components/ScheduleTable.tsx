@@ -11,15 +11,15 @@ import jsPDF from "jspdf";
 interface ScheduleTableProps {
   getAssignmentsForCell: (day: string, location: string) => Teacher[];
   counts: Record<string, number>;
-  onAssign: (teacherId: string, day: string, location: string) => boolean;
-  onUnassign: (teacherId: string, day: string, location: string) => void;
+  onAssign: (teacherId: string, day: string, location: string) => boolean | Promise<boolean>;
+  onUnassign: (teacherId: string, day: string, location: string) => void | Promise<void>;
   onMove: (
     teacherId: string,
     fromDay: string,
     fromLocation: string,
     toDay: string,
     toLocation: string
-  ) => void;
+  ) => void | Promise<void>;
   currentPeriod: SchoolPeriod;
 }
 
