@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { Teacher, DutyAssignment, DAYS, LOCATIONS } from "@/types/schedule";
+import { Teacher, DutyAssignment } from "@/types/schedule";
 
 const STORAGE_KEY = "teacher-schedule";
 
@@ -89,18 +89,25 @@ export function useSchedule() {
     });
   }, [assignments]);
 
-  const assignTeacher = useCallback((teacherId: string, day: string, location: string) => {
+  // Returns true if assignment was successful, false if duplicate
+  const assignTeacher = useCallback((teacherId: string, day: string, location: string): boolean => {
+    let success = false;
     setAssignments((prev) => {
-      // Check if already assigned to this cell
+      // Check if already assigned to this cell - prevent duplicates
       const exists = prev.some(
         (a) => a.teacherId === teacherId && a.day === day && a.location === location
       );
-      if (exists) return prev;
+      if (exists) {
+        success = false;
+        return prev;
+      }
 
+      success = true;
       const updated = [...prev, { teacherId, day, location }];
       saveToStorage(teachers, updated);
       return updated;
     });
+    return success;
   }, [teachers]);
 
   const unassignTeacher = useCallback((teacherId: string, day: string, location: string) => {
@@ -116,18 +123,19 @@ export function useSchedule() {
   const moveTeacher = useCallback(
     (teacherId: string, fromDay: string, fromLocation: string, toDay: string, toLocation: string) => {
       setAssignments((prev) => {
+        // Check if already exists at destination - prevent duplicates
+        const existsAtDest = prev.some(
+          (a) => a.teacherId === teacherId && a.day === toDay && a.location === toLocation
+        );
+        if (existsAtDest) {
+          return prev;
+        }
+
         // Remove from old position
         const filtered = prev.filter(
           (a) => !(a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation)
         );
-        // Check if already exists at destination
-        const existsAtDest = filtered.some(
-          (a) => a.teacherId === teacherId && a.day === toDay && a.location === toLocation
-        );
-        if (existsAtDest) {
-          saveToStorage(teachers, filtered);
-          return filtered;
-        }
+        
         // Add to new position
         const updated = [...filtered, { teacherId, day: toDay, location: toLocation }];
         saveToStorage(teachers, updated);

@@ -3,13 +3,14 @@ import { Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ScheduleCellProps {
   day: string;
   location: string;
   teachers: Teacher[];
   counts: Record<string, number>;
-  onAssign: (teacherId: string, day: string, location: string) => void;
+  onAssign: (teacherId: string, day: string, location: string) => boolean;
   onUnassign: (teacherId: string, day: string, location: string) => void;
   onMove: (
     teacherId: string,
@@ -36,11 +37,23 @@ export function ScheduleCell({
     if (!isAdmin) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    if (!isAdmin) return;
+    e.preventDefault();
     setIsDragOver(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragOver(false);
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!isAdmin) return;
+    // Only set to false if we're leaving the cell entirely
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setIsDragOver(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -53,9 +66,19 @@ export function ScheduleCell({
 
     if (!teacherId) return;
 
+    // Check if teacher is already in this cell
+    const alreadyInCell = teachers.some(t => t.id === teacherId);
+    if (alreadyInCell) {
+      toast.error("Този учител вече е в тази клетка!");
+      return;
+    }
+
     if (source === "list") {
-      onAssign(teacherId, day, location);
-    } else {
+      const success = onAssign(teacherId, day, location);
+      if (!success) {
+        toast.error("Този учител вече е в тази клетка!");
+      }
+    } else if (source === "cell") {
       const fromDay = e.dataTransfer.getData("fromDay");
       const fromLocation = e.dataTransfer.getData("fromLocation");
       if (fromDay && fromLocation) {
@@ -77,11 +100,12 @@ export function ScheduleCell({
   return (
     <div
       className={cn(
-        "drop-zone min-h-[80px]",
-        isAdmin && "drop-zone-active",
-        isDragOver && "drop-zone-over"
+        "drop-zone min-h-[80px] transition-all duration-200",
+        isAdmin && "border-2 border-dashed border-muted-foreground/30",
+        isDragOver && isAdmin && "border-primary bg-primary/10 scale-[1.02]"
       )}
       onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
