@@ -86,8 +86,9 @@ const Index = () => {
         </div>
 
         {/* Footer note */}
-        <footer className="mt-8 text-center text-sm text-muted-foreground">
+        <footer className="mt-8 text-center text-sm text-muted-foreground space-y-1">
           <p>*Забележка: 1 - дежури от 07:30-08:00 ч.; 2 - дежури от 08:00 до 08:40</p>
+          <p className="text-xs">Администратор на приложението е Красимир Ватев</p>
         </footer>
       </main>
     </div>
