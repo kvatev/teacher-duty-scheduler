@@ -20,6 +20,7 @@ const Index = () => {
     unassignTeacher,
     moveTeacher,
     getAssignmentsForCell,
+    autoArrangeTeachers,
   } = useSchedule();
 
   const { isAdmin } = useAuth();
@@ -60,6 +61,7 @@ const Index = () => {
                 counts={teacherAssignmentCounts}
                 onAddTeacher={addTeacher}
                 onRemoveTeacher={removeTeacher}
+                onAutoArrange={autoArrangeTeachers}
               />
             </div>
           </aside>

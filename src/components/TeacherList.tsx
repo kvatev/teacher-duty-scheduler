@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Users, GripVertical } from "lucide-react";
+import { Plus, Users, Shuffle } from "lucide-react";
 import { Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +19,7 @@ interface TeacherListProps {
   counts: Record<string, number>;
   onAddTeacher: (name: string) => boolean;
   onRemoveTeacher: (id: string) => void;
+  onAutoArrange?: () => void;
 }
 
 export function TeacherList({
@@ -26,10 +27,20 @@ export function TeacherList({
   counts,
   onAddTeacher,
   onRemoveTeacher,
+  onAutoArrange,
 }: TeacherListProps) {
   const { isAdmin } = useAuth();
   const [newTeacherName, setNewTeacherName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleAutoArrange = () => {
+    if (teachers.length === 0) {
+      toast.error("Няма учители за разпределяне!");
+      return;
+    }
+    onAutoArrange?.();
+    toast.success("Учителите са разпределени равномерно!");
+  };
 
   const handleAddTeacher = () => {
     if (newTeacherName.trim()) {
@@ -85,7 +96,15 @@ export function TeacherList({
       </div>
 
       {isAdmin && (
-        <div className="p-3 border-t">
+        <div className="p-3 border-t space-y-2">
+          <Button 
+            variant="default" 
+            className="w-full gap-2"
+            onClick={handleAutoArrange}
+          >
+            <Shuffle className="w-4 h-4" />
+            Автоматично разпределение
+          </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full gap-2">
