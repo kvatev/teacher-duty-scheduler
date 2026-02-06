@@ -39,9 +39,11 @@ export function TeacherList({
   };
 
   const handleDragStart = (e: React.DragEvent, teacher: Teacher) => {
+    // Important: if effectAllowed is "copy" but dropEffect is "move",
+    // many browsers will block the drop entirely.
     e.dataTransfer.setData("teacherId", teacher.id);
     e.dataTransfer.setData("source", "list");
-    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const sortedTeachers = [...teachers].sort((a, b) => 
