@@ -1,7 +1,8 @@
-import { useState, useCallback, useMemo } from "react";
-import { Teacher, DutyAssignment } from "@/types/schedule";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { Teacher, DutyAssignment, SchoolPeriod, getPeriodKey, getCurrentPeriod } from "@/types/schedule";
 
-const STORAGE_KEY = "teacher-schedule";
+const STORAGE_PREFIX = "teacher-schedule-";
+const CURRENT_PERIOD_KEY = "teacher-schedule-current-period";
 
 const initialTeachers: Teacher[] = [
   { id: "1", name: "Десислава Димитрова" },
@@ -29,11 +30,24 @@ const initialAssignments: DutyAssignment[] = [
   { teacherId: "11", day: "Понеделник", location: "Главен дежурен – западен вход 07:30-08:40 ч." },
 ];
 
-function loadFromStorage(): { teachers: Teacher[]; assignments: DutyAssignment[] } {
+function loadPeriodFromStorage(period: SchoolPeriod): { teachers: Teacher[]; assignments: DutyAssignment[] } {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const key = STORAGE_PREFIX + getPeriodKey(period);
+    const stored = localStorage.getItem(key);
     if (stored) {
       return JSON.parse(stored);
+    }
+    
+    // Check for legacy data (old single-period storage)
+    const legacyKey = "teacher-schedule";
+    const legacyData = localStorage.getItem(legacyKey);
+    if (legacyData) {
+      // Migrate legacy data to current period
+      const parsed = JSON.parse(legacyData);
+      savePeriodToStorage(period, parsed.teachers, parsed.assignments);
+      // Remove legacy key after migration
+      localStorage.removeItem(legacyKey);
+      return parsed;
     }
   } catch (e) {
     console.error("Error loading from storage:", e);
@@ -41,18 +55,61 @@ function loadFromStorage(): { teachers: Teacher[]; assignments: DutyAssignment[]
   return { teachers: initialTeachers, assignments: initialAssignments };
 }
 
-function saveToStorage(teachers: Teacher[], assignments: DutyAssignment[]) {
+function savePeriodToStorage(period: SchoolPeriod, teachers: Teacher[], assignments: DutyAssignment[]) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ teachers, assignments }));
+    const key = STORAGE_PREFIX + getPeriodKey(period);
+    localStorage.setItem(key, JSON.stringify({ teachers, assignments }));
   } catch (e) {
     console.error("Error saving to storage:", e);
   }
 }
 
+function loadCurrentPeriod(): SchoolPeriod {
+  try {
+    const stored = localStorage.getItem(CURRENT_PERIOD_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error("Error loading current period:", e);
+  }
+  return getCurrentPeriod();
+}
+
+function saveCurrentPeriod(period: SchoolPeriod) {
+  try {
+    localStorage.setItem(CURRENT_PERIOD_KEY, JSON.stringify(period));
+  } catch (e) {
+    console.error("Error saving current period:", e);
+  }
+}
+
 export function useSchedule() {
-  const stored = loadFromStorage();
-  const [teachers, setTeachers] = useState<Teacher[]>(stored.teachers);
-  const [assignments, setAssignments] = useState<DutyAssignment[]>(stored.assignments);
+  const [currentPeriod, setCurrentPeriod] = useState<SchoolPeriod>(loadCurrentPeriod);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [assignments, setAssignments] = useState<DutyAssignment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load data when period changes
+  useEffect(() => {
+    setIsLoading(true);
+    const data = loadPeriodFromStorage(currentPeriod);
+    setTeachers(data.teachers);
+    setAssignments(data.assignments);
+    setIsLoading(false);
+  }, [currentPeriod]);
+
+  // Save to storage whenever teachers or assignments change
+  useEffect(() => {
+    if (!isLoading) {
+      savePeriodToStorage(currentPeriod, teachers, assignments);
+    }
+  }, [teachers, assignments, currentPeriod, isLoading]);
+
+  const changePeriod = useCallback((newPeriod: SchoolPeriod) => {
+    setCurrentPeriod(newPeriod);
+    saveCurrentPeriod(newPeriod);
+  }, []);
 
   const teacherAssignmentCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -72,28 +129,17 @@ export function useSchedule() {
       id: Date.now().toString(),
       name: name.trim(),
     };
-    setTeachers((prev) => {
-      const updated = [...prev, newTeacher];
-      saveToStorage(updated, assignments);
-      return updated;
-    });
-  }, [assignments]);
+    setTeachers((prev) => [...prev, newTeacher]);
+  }, []);
 
   const removeTeacher = useCallback((teacherId: string) => {
-    setTeachers((prev) => {
-      const updated = prev.filter((t) => t.id !== teacherId);
-      const updatedAssignments = assignments.filter((a) => a.teacherId !== teacherId);
-      saveToStorage(updated, updatedAssignments);
-      setAssignments(updatedAssignments);
-      return updated;
-    });
-  }, [assignments]);
+    setTeachers((prev) => prev.filter((t) => t.id !== teacherId));
+    setAssignments((prev) => prev.filter((a) => a.teacherId !== teacherId));
+  }, []);
 
-  // Returns true if assignment was successful, false if duplicate
   const assignTeacher = useCallback((teacherId: string, day: string, location: string): boolean => {
     let success = false;
     setAssignments((prev) => {
-      // Check if already assigned to this cell - prevent duplicates
       const exists = prev.some(
         (a) => a.teacherId === teacherId && a.day === day && a.location === location
       );
@@ -101,48 +147,36 @@ export function useSchedule() {
         success = false;
         return prev;
       }
-
       success = true;
-      const updated = [...prev, { teacherId, day, location }];
-      saveToStorage(teachers, updated);
-      return updated;
+      return [...prev, { teacherId, day, location }];
     });
     return success;
-  }, [teachers]);
+  }, []);
 
   const unassignTeacher = useCallback((teacherId: string, day: string, location: string) => {
-    setAssignments((prev) => {
-      const updated = prev.filter(
+    setAssignments((prev) =>
+      prev.filter(
         (a) => !(a.teacherId === teacherId && a.day === day && a.location === location)
-      );
-      saveToStorage(teachers, updated);
-      return updated;
-    });
-  }, [teachers]);
+      )
+    );
+  }, []);
 
   const moveTeacher = useCallback(
     (teacherId: string, fromDay: string, fromLocation: string, toDay: string, toLocation: string) => {
       setAssignments((prev) => {
-        // Check if already exists at destination - prevent duplicates
         const existsAtDest = prev.some(
           (a) => a.teacherId === teacherId && a.day === toDay && a.location === toLocation
         );
         if (existsAtDest) {
           return prev;
         }
-
-        // Remove from old position
         const filtered = prev.filter(
           (a) => !(a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation)
         );
-        
-        // Add to new position
-        const updated = [...filtered, { teacherId, day: toDay, location: toLocation }];
-        saveToStorage(teachers, updated);
-        return updated;
+        return [...filtered, { teacherId, day: toDay, location: toLocation }];
       });
     },
-    [teachers]
+    []
   );
 
   const getAssignmentsForCell = useCallback(
@@ -159,6 +193,9 @@ export function useSchedule() {
     teachers,
     assignments,
     teacherAssignmentCounts,
+    currentPeriod,
+    isLoading,
+    changePeriod,
     addTeacher,
     removeTeacher,
     assignTeacher,
