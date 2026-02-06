@@ -52,9 +52,6 @@ export function Header() {
               <p className="text-sm opacity-90 truncate">
                 СУ "Константин Петканов", град Бургас
               </p>
-              <p className="text-xs opacity-75 hidden sm:block">
-                II учебен срок, 2025/2026 учебна година
-              </p>
             </div>
           </div>
 
