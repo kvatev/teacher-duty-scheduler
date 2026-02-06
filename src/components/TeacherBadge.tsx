@@ -63,7 +63,7 @@ export function TeacherBadge({
       {canDrag && (
         <GripVertical className="w-3 h-3 opacity-50 flex-shrink-0" />
       )}
-      <span className="truncate max-w-[120px]">{name}</span>
+      <span className="truncate max-w-[150px]">{name}</span>
       <span className="flex items-center justify-center min-w-[20px] h-5 rounded-full bg-white/50 text-xs font-bold px-1">
         {count}
       </span>
