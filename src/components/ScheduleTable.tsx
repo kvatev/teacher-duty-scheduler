@@ -1,7 +1,8 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Download } from "lucide-react";
-import { DAYS, LOCATIONS, Teacher } from "@/types/schedule";
+import { DAYS, LOCATIONS, Teacher, SchoolPeriod } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
+import { PrintableSchedule } from "./PrintableSchedule";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
@@ -19,6 +20,7 @@ interface ScheduleTableProps {
     toDay: string,
     toLocation: string
   ) => void;
+  currentPeriod: SchoolPeriod;
 }
 
 export function ScheduleTable({
@@ -27,22 +29,34 @@ export function ScheduleTable({
   onAssign,
   onUnassign,
   onMove,
+  currentPeriod,
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
+  const printableRef = useRef<HTMLDivElement>(null);
 
   const handleExportPDF = async () => {
-    if (!tableRef.current) return;
+    if (!printableRef.current) return;
 
     try {
       toast.loading("Генериране на PDF...", { id: "pdf-export" });
 
-      const canvas = await html2canvas(tableRef.current, {
-        scale: 3,
+      // Temporarily make the printable element visible
+      const printableElement = printableRef.current;
+      printableElement.style.position = "absolute";
+      printableElement.style.left = "-9999px";
+      printableElement.style.top = "0";
+      printableElement.style.display = "block";
+
+      const canvas = await html2canvas(printableElement, {
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
-        windowWidth: tableRef.current.scrollWidth,
+        width: 1200,
       });
+
+      // Hide it again
+      printableElement.style.display = "none";
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
@@ -56,8 +70,7 @@ export function ScheduleTable({
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
       
-      // Calculate ratio to fit the image with some margin
-      const margin = 10;
+      const margin = 5;
       const availableWidth = pdfWidth - (margin * 2);
       const availableHeight = pdfHeight - (margin * 2);
       const ratio = Math.min(availableWidth / imgWidth, availableHeight / imgHeight);
@@ -67,7 +80,8 @@ export function ScheduleTable({
 
       pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
 
-      pdf.save("grafik-dezhurstva.pdf");
+      const fileName = `grafik-${currentPeriod.year.replace("/", "-")}-srok-${currentPeriod.term}.pdf`;
+      pdf.save(fileName);
       toast.success("PDF файлът е изтеглен успешно!", { id: "pdf-export" });
     } catch (error) {
       console.error("Error exporting PDF:", error);
@@ -129,6 +143,15 @@ export function ScheduleTable({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Hidden printable version for PDF export */}
+      <div style={{ display: "none" }}>
+        <PrintableSchedule
+          ref={printableRef}
+          getAssignmentsForCell={getAssignmentsForCell}
+          currentPeriod={currentPeriod}
+        />
       </div>
     </div>
   );

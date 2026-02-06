@@ -72,6 +72,7 @@ const Index = () => {
               onAssign={assignTeacher}
               onUnassign={unassignTeacher}
               onMove={moveTeacher}
+              currentPeriod={currentPeriod}
             />
             
             {isAdmin && (
