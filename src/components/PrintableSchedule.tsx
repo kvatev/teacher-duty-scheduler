@@ -9,6 +9,10 @@ interface PrintableScheduleProps {
 
 export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableScheduleProps>(
   ({ getAssignmentsForCell, currentPeriod }, ref) => {
+    if (!currentPeriod) {
+      return null;
+    }
+    
     const termText = currentPeriod.term === 1 ? "I учебен срок" : "II учебен срок";
     const yearText = `${currentPeriod.year} учебна година`;
 
