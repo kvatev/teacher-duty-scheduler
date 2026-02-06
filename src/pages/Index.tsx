@@ -51,10 +51,10 @@ const Index = () => {
         </div>
 
         {/* Main content */}
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Teacher list sidebar */}
           <aside className="w-full lg:w-64 xl:w-72 flex-shrink-0">
-            <div className="lg:sticky lg:top-6">
+            <div className="lg:sticky lg:top-6 pt-[52px]">
               <TeacherList
                 teachers={teachers}
                 counts={teacherAssignmentCounts}
