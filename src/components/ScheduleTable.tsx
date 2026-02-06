@@ -35,28 +35,22 @@ export function ScheduleTable({
   const printableRef = useRef<HTMLDivElement>(null);
 
   const handleExportPDF = async () => {
-    if (!printableRef.current) return;
+    if (!printableRef.current) {
+      toast.error("Грешка: Не може да се генерира PDF", { id: "pdf-export" });
+      return;
+    }
 
     try {
       toast.loading("Генериране на PDF...", { id: "pdf-export" });
 
-      // Temporarily make the printable element visible
       const printableElement = printableRef.current;
-      printableElement.style.position = "absolute";
-      printableElement.style.left = "-9999px";
-      printableElement.style.top = "0";
-      printableElement.style.display = "block";
-
+      
       const canvas = await html2canvas(printableElement, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
-        width: 1200,
       });
-
-      // Hide it again
-      printableElement.style.display = "none";
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
@@ -145,8 +139,16 @@ export function ScheduleTable({
         </div>
       </div>
 
-      {/* Hidden printable version for PDF export */}
-      <div style={{ display: "none" }}>
+      {/* Hidden printable version for PDF export - positioned off-screen but rendered */}
+      <div 
+        style={{ 
+          position: "absolute", 
+          left: "-9999px", 
+          top: 0,
+          visibility: "hidden",
+          pointerEvents: "none"
+        }}
+      >
         <PrintableSchedule
           ref={printableRef}
           getAssignmentsForCell={getAssignmentsForCell}
