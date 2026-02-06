@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 import { DAYS, LOCATIONS, Teacher, SchoolPeriod } from "@/types/schedule";
-import logoImage from "@/assets/su-konstantin-petkanov-logo.png";
+import logoImage from "@/assets/su-konstantin-petkanов-logo.png";
 
 interface PrintableScheduleProps {
   getAssignmentsForCell: (day: string, location: string) => Teacher[];
