@@ -124,13 +124,25 @@ export function useSchedule() {
     return counts;
   }, [teachers, assignments]);
 
-  const addTeacher = useCallback((name: string) => {
+  const addTeacher = useCallback((name: string): boolean => {
+    const trimmedName = name.trim();
+    
+    // Check if teacher with same name already exists (case-insensitive)
+    const exists = teachers.some(
+      (t) => t.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (exists) {
+      return false;
+    }
+    
     const newTeacher: Teacher = {
       id: Date.now().toString(),
-      name: name.trim(),
+      name: trimmedName,
     };
     setTeachers((prev) => [...prev, newTeacher]);
-  }, []);
+    return true;
+  }, [teachers]);
 
   const removeTeacher = useCallback((teacherId: string) => {
     setTeachers((prev) => prev.filter((t) => t.id !== teacherId));
