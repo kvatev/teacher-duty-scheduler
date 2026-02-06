@@ -37,10 +37,11 @@ export function ScheduleTable({
       toast.loading("Генериране на PDF...", { id: "pdf-export" });
 
       const canvas = await html2canvas(tableRef.current, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        windowWidth: tableRef.current.scrollWidth,
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -54,24 +55,17 @@ export function ScheduleTable({
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      
+      // Calculate ratio to fit the image with some margin
+      const margin = 10;
+      const availableWidth = pdfWidth - (margin * 2);
+      const availableHeight = pdfHeight - (margin * 2);
+      const ratio = Math.min(availableWidth / imgWidth, availableHeight / imgHeight);
+      
       const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
+      const imgY = margin;
 
-      // Add title
-      pdf.setFontSize(16);
-      pdf.text("График за дежурство на учители", pdfWidth / 2, 8, { align: "center" });
-
-      pdf.addImage(imgData, "PNG", imgX, imgY + 5, imgWidth * ratio, imgHeight * ratio);
-
-      // Add footer
-      pdf.setFontSize(10);
-      pdf.text(
-        "*Забележка: 1 - дежури от 07:30-08:00 ч.; 2 - дежури от 08:00 до 08:40",
-        pdfWidth / 2,
-        pdfHeight - 5,
-        { align: "center" }
-      );
+      pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
 
       pdf.save("grafik-dezhurstva.pdf");
       toast.success("PDF файлът е изтеглен успешно!", { id: "pdf-export" });
