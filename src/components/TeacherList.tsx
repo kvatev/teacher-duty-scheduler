@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, GripVertical } from "lucide-react";
 import { Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,18 +60,19 @@ export function TeacherList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin max-h-[60vh]">
         {sortedTeachers.map((teacher) => (
-          <TeacherBadge
-            key={teacher.id}
-            id={teacher.id}
-            name={teacher.name}
-            count={counts[teacher.id] || 0}
-            draggable={isAdmin}
-            onDragStart={(e) => handleDragStart(e, teacher)}
-            showRemove={isAdmin}
-            onRemove={() => onRemoveTeacher(teacher.id)}
-          />
+          <div key={teacher.id} className="flex items-center">
+            <TeacherBadge
+              id={teacher.id}
+              name={teacher.name}
+              count={counts[teacher.id] || 0}
+              draggable={isAdmin}
+              onDragStart={(e) => handleDragStart(e, teacher)}
+              showRemove={isAdmin}
+              onRemove={() => onRemoveTeacher(teacher.id)}
+            />
+          </div>
         ))}
       </div>
 
