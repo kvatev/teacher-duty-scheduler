@@ -14,19 +14,19 @@ export function Legend() {
           <span className="text-muted-foreground">0 места</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-emerald-100 border border-emerald-300" />
+          <div className="w-4 h-4 rounded bg-emerald-500 border border-emerald-600" />
           <span>1 място</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-amber-100 border border-amber-300" />
+          <div className="w-4 h-4 rounded bg-blue-500 border border-blue-600" />
           <span>2 места</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-orange-100 border border-orange-300" />
+          <div className="w-4 h-4 rounded bg-orange-500 border border-orange-600" />
           <span>3 места</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-red-100 border border-red-300" />
+          <div className="w-4 h-4 rounded bg-red-500 border border-red-600" />
           <span>4+ места</span>
         </div>
       </div>

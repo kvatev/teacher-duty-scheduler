@@ -129,19 +129,19 @@
   }
 
   .teacher-badge-count-1 {
-    @apply bg-emerald-100 text-emerald-800 border border-emerald-300;
+    @apply bg-emerald-500 text-white border border-emerald-600;
   }
 
   .teacher-badge-count-2 {
-    @apply bg-amber-100 text-amber-800 border border-amber-300;
+    @apply bg-blue-500 text-white border border-blue-600;
   }
 
   .teacher-badge-count-3 {
-    @apply bg-orange-100 text-orange-800 border border-orange-300;
+    @apply bg-orange-500 text-white border border-orange-600;
   }
 
   .teacher-badge-count-4 {
-    @apply bg-red-100 text-red-800 border border-red-300;
+    @apply bg-red-500 text-white border border-red-600;
   }
 
   .drop-zone {
