@@ -5,6 +5,7 @@ import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,7 @@ import {
 interface TeacherListProps {
   teachers: Teacher[];
   counts: Record<string, number>;
-  onAddTeacher: (name: string) => void;
+  onAddTeacher: (name: string) => boolean;
   onRemoveTeacher: (id: string) => void;
 }
 
@@ -32,9 +33,14 @@ export function TeacherList({
 
   const handleAddTeacher = () => {
     if (newTeacherName.trim()) {
-      onAddTeacher(newTeacherName.trim());
-      setNewTeacherName("");
-      setIsDialogOpen(false);
+      const success = onAddTeacher(newTeacherName.trim());
+      if (success) {
+        setNewTeacherName("");
+        setIsDialogOpen(false);
+        toast.success("Учителят е добавен успешно!");
+      } else {
+        toast.error("Учител с това име вече съществува!");
+      }
     }
   };
 
