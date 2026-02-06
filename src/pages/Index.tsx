@@ -1,12 +1,72 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React from "react";
+import { Header } from "@/components/Header";
+import { TeacherList } from "@/components/TeacherList";
+import { ScheduleTable } from "@/components/ScheduleTable";
+import { Legend } from "@/components/Legend";
+import { useSchedule } from "@/hooks/useSchedule";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const {
+    teachers,
+    teacherAssignmentCounts,
+    addTeacher,
+    removeTeacher,
+    assignTeacher,
+    unassignTeacher,
+    moveTeacher,
+    getAssignmentsForCell,
+  } = useSchedule();
+
+  const { isAdmin } = useAuth();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <main className="container mx-auto px-4 py-6">
+        {/* Legend */}
+        <div className="mb-6">
+          <Legend />
+        </div>
+
+        {/* Main content */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Teacher list sidebar */}
+          <aside className="w-full lg:w-64 xl:w-72 flex-shrink-0">
+            <div className="lg:sticky lg:top-6">
+              <TeacherList
+                teachers={teachers}
+                counts={teacherAssignmentCounts}
+                onAddTeacher={addTeacher}
+                onRemoveTeacher={removeTeacher}
+              />
+            </div>
+          </aside>
+
+          {/* Schedule table */}
+          <section className="flex-1 min-w-0">
+            <ScheduleTable
+              getAssignmentsForCell={getAssignmentsForCell}
+              counts={teacherAssignmentCounts}
+              onAssign={assignTeacher}
+              onUnassign={unassignTeacher}
+              onMove={moveTeacher}
+            />
+            
+            {isAdmin && (
+              <p className="mt-4 text-sm text-muted-foreground text-center">
+                💡 Съвет: Провлачете учител от списъка вляво в желаната клетка, или преместете между клетки
+              </p>
+            )}
+          </section>
+        </div>
+
+        {/* Footer note */}
+        <footer className="mt-8 text-center text-sm text-muted-foreground">
+          <p>*Забележка: 1 - дежури от 07:30-08:00 ч.; 2 - дежури от 08:00 до 08:40</p>
+        </footer>
+      </main>
     </div>
   );
 };
