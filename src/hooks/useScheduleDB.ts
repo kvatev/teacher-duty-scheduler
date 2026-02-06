@@ -266,31 +266,54 @@ export function useScheduleDB() {
   const autoArrangeTeachers = useCallback(async () => {
     if (!periodId || teachers.length === 0) return;
 
-    // Create all cell combinations
-    const allCells: { day: string; location: string }[] = [];
+    // Define teachers per location
+    const getTeachersPerLocation = (location: string): number => {
+      if (location.includes("III-ти етаж") || location.includes("IV-ти етаж")) {
+        return 4;
+      }
+      // "Училищен стол" and "Главен дежурен" get 3 teachers
+      return 3;
+    };
+
+    // Create all cell combinations with required teacher count
+    const allSlots: { day: string; location: string }[] = [];
     DAYS.forEach((day) => {
       LOCATIONS.forEach((location) => {
-        allCells.push({ day, location });
+        const count = getTeachersPerLocation(location);
+        for (let i = 0; i < count; i++) {
+          allSlots.push({ day, location });
+        }
       });
     });
 
-    // Shuffle cells for random distribution
-    const shuffledCells = [...allCells].sort(() => Math.random() - 0.5);
+    // Shuffle slots for random distribution
+    const shuffledSlots = [...allSlots].sort(() => Math.random() - 0.5);
     
     // Create a shuffled list of teachers
     const shuffledTeachers = [...teachers].sort(() => Math.random() - 0.5);
     
     const newAssignments: { period_id: string; teacher_id: string; day: string; location: string }[] = [];
+    const assignedPairs = new Set<string>(); // Track teacher-day-location combos
     
-    // Round-robin: assign one teacher to each cell
-    shuffledCells.forEach((cell, index) => {
-      const teacherIndex = index % shuffledTeachers.length;
-      newAssignments.push({
-        period_id: periodId,
-        teacher_id: shuffledTeachers[teacherIndex].id,
-        day: cell.day,
-        location: cell.location,
-      });
+    // Round-robin: assign teachers to slots, avoiding duplicates in same cell
+    shuffledSlots.forEach((slot, index) => {
+      // Try to find a teacher not already in this cell
+      for (let attempt = 0; attempt < shuffledTeachers.length; attempt++) {
+        const teacherIndex = (index + attempt) % shuffledTeachers.length;
+        const teacher = shuffledTeachers[teacherIndex];
+        const pairKey = `${teacher.id}-${slot.day}-${slot.location}`;
+        
+        if (!assignedPairs.has(pairKey)) {
+          assignedPairs.add(pairKey);
+          newAssignments.push({
+            period_id: periodId,
+            teacher_id: teacher.id,
+            day: slot.day,
+            location: slot.location,
+          });
+          break;
+        }
+      }
     });
 
     // Delete all existing assignments for this period
