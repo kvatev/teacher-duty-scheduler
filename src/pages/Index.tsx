@@ -63,18 +63,16 @@ const Index = () => {
         </div>
 
         {/* Main content */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
-          {/* Teacher list sidebar - responsive width based on available space */}
+        <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+          {/* Teacher list sidebar - matches schedule table height */}
           <aside className="w-full lg:w-[20%] lg:min-w-[240px] lg:max-w-[320px] flex-shrink-0">
-            <div className="lg:sticky lg:top-6 pt-[52px]">
-              <TeacherList
-                teachers={teachers}
-                counts={teacherAssignmentCounts}
-                onAddTeacher={addTeacher}
-                onRemoveTeacher={removeTeacher}
-                onAutoArrange={autoArrangeTeachers}
-              />
-            </div>
+            <TeacherList
+              teachers={teachers}
+              counts={teacherAssignmentCounts}
+              onAddTeacher={addTeacher}
+              onRemoveTeacher={removeTeacher}
+              onAutoArrange={autoArrangeTeachers}
+            />
           </aside>
 
           {/* Schedule table */}
