@@ -68,7 +68,7 @@ export function TeacherList({
   );
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm h-full flex flex-col">
+    <div className="bg-card rounded-lg border shadow-sm h-full flex flex-col min-h-[400px]">
       <div className="p-4 border-b bg-table-header rounded-t-lg">
         <div className="flex items-center gap-2 text-table-header-foreground">
           <Users className="w-5 h-5" />
@@ -79,7 +79,7 @@ export function TeacherList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin max-h-[60vh]">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin">
         {sortedTeachers.map((teacher) => (
           <div key={teacher.id} className="flex items-center">
             <TeacherBadge
