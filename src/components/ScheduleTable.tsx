@@ -1,9 +1,7 @@
-import React, { useRef, useState } from "react";
-import { Download } from "lucide-react";
+import React, { useRef, useEffect } from "react";
 import { DAYS, LOCATIONS, Teacher, SchoolPeriod } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -21,6 +19,7 @@ interface ScheduleTableProps {
     toLocation: string
   ) => void | Promise<void>;
   currentPeriod: SchoolPeriod;
+  onExportReady?: (exportFn: () => Promise<void>) => void;
 }
 
 export function ScheduleTable({
@@ -30,6 +29,7 @@ export function ScheduleTable({
   onUnassign,
   onMove,
   currentPeriod,
+  onExportReady,
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
@@ -83,15 +83,15 @@ export function ScheduleTable({
     }
   };
 
+  // Expose export function to parent
+  useEffect(() => {
+    if (onExportReady) {
+      onExportReady(handleExportPDF);
+    }
+  }, [onExportReady, currentPeriod]);
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={handleExportPDF} variant="outline" className="gap-2">
-          <Download className="w-4 h-4" />
-          Изтегли като PDF
-        </Button>
-      </div>
-
       <div ref={tableRef} className="bg-card rounded-lg border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full schedule-table border-collapse">

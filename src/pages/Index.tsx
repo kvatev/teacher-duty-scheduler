@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { TeacherList } from "@/components/TeacherList";
 import { ScheduleTable } from "@/components/ScheduleTable";
@@ -24,6 +24,17 @@ const Index = () => {
   } = useScheduleDB();
 
   const { isAdmin } = useAuth();
+  const [exportPDFFn, setExportPDFFn] = useState<(() => Promise<void>) | null>(null);
+
+  const handleExportReady = useCallback((fn: () => Promise<void>) => {
+    setExportPDFFn(() => fn);
+  }, []);
+
+  const handleExportPDF = useCallback(() => {
+    if (exportPDFFn) {
+      exportPDFFn();
+    }
+  }, [exportPDFFn]);
 
   if (isLoading) {
     return (
@@ -46,15 +57,15 @@ const Index = () => {
           />
         </div>
 
-        {/* Legend */}
+        {/* Legend with PDF export */}
         <div className="mb-6">
-          <Legend />
+          <Legend onExportPDF={handleExportPDF} />
         </div>
 
         {/* Main content */}
         <div className="flex flex-col lg:flex-row gap-6 items-start">
-          {/* Teacher list sidebar */}
-          <aside className="w-full lg:w-64 xl:w-72 flex-shrink-0">
+          {/* Teacher list sidebar - responsive width based on available space */}
+          <aside className="w-full lg:w-[20%] lg:min-w-[240px] lg:max-w-[320px] flex-shrink-0">
             <div className="lg:sticky lg:top-6 pt-[52px]">
               <TeacherList
                 teachers={teachers}
@@ -75,6 +86,7 @@ const Index = () => {
               onUnassign={unassignTeacher}
               onMove={moveTeacher}
               currentPeriod={currentPeriod}
+              onExportReady={handleExportReady}
             />
             
             {isAdmin && (
