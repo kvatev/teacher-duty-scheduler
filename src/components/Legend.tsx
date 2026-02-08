@@ -14,7 +14,7 @@ export function Legend({ onExportPDF }: LegendProps) {
         {/* Title */}
         <div className="flex items-center gap-2">
           <Info className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Легенда - брой назначения</span>
+          <span className="text-sm font-medium">Легенда - брой дежурства</span>
         </div>
 
         {/* Color indicators - horizontal wrap */}
