@@ -47,7 +47,7 @@ export function Header() {
             />
             <div className="min-w-0">
               <h1 className="text-xl md:text-2xl font-bold truncate">
-                График за дежурство
+                График за дежурства
               </h1>
               <p className="text-sm opacity-90 truncate">
                 СУ "Константин Петканов", град Бургас
