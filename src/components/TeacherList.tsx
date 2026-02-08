@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Plus, Users, Shuffle } from "lucide-react";
+import { Plus, Users, Shuffle, Search } from "lucide-react";
 import { Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ export function TeacherList({
   const { isAdmin } = useAuth();
   const [newTeacherName, setNewTeacherName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleAutoArrange = async () => {
     if (teachers.length === 0) {
@@ -67,33 +69,57 @@ export function TeacherList({
     a.name.localeCompare(b.name, "bg")
   );
 
+  const filteredTeachers = sortedTeachers.filter((teacher) =>
+    teacher.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="bg-card rounded-lg border shadow-sm h-full flex flex-col min-h-[400px]">
+    <div className="bg-card rounded-lg border shadow-sm flex flex-col max-h-[600px]">
       <div className="p-4 border-b bg-table-header rounded-t-lg">
         <div className="flex items-center gap-2 text-table-header-foreground">
           <Users className="w-5 h-5" />
           <h2 className="font-semibold">Учители</h2>
           <span className="ml-auto text-sm opacity-80">
-            ({teachers.length})
+            ({filteredTeachers.length}/{teachers.length})
           </span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin">
-        {sortedTeachers.map((teacher) => (
-          <div key={teacher.id} className="flex items-center">
-            <TeacherBadge
-              id={teacher.id}
-              name={teacher.name}
-              count={counts[teacher.id] || 0}
-              draggable={isAdmin}
-              onDragStart={(e) => handleDragStart(e, teacher)}
-              showRemove={isAdmin}
-              onRemove={() => onRemoveTeacher(teacher.id)}
-            />
-          </div>
-        ))}
+      {/* Search bar */}
+      <div className="p-3 border-b">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Търси учител..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9"
+          />
+        </div>
       </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-3 space-y-2">
+          {filteredTeachers.map((teacher) => (
+            <div key={teacher.id} className="flex items-center">
+              <TeacherBadge
+                id={teacher.id}
+                name={teacher.name}
+                count={counts[teacher.id] || 0}
+                draggable={isAdmin}
+                onDragStart={(e) => handleDragStart(e, teacher)}
+                showRemove={isAdmin}
+                onRemove={() => onRemoveTeacher(teacher.id)}
+              />
+            </div>
+          ))}
+          {filteredTeachers.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Няма намерени учители
+            </p>
+          )}
+        </div>
+      </ScrollArea>
 
       {isAdmin && (
         <div className="p-3 border-t space-y-2">
