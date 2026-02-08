@@ -45,12 +45,25 @@ export function ScheduleTable({
 
       const printableElement = printableRef.current;
       
+      // Temporarily make visible for capture
+      const originalStyle = printableElement.parentElement?.getAttribute('style') || '';
+      if (printableElement.parentElement) {
+        printableElement.parentElement.style.cssText = 'position: absolute; left: 0; top: 0; z-index: -1;';
+      }
+      
       const canvas = await html2canvas(printableElement, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        allowTaint: true,
+        foreignObjectRendering: false,
       });
+      
+      // Restore hidden style
+      if (printableElement.parentElement) {
+        printableElement.parentElement.style.cssText = originalStyle;
+      }
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
@@ -139,14 +152,15 @@ export function ScheduleTable({
         </div>
       </div>
 
-      {/* Hidden printable version for PDF export - positioned off-screen but rendered */}
+      {/* Hidden printable version for PDF export */}
       <div 
         style={{ 
           position: "absolute", 
           left: "-9999px", 
           top: 0,
-          visibility: "hidden",
-          pointerEvents: "none"
+          opacity: 0,
+          pointerEvents: "none",
+          overflow: "visible"
         }}
       >
         <PrintableSchedule
