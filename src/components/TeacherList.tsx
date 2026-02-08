@@ -3,6 +3,7 @@ import { Plus, Users, Shuffle, Search } from "lucide-react";
 import { Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -31,6 +32,9 @@ export function TeacherList({
   onAutoArrange,
 }: TeacherListProps) {
   const { isAdmin } = useAuth();
+  const isMobile = useIsMobile();
+  const enableDrag = isAdmin && !isMobile;
+
   const [newTeacherName, setNewTeacherName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,7 +102,10 @@ export function TeacherList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div
+        className="flex-1 overflow-y-auto min-h-0 overscroll-contain touch-pan-y"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         <div className="p-3 space-y-2">
           {filteredTeachers.map((teacher) => (
             <div key={teacher.id} className="flex items-center">
@@ -106,8 +113,8 @@ export function TeacherList({
                 id={teacher.id}
                 name={teacher.name}
                 count={counts[teacher.id] || 0}
-                draggable={isAdmin}
-                onDragStart={(e) => handleDragStart(e, teacher)}
+                draggable={enableDrag}
+                onDragStart={enableDrag ? (e) => handleDragStart(e, teacher) : undefined}
                 showRemove={isAdmin}
                 onRemove={() => onRemoveTeacher(teacher.id)}
               />
