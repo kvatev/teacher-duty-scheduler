@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import {
   Dialog,
   DialogContent,
@@ -74,8 +74,8 @@ export function TeacherList({
   );
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm flex flex-col max-h-[600px]">
-      <div className="p-4 border-b bg-table-header rounded-t-lg">
+    <div className="bg-card rounded-lg border shadow-sm flex flex-col h-[500px] lg:h-[600px]">
+      <div className="p-4 border-b bg-table-header rounded-t-lg flex-shrink-0">
         <div className="flex items-center gap-2 text-table-header-foreground">
           <Users className="w-5 h-5" />
           <h2 className="font-semibold">Учители</h2>
@@ -86,7 +86,7 @@ export function TeacherList({
       </div>
 
       {/* Search bar */}
-      <div className="p-3 border-b">
+      <div className="p-3 border-b flex-shrink-0">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -98,7 +98,7 @@ export function TeacherList({
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-3 space-y-2">
           {filteredTeachers.map((teacher) => (
             <div key={teacher.id} className="flex items-center">
@@ -119,7 +119,7 @@ export function TeacherList({
             </p>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {isAdmin && (
         <div className="p-3 border-t space-y-2">
