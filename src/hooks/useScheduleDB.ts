@@ -3,12 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Teacher, DutyAssignment, SchoolPeriod, getCurrentPeriod, DAYS, LOCATIONS } from "@/types/schedule";
 import { toast } from "sonner";
 
+interface DBPeriod {
+  id: string;
+  year: string;
+  term: number;
+}
+
 export function useScheduleDB() {
   const [currentPeriod, setCurrentPeriod] = useState<SchoolPeriod>(getCurrentPeriod);
   const [periodId, setPeriodId] = useState<string | null>(null);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [assignments, setAssignments] = useState<DutyAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [availablePeriods, setAvailablePeriods] = useState<DBPeriod[]>([]);
 
   // Ensure period exists in DB and get its ID
   const ensurePeriod = useCallback(async (period: SchoolPeriod): Promise<string | null> => {
@@ -49,6 +56,27 @@ export function useScheduleDB() {
     }
   }, []);
 
+  // Load available periods from DB
+  const loadAvailablePeriods = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("school_periods")
+      .select("id, year, term")
+      .order("year", { ascending: false })
+      .order("term", { ascending: false });
+
+    if (error) {
+      console.error("Error loading periods:", error);
+      return;
+    }
+
+    setAvailablePeriods(data || []);
+  }, []);
+
+  // Load periods on mount
+  useEffect(() => {
+    loadAvailablePeriods();
+  }, [loadAvailablePeriods]);
+
   // Load data when period changes
   useEffect(() => {
     const loadData = async () => {
@@ -61,6 +89,9 @@ export function useScheduleDB() {
       }
       
       setPeriodId(pId);
+
+      // Reload periods to include newly created ones
+      await loadAvailablePeriods();
 
       // Load teachers and assignments in parallel
       const [teachersResult, assignmentsResult] = await Promise.all([
@@ -95,7 +126,7 @@ export function useScheduleDB() {
     };
 
     loadData();
-  }, [currentPeriod, ensurePeriod]);
+  }, [currentPeriod, ensurePeriod, loadAvailablePeriods]);
 
   const changePeriod = useCallback((newPeriod: SchoolPeriod) => {
     setCurrentPeriod(newPeriod);
@@ -346,12 +377,90 @@ export function useScheduleDB() {
     })));
   }, [periodId, teachers]);
 
+  // Add a new period (year + term)
+  const addPeriod = useCallback(async (year: string, term: 1 | 2): Promise<boolean> => {
+    // Check if already exists
+    const exists = availablePeriods.some(p => p.year === year && p.term === term);
+    if (exists) {
+      toast.error("Този период вече съществува");
+      return false;
+    }
+
+    const { error } = await supabase
+      .from("school_periods")
+      .insert({ year, term });
+
+    if (error) {
+      console.error("Error adding period:", error);
+      toast.error("Грешка при добавяне на период");
+      return false;
+    }
+
+    await loadAvailablePeriods();
+    toast.success(`Добавен период: ${year}, ${term === 1 ? "I" : "II"} срок`);
+    return true;
+  }, [availablePeriods, loadAvailablePeriods]);
+
+  // Delete a period and all its data
+  const deletePeriod = useCallback(async (year: string, term: number): Promise<boolean> => {
+    const period = availablePeriods.find(p => p.year === year && p.term === term);
+    if (!period) {
+      toast.error("Периодът не е намерен");
+      return false;
+    }
+
+    // Delete the period (cascade will remove teachers and assignments due to FK)
+    const { error } = await supabase
+      .from("school_periods")
+      .delete()
+      .eq("id", period.id);
+
+    if (error) {
+      console.error("Error deleting period:", error);
+      toast.error("Грешка при изтриване на период");
+      return false;
+    }
+
+    await loadAvailablePeriods();
+    toast.success(`Изтрит период: ${year}, ${term === 1 ? "I" : "II"} срок`);
+
+    // If we deleted the current period, switch to another one
+    if (currentPeriod.year === year && currentPeriod.term === term) {
+      const remaining = availablePeriods.filter(p => !(p.year === year && p.term === term));
+      if (remaining.length > 0) {
+        setCurrentPeriod({ year: remaining[0].year, term: remaining[0].term as 1 | 2 });
+      } else {
+        // Create a new default period
+        setCurrentPeriod(getCurrentPeriod());
+      }
+    }
+
+    return true;
+  }, [availablePeriods, currentPeriod, loadAvailablePeriods]);
+
+  // Get unique years from available periods
+  const availableYears = useMemo(() => {
+    const years = [...new Set(availablePeriods.map(p => p.year))];
+    return years.sort().reverse();
+  }, [availablePeriods]);
+
+  // Get available terms for a specific year
+  const getTermsForYear = useCallback((year: string) => {
+    return availablePeriods
+      .filter(p => p.year === year)
+      .map(p => p.term)
+      .sort();
+  }, [availablePeriods]);
+
   return {
     teachers,
     assignments,
     teacherAssignmentCounts,
     currentPeriod,
     isLoading,
+    availablePeriods,
+    availableYears,
+    getTermsForYear,
     changePeriod,
     addTeacher,
     removeTeacher,
@@ -360,5 +469,7 @@ export function useScheduleDB() {
     moveTeacher,
     getAssignmentsForCell,
     autoArrangeTeachers,
+    addPeriod,
+    deletePeriod,
   };
 }

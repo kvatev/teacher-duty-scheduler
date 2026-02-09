@@ -13,6 +13,8 @@ const Index = () => {
     teacherAssignmentCounts,
     currentPeriod,
     isLoading,
+    availableYears,
+    getTermsForYear,
     changePeriod,
     addTeacher,
     removeTeacher,
@@ -21,6 +23,8 @@ const Index = () => {
     moveTeacher,
     getAssignmentsForCell,
     autoArrangeTeachers,
+    addPeriod,
+    deletePeriod,
   } = useScheduleDB();
 
   const { isAdmin } = useAuth();
@@ -52,8 +56,12 @@ const Index = () => {
         {/* Period selector */}
         <div className="mb-6">
           <PeriodSelector 
-            currentPeriod={currentPeriod} 
-            onPeriodChange={changePeriod} 
+            currentPeriod={currentPeriod}
+            availableYears={availableYears}
+            getTermsForYear={getTermsForYear}
+            onPeriodChange={changePeriod}
+            onAddPeriod={addPeriod}
+            onDeletePeriod={deletePeriod}
           />
         </div>
 
