@@ -452,6 +452,149 @@ export function useScheduleDB() {
       .sort();
   }, [availablePeriods]);
 
+  // Copy teachers (and optionally assignments) from another period to the current one
+  const copyTeachersFromPeriod = useCallback(async (
+    sourceYear: string, 
+    sourceTerm: number,
+    includeAssignments: boolean = false
+  ): Promise<boolean> => {
+    if (!periodId) return false;
+
+    // Find source period ID
+    const sourcePeriod = availablePeriods.find(p => p.year === sourceYear && p.term === sourceTerm);
+    if (!sourcePeriod) {
+      toast.error("Избраният период не е намерен");
+      return false;
+    }
+
+    // Get teachers from source period
+    const { data: sourceTeachers, error: fetchError } = await supabase
+      .from("teachers")
+      .select("id, name")
+      .eq("period_id", sourcePeriod.id);
+
+    if (fetchError) {
+      console.error("Error fetching source teachers:", fetchError);
+      toast.error("Грешка при извличане на учителите");
+      return false;
+    }
+
+    if (!sourceTeachers || sourceTeachers.length === 0) {
+      toast.error("Няма учители в избрания период");
+      return false;
+    }
+
+    // Filter out teachers that already exist in current period (case-insensitive)
+    const existingNames = new Set(teachers.map(t => t.name.toLowerCase()));
+    const newTeachers = sourceTeachers.filter(t => !existingNames.has(t.name.toLowerCase()));
+
+    // Build mapping from old teacher IDs to names (for all source teachers)
+    const oldIdToName = new Map(sourceTeachers.map(t => [t.id, t.name]));
+
+    let insertedTeachers: { id: string; name: string }[] = [];
+
+    if (newTeachers.length > 0) {
+      // Insert new teachers
+      const { data: inserted, error: insertError } = await supabase
+        .from("teachers")
+        .insert(newTeachers.map(t => ({ period_id: periodId, name: t.name })))
+        .select("id, name");
+
+      if (insertError) {
+        console.error("Error inserting teachers:", insertError);
+        toast.error("Грешка при копиране на учителите");
+        return false;
+      }
+
+      insertedTeachers = inserted || [];
+      setTeachers(prev => [...prev, ...insertedTeachers.map(t => ({ id: t.id, name: t.name }))]);
+    }
+
+    // If we should copy assignments too
+    if (includeAssignments) {
+      // Get assignments from source period
+      const { data: sourceAssignments, error: assignError } = await supabase
+        .from("duty_assignments")
+        .select("teacher_id, day, location")
+        .eq("period_id", sourcePeriod.id);
+
+      if (assignError) {
+        console.error("Error fetching source assignments:", assignError);
+        toast.error("Учителите са копирани, но възникна грешка при копиране на дежурствата");
+        return true;
+      }
+
+      if (sourceAssignments && sourceAssignments.length > 0) {
+        // Build name to new ID mapping (includes both existing and newly inserted teachers)
+        const nameToNewId = new Map<string, string>();
+        
+        // Add existing teachers in current period
+        teachers.forEach(t => nameToNewId.set(t.name.toLowerCase(), t.id));
+        
+        // Add newly inserted teachers
+        insertedTeachers.forEach(t => nameToNewId.set(t.name.toLowerCase(), t.id));
+
+        // Map old assignments to new teacher IDs
+        const newAssignments: { period_id: string; teacher_id: string; day: string; location: string }[] = [];
+        const existingAssignmentKeys = new Set(
+          assignments.map(a => `${a.teacherId}-${a.day}-${a.location}`)
+        );
+
+        for (const assignment of sourceAssignments) {
+          const teacherName = oldIdToName.get(assignment.teacher_id);
+          if (!teacherName) continue;
+
+          const newTeacherId = nameToNewId.get(teacherName.toLowerCase());
+          if (!newTeacherId) continue;
+
+          const assignmentKey = `${newTeacherId}-${assignment.day}-${assignment.location}`;
+          if (existingAssignmentKeys.has(assignmentKey)) continue;
+
+          newAssignments.push({
+            period_id: periodId,
+            teacher_id: newTeacherId,
+            day: assignment.day,
+            location: assignment.location
+          });
+          existingAssignmentKeys.add(assignmentKey);
+        }
+
+        if (newAssignments.length > 0) {
+          const { error: insertAssignError } = await supabase
+            .from("duty_assignments")
+            .insert(newAssignments);
+
+          if (insertAssignError) {
+            console.error("Error inserting assignments:", insertAssignError);
+            toast.error("Учителите са копирани, но възникна грешка при дежурствата");
+            return true;
+          }
+
+          setAssignments(prev => [
+            ...prev,
+            ...newAssignments.map(a => ({
+              teacherId: a.teacher_id,
+              day: a.day,
+              location: a.location
+            }))
+          ]);
+
+          toast.success(
+            `Копирани ${insertedTeachers.length} учители и ${newAssignments.length} дежурства`
+          );
+          return true;
+        }
+      }
+    }
+
+    if (insertedTeachers.length > 0) {
+      toast.success(`Копирани ${insertedTeachers.length} учители от ${sourceYear}, ${sourceTerm === 1 ? "I" : "II"} срок`);
+    } else {
+      toast.info("Всички учители вече съществуват в текущия период");
+    }
+    return true;
+  }, [periodId, availablePeriods, teachers, assignments]);
+
   return {
     teachers,
     assignments,
@@ -471,5 +614,6 @@ export function useScheduleDB() {
     autoArrangeTeachers,
     addPeriod,
     deletePeriod,
+    copyTeachersFromPeriod,
   };
 }

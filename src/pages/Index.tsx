@@ -13,6 +13,7 @@ const Index = () => {
     teacherAssignmentCounts,
     currentPeriod,
     isLoading,
+    availablePeriods,
     availableYears,
     getTermsForYear,
     changePeriod,
@@ -25,6 +26,7 @@ const Index = () => {
     autoArrangeTeachers,
     addPeriod,
     deletePeriod,
+    copyTeachersFromPeriod,
   } = useScheduleDB();
 
   const { isAdmin } = useAuth();
@@ -58,10 +60,12 @@ const Index = () => {
           <PeriodSelector 
             currentPeriod={currentPeriod}
             availableYears={availableYears}
+            availablePeriods={availablePeriods}
             getTermsForYear={getTermsForYear}
             onPeriodChange={changePeriod}
             onAddPeriod={addPeriod}
             onDeletePeriod={deletePeriod}
+            onCopyTeachers={copyTeachersFromPeriod}
           />
         </div>
 
