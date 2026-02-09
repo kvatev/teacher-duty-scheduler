@@ -1,22 +1,22 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { verifyPassword, ADMIN_PASSWORD_HASH } from "@/lib/auth";
 
 interface AuthContextType {
   isAdmin: boolean;
-  login: (password: string) => boolean;
+  login: (password: string) => Promise<boolean>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const ADMIN_PASSWORD = "admin123"; // In production, this should be handled securely
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(() => {
     return localStorage.getItem("isAdmin") === "true";
   });
 
-  const login = useCallback((password: string) => {
-    if (password === ADMIN_PASSWORD) {
+  const login = useCallback(async (password: string): Promise<boolean> => {
+    const isValid = await verifyPassword(password, ADMIN_PASSWORD_HASH);
+    if (isValid) {
       setIsAdmin(true);
       localStorage.setItem("isAdmin", "true");
       return true;

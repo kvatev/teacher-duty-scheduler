@@ -19,8 +19,9 @@ export function Header() {
   const [password, setPassword] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleLogin = () => {
-    if (login(password)) {
+  const handleLogin = async () => {
+    const success = await login(password);
+    if (success) {
       setPassword("");
       setIsDialogOpen(false);
       toast.success("Успешно влязохте като администратор");
@@ -101,12 +102,6 @@ export function Header() {
                         if (e.key === "Enter") handleLogin();
                       }}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Парола за демо:{" "}
-                      <code className="bg-muted px-1 py-0.5 rounded">
-                        admin123
-                      </code>
-                    </p>
                     <div className="flex gap-2 justify-end">
                       <Button
                         variant="outline"
