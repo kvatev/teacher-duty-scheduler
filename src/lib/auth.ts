@@ -9,17 +9,13 @@ export async function hashPassword(password: string): Promise<string> {
 
 // Pre-computed SHA-256 hash of "P@ssword123!"
 // The actual password is NEVER stored in code - only this hash
-// Computed hash: run hashPassword("P@ssword123!") to verify
-export const ADMIN_PASSWORD_HASH = "2c5e4b7ee1cdf51e2a0a3d8e4c0b6a9f8d7e2c1b0a9f8e7d6c5b4a3f2e1d0c9b";
+export const ADMIN_PASSWORD_HASH = "c4ac81b4b37ebb96f1cc6031d2cdeeeb21f8e3223cbbafa0144876c1f6c238a2";
 
 // Verify password by comparing hashes
-export async function verifyPassword(inputPassword: string, storedHash: string): Promise<boolean> {
+export async function verifyPassword(
+  inputPassword: string,
+  storedHash: string
+): Promise<boolean> {
   const inputHash = await hashPassword(inputPassword);
-  console.log("Input hash:", inputHash, "Stored hash:", storedHash);
   return inputHash === storedHash;
 }
-
-// Initialize: compute and log the correct hash on load
-hashPassword("P@ssword123!").then(hash => {
-  console.log("Correct hash for P@ssword123!:", hash);
-});
