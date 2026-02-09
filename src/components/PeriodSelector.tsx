@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, Plus, Trash2 } from "lucide-react";
+import { Calendar, Plus, Trash2, Copy } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -31,32 +32,46 @@ import {
 import { SchoolPeriod, TERMS } from "@/types/schedule";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface DBPeriod {
+  id: string;
+  year: string;
+  term: number;
+}
+
 interface PeriodSelectorProps {
   currentPeriod: SchoolPeriod;
   availableYears: string[];
+  availablePeriods: DBPeriod[];
   getTermsForYear: (year: string) => number[];
   onPeriodChange: (period: SchoolPeriod) => void;
   onAddPeriod: (year: string, term: 1 | 2) => Promise<boolean>;
   onDeletePeriod: (year: string, term: number) => Promise<boolean>;
+  onCopyTeachers: (sourceYear: string, sourceTerm: number, includeAssignments: boolean) => Promise<boolean>;
 }
 
 export function PeriodSelector({
   currentPeriod,
   availableYears,
+  availablePeriods,
   getTermsForYear,
   onPeriodChange,
   onAddPeriod,
   onDeletePeriod,
+  onCopyTeachers,
 }: PeriodSelectorProps) {
   const { isAdmin } = useAuth();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
   const [newYear, setNewYear] = useState("");
   const [newTerm, setNewTerm] = useState<1 | 2>(1);
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [copySourceYear, setCopySourceYear] = useState("");
+  const [copySourceTerm, setCopySourceTerm] = useState<number>(1);
+  const [includeAssignments, setIncludeAssignments] = useState(false);
 
   const handleYearChange = (year: string) => {
-    // When changing year, select first available term for that year
     const terms = getTermsForYear(year);
     const term = terms.includes(currentPeriod.term) ? currentPeriod.term : (terms[0] as 1 | 2 || 1);
     onPeriodChange({ year, term });
@@ -69,7 +84,6 @@ export function PeriodSelector({
   const handleAddPeriod = async () => {
     if (!newYear.trim()) return;
     
-    // Validate year format (YYYY/YYYY)
     const yearPattern = /^\d{4}\/\d{4}$/;
     if (!yearPattern.test(newYear.trim())) {
       return;
@@ -92,6 +106,27 @@ export function PeriodSelector({
     setIsDeleting(false);
   };
 
+  const handleCopyTeachers = async () => {
+    if (!copySourceYear) return;
+    
+    setIsCopying(true);
+    const success = await onCopyTeachers(copySourceYear, copySourceTerm, includeAssignments);
+    setIsCopying(false);
+
+    if (success) {
+      setIsCopyDialogOpen(false);
+      setCopySourceYear("");
+      setCopySourceTerm(1);
+      setIncludeAssignments(false);
+    }
+  };
+
+  // Get available periods excluding current one (for copy source)
+  const otherPeriods = availablePeriods.filter(
+    p => !(p.year === currentPeriod.year && p.term === currentPeriod.term)
+  );
+
+  const copySourceTerms = copySourceYear ? getTermsForYear(copySourceYear) : [];
   const availableTermsForCurrentYear = getTermsForYear(currentPeriod.year);
 
   return (
@@ -130,6 +165,7 @@ export function PeriodSelector({
 
         {isAdmin && (
           <div className="flex items-center gap-1 ml-2">
+            {/* Add period */}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="icon" className="h-9 w-9" title="Добави период">
@@ -179,6 +215,108 @@ export function PeriodSelector({
               </DialogContent>
             </Dialog>
 
+            {/* Copy teachers from another period */}
+            <Dialog open={isCopyDialogOpen} onOpenChange={setIsCopyDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-9 w-9" 
+                  title="Копирай учители от друг период"
+                  disabled={otherPeriods.length === 0}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Копиране на учители</DialogTitle>
+                  <DialogDescription>
+                    Изберете период, от който да копирате учителите в текущия период ({currentPeriod.year}, {currentPeriod.term === 1 ? "I" : "II"} срок).
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Учебна година</label>
+                    <Select 
+                      value={copySourceYear} 
+                      onValueChange={(year) => {
+                        setCopySourceYear(year);
+                        const terms = getTermsForYear(year);
+                        if (terms.length > 0) {
+                          setCopySourceTerm(terms[0]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Изберете година" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[...new Set(otherPeriods.map(p => p.year))].sort().reverse().map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {copySourceYear && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Срок</label>
+                      <Select 
+                        value={copySourceTerm.toString()} 
+                        onValueChange={(v) => setCopySourceTerm(parseInt(v))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {copySourceTerms
+                            .filter(term => !(copySourceYear === currentPeriod.year && term === currentPeriod.term))
+                            .map((term) => (
+                              <SelectItem key={term} value={term.toString()}>
+                                {term === 1 ? "I срок" : "II срок"}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  {/* Checkbox for including assignments */}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeAssignments" 
+                      checked={includeAssignments}
+                      onCheckedChange={(checked) => setIncludeAssignments(checked === true)}
+                    />
+                    <label 
+                      htmlFor="includeAssignments" 
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Копирай и дежурствата
+                    </label>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground">
+                    Учителите, които вече съществуват в текущия период, няма да бъдат дублирани.
+                  </p>
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setIsCopyDialogOpen(false)}>
+                      Отказ
+                    </Button>
+                    <Button 
+                      onClick={handleCopyTeachers} 
+                      disabled={isCopying || !copySourceYear}
+                    >
+                      {isCopying ? "Копиране..." : "Копирай"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Delete period */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="icon" className="h-9 w-9 text-destructive hover:text-destructive" title="Изтрий текущия период">
