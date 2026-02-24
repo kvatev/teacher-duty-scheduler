@@ -1,13 +1,15 @@
 import React, { useRef, useEffect } from "react";
-import { DAYS, LOCATIONS, Teacher, SchoolPeriod } from "@/types/schedule";
+import { DAYS, LOCATIONS, CellTeacher, SchoolPeriod } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+const SHIFT_LOCATION = "Главен дежурен – западен вход 07:30-08:40 ч.";
+
 interface ScheduleTableProps {
-  getAssignmentsForCell: (day: string, location: string) => Teacher[];
+  getAssignmentsForCell: (day: string, location: string) => CellTeacher[];
   counts: Record<string, number>;
   onAssign: (teacherId: string, day: string, location: string) => boolean | Promise<boolean>;
   onUnassign: (teacherId: string, day: string, location: string) => void | Promise<void>;
@@ -18,6 +20,7 @@ interface ScheduleTableProps {
     toDay: string,
     toLocation: string
   ) => void | Promise<void>;
+  onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
   currentPeriod: SchoolPeriod;
   onExportReady?: (exportFn: () => Promise<void>) => void;
 }
@@ -28,6 +31,7 @@ export function ScheduleTable({
   onAssign,
   onUnassign,
   onMove,
+  onUpdateShiftNumber,
   currentPeriod,
   onExportReady,
 }: ScheduleTableProps) {
@@ -142,6 +146,8 @@ export function ScheduleTable({
                         onAssign={onAssign}
                         onUnassign={onUnassign}
                         onMove={onMove}
+                        onUpdateShiftNumber={onUpdateShiftNumber}
+                        isShiftLocation={location === SHIFT_LOCATION}
                       />
                     </td>
                   ))}

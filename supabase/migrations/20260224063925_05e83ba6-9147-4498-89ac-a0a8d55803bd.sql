@@ -1,0 +1,1 @@
+ALTER TABLE public.duty_assignments ADD COLUMN shift_number integer DEFAULT NULL;

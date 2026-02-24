@@ -27,6 +27,7 @@ const Index = () => {
     addPeriod,
     deletePeriod,
     copyTeachersFromPeriod,
+    updateShiftNumber,
   } = useScheduleDB();
 
   const { isAdmin } = useAuth();
@@ -97,6 +98,7 @@ const Index = () => {
               onMove={moveTeacher}
               currentPeriod={currentPeriod}
               onExportReady={handleExportReady}
+              onUpdateShiftNumber={updateShiftNumber}
             />
             
             {isAdmin && (

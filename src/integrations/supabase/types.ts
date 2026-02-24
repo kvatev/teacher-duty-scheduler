@@ -21,6 +21,7 @@ export type Database = {
           id: string
           location: string
           period_id: string
+          shift_number: number | null
           teacher_id: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           location: string
           period_id: string
+          shift_number?: number | null
           teacher_id: string
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           id?: string
           location?: string
           period_id?: string
+          shift_number?: number | null
           teacher_id?: string
         }
         Relationships: [
