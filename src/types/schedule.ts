@@ -7,6 +7,11 @@ export interface DutyAssignment {
   teacherId: string;
   day: string;
   location: string;
+  shiftNumber?: number | null;
+}
+
+export interface CellTeacher extends Teacher {
+  shiftNumber?: number | null;
 }
 
 export interface ScheduleState {

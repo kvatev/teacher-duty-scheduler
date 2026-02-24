@@ -13,6 +13,8 @@ interface TeacherBadgeProps {
   onDragEnd?: (e: React.DragEvent) => void;
   showRemove?: boolean;
   size?: "sm" | "md";
+  shiftNumber?: number | null;
+  onShiftNumberChange?: (shiftNumber: number | null) => void;
 }
 
 function getCountClass(count: number): string {
@@ -33,6 +35,8 @@ export function TeacherBadge({
   onDragEnd,
   showRemove = false,
   size = "md",
+  shiftNumber,
+  onShiftNumberChange,
 }: TeacherBadgeProps) {
   const { isAdmin } = useAuth();
   const canDrag = draggable && isAdmin;
@@ -62,6 +66,28 @@ export function TeacherBadge({
     >
       {canDrag && (
         <GripVertical className="w-3 h-3 opacity-50 flex-shrink-0" />
+      )}
+      {shiftNumber !== undefined && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!onShiftNumberChange) return;
+            // Cycle: null -> 1 -> 2 -> null
+            if (shiftNumber === null || shiftNumber === undefined) onShiftNumberChange(1);
+            else if (shiftNumber === 1) onShiftNumberChange(2);
+            else onShiftNumberChange(null);
+          }}
+          className={cn(
+            "flex items-center justify-center min-w-[18px] h-5 rounded text-xs font-bold transition-colors",
+            onShiftNumberChange ? "cursor-pointer hover:bg-white/30" : "cursor-default",
+            shiftNumber ? "bg-white/60 text-black" : "bg-white/20 text-muted-foreground"
+          )}
+          title={onShiftNumberChange ? "Натиснете за смяна: 1 → 2 → без" : undefined}
+          disabled={!onShiftNumberChange}
+        >
+          {shiftNumber || "–"}
+        </button>
       )}
       <span className="truncate max-w-[150px]">{name}</span>
       <span className="flex items-center justify-center min-w-[20px] h-5 rounded-full bg-white/50 text-xs font-bold px-1">

@@ -1,9 +1,9 @@
 import React, { forwardRef } from "react";
-import { DAYS, LOCATIONS, Teacher, SchoolPeriod } from "@/types/schedule";
+import { DAYS, LOCATIONS, CellTeacher, SchoolPeriod } from "@/types/schedule";
 import logoImage from "@/assets/su-konstantin-petkanов-logo.png";
 
 interface PrintableScheduleProps {
-  getAssignmentsForCell: (day: string, location: string) => Teacher[];
+  getAssignmentsForCell: (day: string, location: string) => CellTeacher[];
   currentPeriod: SchoolPeriod;
 }
 
@@ -82,7 +82,9 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
                         {teachers.length > 0 ? (
                           <div className="space-y-1">
                             {teachers.map((teacher) => (
-                              <div key={teacher.id}>{teacher.name}</div>
+                              <div key={teacher.id}>
+                                {teacher.shiftNumber ? `${teacher.shiftNumber}. ` : ""}{teacher.name}
+                              </div>
                             ))}
                           </div>
                         ) : (

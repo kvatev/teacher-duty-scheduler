@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Teacher, DutyAssignment, SchoolPeriod, getCurrentPeriod, DAYS, LOCATIONS } from "@/types/schedule";
+import { Teacher, DutyAssignment, SchoolPeriod, getCurrentPeriod, DAYS, LOCATIONS, CellTeacher } from "@/types/schedule";
 import { toast } from "sonner";
 
 interface DBPeriod {
@@ -102,7 +102,7 @@ export function useScheduleDB() {
           .order("name"),
         supabase
           .from("duty_assignments")
-          .select("teacher_id, day, location")
+          .select("teacher_id, day, location, shift_number")
           .eq("period_id", pId)
       ]);
 
@@ -118,7 +118,8 @@ export function useScheduleDB() {
         setAssignments(assignmentsResult.data.map(a => ({
           teacherId: a.teacher_id,
           day: a.day,
-          location: a.location
+          location: a.location,
+          shiftNumber: (a as any).shift_number ?? null
         })));
       }
 
@@ -285,14 +286,44 @@ export function useScheduleDB() {
   );
 
   const getAssignmentsForCell = useCallback(
-    (day: string, location: string) => {
+    (day: string, location: string): CellTeacher[] => {
       return assignments
         .filter((a) => a.day === day && a.location === location)
-        .map((a) => teachers.find((t) => t.id === a.teacherId))
-        .filter(Boolean) as Teacher[];
+        .map((a) => {
+          const teacher = teachers.find((t) => t.id === a.teacherId);
+          if (!teacher) return null;
+          return { ...teacher, shiftNumber: a.shiftNumber };
+        })
+        .filter(Boolean) as CellTeacher[];
     },
     [assignments, teachers]
   );
+
+  const updateShiftNumber = useCallback(async (teacherId: string, day: string, location: string, shiftNumber: number | null) => {
+    if (!periodId) return;
+
+    const { error } = await supabase
+      .from("duty_assignments")
+      .update({ shift_number: shiftNumber } as any)
+      .eq("period_id", periodId)
+      .eq("teacher_id", teacherId)
+      .eq("day", day)
+      .eq("location", location);
+
+    if (error) {
+      console.error("Error updating shift number:", error);
+      toast.error("Грешка при обновяване на смяната");
+      return;
+    }
+
+    setAssignments(prev =>
+      prev.map(a =>
+        a.teacherId === teacherId && a.day === day && a.location === location
+          ? { ...a, shiftNumber }
+          : a
+      )
+    );
+  }, [periodId]);
 
   const autoArrangeTeachers = useCallback(async () => {
     if (!periodId || teachers.length === 0) return;
@@ -611,6 +642,7 @@ export function useScheduleDB() {
     unassignTeacher,
     moveTeacher,
     getAssignmentsForCell,
+    updateShiftNumber,
     autoArrangeTeachers,
     addPeriod,
     deletePeriod,

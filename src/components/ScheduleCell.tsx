@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Teacher } from "@/types/schedule";
+import { CellTeacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 interface ScheduleCellProps {
   day: string;
   location: string;
-  teachers: Teacher[];
+  teachers: CellTeacher[];
   counts: Record<string, number>;
   onAssign: (teacherId: string, day: string, location: string) => boolean | Promise<boolean>;
   onUnassign: (teacherId: string, day: string, location: string) => void | Promise<void>;
@@ -19,6 +19,8 @@ interface ScheduleCellProps {
     toDay: string,
     toLocation: string
   ) => void | Promise<void>;
+  onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
+  isShiftLocation?: boolean;
 }
 
 export function ScheduleCell({
@@ -29,6 +31,8 @@ export function ScheduleCell({
   onAssign,
   onUnassign,
   onMove,
+  onUpdateShiftNumber,
+  isShiftLocation = false,
 }: ScheduleCellProps) {
   const { isAdmin } = useAuth();
   const [isDragOver, setIsDragOver] = useState(false);
@@ -89,7 +93,7 @@ export function ScheduleCell({
     }
   };
 
-  const handleTeacherDragStart = (e: React.DragEvent, teacher: Teacher) => {
+  const handleTeacherDragStart = (e: React.DragEvent, teacher: CellTeacher) => {
     e.dataTransfer.setData("teacherId", teacher.id);
     e.dataTransfer.setData("source", "cell");
     e.dataTransfer.setData("fromDay", day);
@@ -121,6 +125,12 @@ export function ScheduleCell({
             onDragStart={(e) => handleTeacherDragStart(e, teacher)}
             showRemove={isAdmin}
             onRemove={() => onUnassign(teacher.id, day, location)}
+            shiftNumber={isShiftLocation ? teacher.shiftNumber : undefined}
+            onShiftNumberChange={
+              isShiftLocation && isAdmin && onUpdateShiftNumber
+                ? (sn) => onUpdateShiftNumber(teacher.id, day, location, sn)
+                : undefined
+            }
           />
         ))}
         {teachers.length === 0 && (
