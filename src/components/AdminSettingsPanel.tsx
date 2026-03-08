@@ -64,7 +64,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="secondary" size="sm" className="gap-2 bg-accent text-accent-foreground hover:bg-accent/80">
           <Settings className="w-4 h-4" />
           <span className="hidden sm:inline">Настройки</span>
         </Button>
