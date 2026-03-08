@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Teacher, DutyAssignment, SchoolPeriod, getCurrentPeriod, DAYS, LOCATIONS, CellTeacher } from "@/types/schedule";
+import { useAppSettings } from "@/hooks/useAppSettings";
 import { toast } from "sonner";
 
 interface DBPeriod {
