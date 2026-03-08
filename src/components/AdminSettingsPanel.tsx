@@ -78,8 +78,9 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="general">Общи</TabsTrigger>
+            <TabsTrigger value="locations">Локации</TabsTrigger>
             <TabsTrigger value="pdf">PDF документ</TabsTrigger>
             <TabsTrigger value="contact">Контакти</TabsTrigger>
           </TabsList>
