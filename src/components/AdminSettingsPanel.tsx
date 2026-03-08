@@ -48,6 +48,7 @@ function SettingTextarea({ id, label, value, onChange, rows = 2 }: { id: string;
 }
 
 export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps) {
+  const { isSuperAdmin, permissions } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState<AppSettings>(settings);
   const [isSaving, setIsSaving] = useState(false);
