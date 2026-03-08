@@ -21,6 +21,7 @@ import { AppSettings } from "@/hooks/useAppSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { changeAdminPassword } from "@/lib/auth";
+import { AdminBroadcastPanel } from "@/components/AdminBroadcastPanel";
 
 interface AdminSettingsPanelProps {
   settings: AppSettings;
