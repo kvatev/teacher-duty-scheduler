@@ -155,24 +155,26 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className={`grid w-full ${isSuperAdmin ? 'grid-cols-4 sm:grid-cols-8' : 'grid-cols-4 sm:grid-cols-7'}`}>
-            <TabsTrigger value="general">Общи</TabsTrigger>
-            <TabsTrigger value="logo">Лого</TabsTrigger>
-            <TabsTrigger value="locations">Локации</TabsTrigger>
-            <TabsTrigger value="pdf">PDF</TabsTrigger>
-            <TabsTrigger value="contact">Контакти</TabsTrigger>
-            <TabsTrigger value="broadcast">
-              <Megaphone className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Съобщения</span>
-            </TabsTrigger>
-            {isSuperAdmin && (
-              <TabsTrigger value="users">
-                <Users className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">Админи</span>
+          <div className="overflow-x-auto -mx-2 px-2">
+            <TabsList className="inline-flex w-max min-w-full gap-1">
+              <TabsTrigger value="general" className="text-xs sm:text-sm px-2 sm:px-3">Общи</TabsTrigger>
+              <TabsTrigger value="logo" className="text-xs sm:text-sm px-2 sm:px-3">Лого</TabsTrigger>
+              <TabsTrigger value="locations" className="text-xs sm:text-sm px-2 sm:px-3">Локации</TabsTrigger>
+              <TabsTrigger value="pdf" className="text-xs sm:text-sm px-2 sm:px-3">PDF</TabsTrigger>
+              <TabsTrigger value="contact" className="text-xs sm:text-sm px-2 sm:px-3">Контакти</TabsTrigger>
+              <TabsTrigger value="broadcast" className="text-xs sm:text-sm px-2 sm:px-3 gap-1">
+                <Megaphone className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Съобщения</span>
               </TabsTrigger>
-            )}
-            <TabsTrigger value="security">Парола</TabsTrigger>
-          </TabsList>
+              {isSuperAdmin && (
+                <TabsTrigger value="users" className="text-xs sm:text-sm px-2 sm:px-3 gap-1">
+                  <Users className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Админи</span>
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="security" className="text-xs sm:text-sm px-2 sm:px-3">Парола</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="general" className="space-y-4 mt-4">
             <SettingInput id="header_title" label="Заглавие в хедъра" value={draft.header_title} onChange={(v) => updateDraft("header_title", v)} />
