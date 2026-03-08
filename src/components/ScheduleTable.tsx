@@ -36,6 +36,7 @@ export function ScheduleTable({
   onUpdateShiftNumber,
   currentPeriod,
   onExportReady,
+  settings,
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
