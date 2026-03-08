@@ -41,6 +41,15 @@ export function ScheduleTable({
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
 
+  const locations = useMemo(() => {
+    if (settings) {
+      return [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
+    }
+    return ["Дежурни на III-ти етаж", "Дежурни на IV-ти етаж", "Училищен стол и пред кабинет по музика", DEFAULT_SHIFT_LOCATION];
+  }, [settings]);
+
+  const shiftLocation = settings?.location_4 || DEFAULT_SHIFT_LOCATION;
+
   const handleExportPDF = async () => {
     if (!printableRef.current) {
       toast.error("Грешка: Не може да се генерира PDF", { id: "pdf-export" });
