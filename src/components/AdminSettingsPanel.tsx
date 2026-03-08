@@ -154,12 +154,16 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
             <TabsTrigger value="general">Общи</TabsTrigger>
             <TabsTrigger value="logo">Лого</TabsTrigger>
             <TabsTrigger value="locations">Локации</TabsTrigger>
             <TabsTrigger value="pdf">PDF</TabsTrigger>
             <TabsTrigger value="contact">Контакти</TabsTrigger>
+            <TabsTrigger value="broadcast">
+              <Megaphone className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">Съобщения</span>
+            </TabsTrigger>
             <TabsTrigger value="security">Парола</TabsTrigger>
           </TabsList>
 
