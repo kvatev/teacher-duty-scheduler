@@ -4,6 +4,7 @@ import { TeacherList } from "@/components/TeacherList";
 import { ScheduleTable } from "@/components/ScheduleTable";
 import { Legend } from "@/components/Legend";
 import { PeriodSelector } from "@/components/PeriodSelector";
+import { BroadcastBanner } from "@/components/BroadcastBanner";
 import { useScheduleDB } from "@/hooks/useScheduleDB";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppSettings } from "@/hooks/useAppSettings";
@@ -58,6 +59,11 @@ const Index = () => {
       <Header settings={settings} onSaveSettings={updateMultipleSettings} />
       
       <main className="container mx-auto px-4 py-6">
+        {/* Broadcast messages */}
+        <div className="mb-4">
+          <BroadcastBanner />
+        </div>
+
         {/* Period selector */}
         <div className="mb-6">
           <PeriodSelector 

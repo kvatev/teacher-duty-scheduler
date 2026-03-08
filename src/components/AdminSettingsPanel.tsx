@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Settings, Save, X, Upload, Image, KeyRound } from "lucide-react";
+import { Settings, Save, X, Upload, Image, KeyRound, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ import { AppSettings } from "@/hooks/useAppSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { changeAdminPassword } from "@/lib/auth";
+import { AdminBroadcastPanel } from "@/components/AdminBroadcastPanel";
 
 interface AdminSettingsPanelProps {
   settings: AppSettings;
@@ -153,12 +154,16 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
             <TabsTrigger value="general">Общи</TabsTrigger>
             <TabsTrigger value="logo">Лого</TabsTrigger>
             <TabsTrigger value="locations">Локации</TabsTrigger>
             <TabsTrigger value="pdf">PDF</TabsTrigger>
             <TabsTrigger value="contact">Контакти</TabsTrigger>
+            <TabsTrigger value="broadcast">
+              <Megaphone className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">Съобщения</span>
+            </TabsTrigger>
             <TabsTrigger value="security">Парола</TabsTrigger>
           </TabsList>
 
@@ -276,6 +281,10 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
               <KeyRound className="w-4 h-4" />
               {isChangingPass ? "Смяна..." : "Смени паролата"}
             </Button>
+          </TabsContent>
+
+          <TabsContent value="broadcast" className="mt-4">
+            <AdminBroadcastPanel />
           </TabsContent>
         </Tabs>
 
