@@ -145,7 +145,7 @@ export function ScheduleTable({
                   <td className="p-3 font-medium border-r border-table-border bg-secondary/50">
                     {day}
                   </td>
-                  {LOCATIONS.map((location) => (
+                  {locations.map((location) => (
                     <td
                       key={`${day}-${location}`}
                       className="p-2 border-r border-table-border last:border-r-0 align-top"
@@ -159,7 +159,7 @@ export function ScheduleTable({
                         onUnassign={onUnassign}
                         onMove={onMove}
                         onUpdateShiftNumber={onUpdateShiftNumber}
-                        isShiftLocation={location === SHIFT_LOCATION}
+                        isShiftLocation={location === shiftLocation}
                       />
                     </td>
                   ))}

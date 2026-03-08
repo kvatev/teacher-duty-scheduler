@@ -75,7 +75,7 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
             {DAYS.map((day) => (
               <tr key={day}>
                 <td className="border border-black p-2 font-bold align-top">{day}</td>
-                {LOCATIONS.map((location) => {
+                {locations.map((location) => {
                   const teachers = getAssignmentsForCell(day, location);
                   return (
                     <td key={`${day}-${location}`} className="border border-black p-2 align-top">
