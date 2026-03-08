@@ -409,7 +409,7 @@ export function useScheduleDB() {
       day: a.day,
       location: a.location
     })));
-  }, [periodId, teachers]);
+  }, [periodId, teachers, settings]);
 
   // Add a new period (year + term)
   const addPeriod = useCallback(async (year: string, term: 1 | 2): Promise<boolean> => {
