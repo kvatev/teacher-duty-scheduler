@@ -1,14 +1,16 @@
 import React, { forwardRef } from "react";
 import { DAYS, LOCATIONS, CellTeacher, SchoolPeriod } from "@/types/schedule";
+import { AppSettings } from "@/hooks/useAppSettings";
 import logoImage from "@/assets/su-konstantin-petkanов-logo.png";
 
 interface PrintableScheduleProps {
   getAssignmentsForCell: (day: string, location: string) => CellTeacher[];
   currentPeriod: SchoolPeriod;
+  settings: AppSettings;
 }
 
 export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableScheduleProps>(
-  ({ getAssignmentsForCell, currentPeriod }, ref) => {
+  ({ getAssignmentsForCell, currentPeriod, settings }, ref) => {
     if (!currentPeriod) {
       return null;
     }
@@ -30,9 +32,9 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
         <div className="flex items-start justify-between mb-4">
           <img src={logoImage} alt="Лого" className="w-16 h-16 object-contain" />
           <div className="text-center flex-1 px-4">
-            <h1 className="text-xl font-bold mb-1">СУ „КОНСТАНТИН ПЕТКАНОВ" – БУРГАС</h1>
-            <p className="text-sm">гр. Бургас тел: 0876335444; тел:852-709; 854-704</p>
-            <p className="text-sm">ж.к. „Меден рудник" e-mail: info-200232@edu.mon.bg</p>
+            <h1 className="text-xl font-bold mb-1">{settings.pdf_school_name}</h1>
+            <p className="text-sm">{settings.pdf_school_info1}</p>
+            <p className="text-sm">{settings.pdf_school_info2}</p>
             <div className="border-b-2 border-black mt-2 mx-auto w-3/4"></div>
           </div>
           <img src={logoImage} alt="Лого" className="w-16 h-16 object-contain" />
@@ -41,7 +43,7 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
         {/* Approval Section */}
         <div className="mb-4 mt-6">
           <p className="font-bold">УТВЪРЖДАВАМ:</p>
-          <p className="font-bold">ИВАЙЛО МАРКОВ</p>
+          <p className="font-bold">{settings.pdf_director_name}</p>
           <p className="font-bold">ДИРЕКТОР</p>
         </div>
 
@@ -49,7 +51,7 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
         <div className="text-center mb-4">
           <h2 className="text-lg font-bold">ГРАФИК</h2>
           <p className="text-sm">
-            за дежурство на учителите от прогимназиален и гимназиален етап {termText}, {yearText}
+            {settings.pdf_schedule_description} {termText}, {yearText}
           </p>
         </div>
 
@@ -68,41 +70,34 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
             </tr>
           </thead>
           <tbody>
-            {DAYS.map((day) => {
-              const rowTeachers = LOCATIONS.map((location) => getAssignmentsForCell(day, location));
-              const maxTeachers = Math.max(...rowTeachers.map((t) => t.length), 1);
-
-              return (
-                <tr key={day}>
-                  <td className="border border-black p-2 font-bold align-top">{day}</td>
-                  {LOCATIONS.map((location) => {
-                    const teachers = getAssignmentsForCell(day, location);
-                    return (
-                      <td key={`${day}-${location}`} className="border border-black p-2 align-top">
-                        {teachers.length > 0 ? (
-                          <div className="space-y-1">
-                            {teachers.map((teacher) => (
-                              <div key={teacher.id}>
-                                {teacher.shiftNumber ? `${teacher.shiftNumber}. ` : ""}{teacher.name}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 italic">—</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
+            {DAYS.map((day) => (
+              <tr key={day}>
+                <td className="border border-black p-2 font-bold align-top">{day}</td>
+                {LOCATIONS.map((location) => {
+                  const teachers = getAssignmentsForCell(day, location);
+                  return (
+                    <td key={`${day}-${location}`} className="border border-black p-2 align-top">
+                      {teachers.length > 0 ? (
+                        <div className="space-y-1">
+                          {teachers.map((teacher) => (
+                            <div key={teacher.id}>
+                              {teacher.shiftNumber ? `${teacher.shiftNumber}. ` : ""}{teacher.name}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 italic">—</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
           </tbody>
         </table>
 
         {/* Footer Note */}
-        <p className="mt-4 text-sm">
-          *Забележка: 1- дежури от 07:30-08:00 ч.; 2-дежури от 08:00 до 08:40
-        </p>
+        <p className="mt-4 text-sm">{settings.footer_note}</p>
       </div>
     );
   }
