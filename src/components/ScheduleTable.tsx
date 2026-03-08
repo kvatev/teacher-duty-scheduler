@@ -176,6 +176,7 @@ export function ScheduleTable({
           ref={printableRef}
           getAssignmentsForCell={getAssignmentsForCell}
           currentPeriod={currentPeriod}
+          settings={settings!}
         />
       </div>
     </div>
