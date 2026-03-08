@@ -153,12 +153,13 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="general">Общи</TabsTrigger>
             <TabsTrigger value="logo">Лого</TabsTrigger>
             <TabsTrigger value="locations">Локации</TabsTrigger>
             <TabsTrigger value="pdf">PDF</TabsTrigger>
             <TabsTrigger value="contact">Контакти</TabsTrigger>
+            <TabsTrigger value="security">Парола</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 mt-4">
