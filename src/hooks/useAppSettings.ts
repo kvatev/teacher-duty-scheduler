@@ -17,6 +17,14 @@ export interface AppSettings {
   location_2: string;
   location_3: string;
   location_4: string;
+  logo_url: string;
+  schedule_title: string;
+  approval_text: string;
+  approval_role: string;
+  day_column_header: string;
+  tip_text: string;
+  term_1_label: string;
+  term_2_label: string;
 }
 
 const DEFAULTS: AppSettings = {
@@ -34,6 +42,14 @@ const DEFAULTS: AppSettings = {
   location_2: "Дежурни на IV-ти етаж",
   location_3: "Училищен стол и пред кабинет по музика",
   location_4: "Главен дежурен – западен вход 07:30-08:40 ч.",
+  logo_url: "",
+  schedule_title: "ГРАФИК",
+  approval_text: "УТВЪРЖДАВАМ:",
+  approval_role: "ДИРЕКТОР",
+  day_column_header: "Ден от седмицата",
+  tip_text: "💡 Съвет: Провлачете учител от списъка вляво в желаната клетка, или преместете между клетки",
+  term_1_label: "I учебен срок",
+  term_2_label: "II учебен срок",
 };
 
 export function useAppSettings() {
