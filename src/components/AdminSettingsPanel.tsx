@@ -254,7 +254,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
               <Input id="confirm_pass" type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
             </div>
             <Button
-              disabled={isChangingPass || !currentPass || !newPass || !confirmPass}
+              disabled={isChangingPass || !newPass || !confirmPass}
               onClick={async () => {
                 if (newPass !== confirmPass) {
                   toast.error("Новата парола и потвърждението не съвпадат");
@@ -265,15 +265,14 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                   return;
                 }
                 setIsChangingPass(true);
-                const result = await changeAdminPassword(currentPass, newPass);
+                const { error } = await supabase.auth.updateUser({ password: newPass });
                 setIsChangingPass(false);
-                if (result.success) {
+                if (!error) {
                   toast.success("Паролата е сменена успешно");
-                  setCurrentPass("");
                   setNewPass("");
                   setConfirmPass("");
                 } else {
-                  toast.error(result.error || "Грешка при смяна на паролата");
+                  toast.error(error.message || "Грешка при смяна на паролата");
                 }
               }}
               className="gap-2"
