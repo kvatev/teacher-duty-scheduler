@@ -282,6 +282,10 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
               {isChangingPass ? "Смяна..." : "Смени паролата"}
             </Button>
           </TabsContent>
+
+          <TabsContent value="broadcast" className="mt-4">
+            <AdminBroadcastPanel />
+          </TabsContent>
         </Tabs>
 
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t">

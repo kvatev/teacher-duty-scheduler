@@ -59,6 +59,11 @@ const Index = () => {
       <Header settings={settings} onSaveSettings={updateMultipleSettings} />
       
       <main className="container mx-auto px-4 py-6">
+        {/* Broadcast messages */}
+        <div className="mb-4">
+          <BroadcastBanner />
+        </div>
+
         {/* Period selector */}
         <div className="mb-6">
           <PeriodSelector 
