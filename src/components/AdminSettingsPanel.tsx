@@ -288,6 +288,12 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           <TabsContent value="broadcast" className="mt-4">
             <AdminBroadcastPanel />
           </TabsContent>
+
+          {isSuperAdmin && (
+            <TabsContent value="users" className="mt-4">
+              <AdminUsersPanel />
+            </TabsContent>
+          )}
         </Tabs>
 
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
