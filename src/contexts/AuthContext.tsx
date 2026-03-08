@@ -82,11 +82,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading, 
         isAuthenticated, 
         isSuperAdmin,
+        isAdmin,
         login, 
         logout, 
         refreshUser 
       }}
     >
+      {children}
+    </AuthContext.Provider>
+  );
       {children}
     </AuthContext.Provider>
   );
