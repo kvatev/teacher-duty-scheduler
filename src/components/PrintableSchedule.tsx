@@ -14,6 +14,8 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
     if (!currentPeriod) {
       return null;
     }
+
+    const locations = [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
     
     const termText = currentPeriod.term === 1 ? "I учебен срок" : "II учебен срок";
     const yearText = `${currentPeriod.year} учебна година`;
