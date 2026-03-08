@@ -24,6 +24,7 @@ interface ScheduleTableProps {
   onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
   currentPeriod: SchoolPeriod;
   onExportReady?: (exportFn: () => Promise<void>) => void;
+  settings?: AppSettings;
 }
 
 export function ScheduleTable({
