@@ -1,5 +1,5 @@
-import React, { forwardRef } from "react";
-import { DAYS, LOCATIONS, CellTeacher, SchoolPeriod } from "@/types/schedule";
+import React, { forwardRef, useMemo } from "react";
+import { DAYS, CellTeacher, SchoolPeriod } from "@/types/schedule";
 import { AppSettings } from "@/hooks/useAppSettings";
 import logoImage from "@/assets/su-konstantin-petkanов-logo.png";
 
