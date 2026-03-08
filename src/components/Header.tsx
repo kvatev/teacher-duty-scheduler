@@ -75,16 +75,8 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                 <AdminSettingsPanel settings={settings} onSave={onSaveSettings} />
               </>
             )}
-              <>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium hidden sm:inline">
-                    Администратор
-                  </span>
-                </div>
-                <AdminSettingsPanel settings={settings} onSave={onSaveSettings} />
-              </>
-            )}
+
+
 
             {isAdmin ? (
               <Button
