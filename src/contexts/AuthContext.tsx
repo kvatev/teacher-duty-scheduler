@@ -72,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const permissions = getPermissions(user);
   const isAuthenticated = user !== null;
   const isSuperAdmin = user?.role === "super_admin";
+  const isAdmin = isAuthenticated; // Any logged in user is considered admin
 
   return (
     <AuthContext.Provider 
