@@ -4,6 +4,7 @@ import { TeacherList } from "@/components/TeacherList";
 import { ScheduleTable } from "@/components/ScheduleTable";
 import { Legend } from "@/components/Legend";
 import { PeriodSelector } from "@/components/PeriodSelector";
+import { BroadcastBanner } from "@/components/BroadcastBanner";
 import { useScheduleDB } from "@/hooks/useScheduleDB";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppSettings } from "@/hooks/useAppSettings";
