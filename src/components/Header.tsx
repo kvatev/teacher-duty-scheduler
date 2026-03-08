@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Lock, LogOut, Shield } from "lucide-react";
+import { Lock, LogOut, Shield, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -22,25 +23,34 @@ interface HeaderProps {
 }
 
 export function Header({ settings, onSaveSettings }: HeaderProps) {
-  const { isAdmin, login, logout } = useAuth();
+  const { isAdmin, login, logout, user, isSuperAdmin } = useAuth();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const logoSrc = settings.logo_url || defaultLogo;
 
   const handleLogin = async () => {
-    const success = await login(password);
-    if (success) {
+    if (!email || !password) {
+      toast.error("Моля, въведете имейл и парола");
+      return;
+    }
+    setIsLoggingIn(true);
+    const result = await login(email, password);
+    setIsLoggingIn(false);
+    if (!result.error) {
+      setEmail("");
       setPassword("");
       setIsDialogOpen(false);
       toast.success("Успешно влязохте като администратор");
     } else {
-      toast.error("Грешна парола");
+      toast.error(result.error);
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.info("Излязохте от администраторския профил");
   };
 
@@ -71,7 +81,7 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">
                   <Shield className="w-4 h-4" />
                   <span className="text-sm font-medium hidden sm:inline">
-                    Администратор
+                    {isSuperAdmin ? "Главен админ" : "Администратор"}
                   </span>
                 </div>
                 <AdminSettingsPanel settings={settings} onSave={onSaveSettings} />
@@ -105,15 +115,32 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                     <DialogTitle>Вход за администратор</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
-                    <Input
-                      type="password"
-                      placeholder="Въведете парола"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleLogin();
-                      }}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">Имейл</Label>
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="admin@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleLogin();
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="login-password">Парола</Label>
+                      <Input
+                        id="login-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleLogin();
+                        }}
+                      />
+                    </div>
                     <div className="flex gap-2 justify-end">
                       <Button
                         variant="outline"
@@ -121,7 +148,9 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                       >
                         Отказ
                       </Button>
-                      <Button onClick={handleLogin}>Вход</Button>
+                      <Button onClick={handleLogin} disabled={isLoggingIn}>
+                        {isLoggingIn ? "Влизане..." : "Вход"}
+                      </Button>
                     </div>
                   </div>
                 </DialogContent>

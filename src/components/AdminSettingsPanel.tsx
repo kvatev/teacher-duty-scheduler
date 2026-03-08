@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Settings, Save, X, Upload, Image, KeyRound, Megaphone } from "lucide-react";
+import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,8 +20,9 @@ import {
 import { AppSettings } from "@/hooks/useAppSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { changeAdminPassword } from "@/lib/auth";
 import { AdminBroadcastPanel } from "@/components/AdminBroadcastPanel";
+import { AdminUsersPanel } from "@/components/AdminUsersPanel";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AdminSettingsPanelProps {
   settings: AppSettings;
@@ -47,13 +48,13 @@ function SettingTextarea({ id, label, value, onChange, rows = 2 }: { id: string;
 }
 
 export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps) {
+  const { isSuperAdmin, permissions } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState<AppSettings>(settings);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [isChangingPass, setIsChangingPass] = useState(false);
@@ -154,7 +155,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
+          <TabsList className={`grid w-full ${isSuperAdmin ? 'grid-cols-4 sm:grid-cols-8' : 'grid-cols-4 sm:grid-cols-7'}`}>
             <TabsTrigger value="general">Общи</TabsTrigger>
             <TabsTrigger value="logo">Лого</TabsTrigger>
             <TabsTrigger value="locations">Локации</TabsTrigger>
@@ -164,6 +165,12 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
               <Megaphone className="w-4 h-4 mr-1" />
               <span className="hidden sm:inline">Съобщения</span>
             </TabsTrigger>
+            {isSuperAdmin && (
+              <TabsTrigger value="users">
+                <Users className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Админи</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="security">Парола</TabsTrigger>
           </TabsList>
 
@@ -240,11 +247,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4 mt-4">
-            <p className="text-sm text-muted-foreground">Сменете паролата за администраторски достъп.</p>
-            <div className="space-y-2">
-              <Label htmlFor="current_pass">Текуща парола</Label>
-              <Input id="current_pass" type="password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} />
-            </div>
+            <p className="text-sm text-muted-foreground">Сменете паролата си за достъп до системата.</p>
             <div className="space-y-2">
               <Label htmlFor="new_pass">Нова парола</Label>
               <Input id="new_pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} />
@@ -254,7 +257,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
               <Input id="confirm_pass" type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
             </div>
             <Button
-              disabled={isChangingPass || !currentPass || !newPass || !confirmPass}
+              disabled={isChangingPass || !newPass || !confirmPass}
               onClick={async () => {
                 if (newPass !== confirmPass) {
                   toast.error("Новата парола и потвърждението не съвпадат");
@@ -265,15 +268,14 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                   return;
                 }
                 setIsChangingPass(true);
-                const result = await changeAdminPassword(currentPass, newPass);
+                const { error } = await supabase.auth.updateUser({ password: newPass });
                 setIsChangingPass(false);
-                if (result.success) {
+                if (!error) {
                   toast.success("Паролата е сменена успешно");
-                  setCurrentPass("");
                   setNewPass("");
                   setConfirmPass("");
                 } else {
-                  toast.error(result.error || "Грешка при смяна на паролата");
+                  toast.error(error.message || "Грешка при смяна на паролата");
                 }
               }}
               className="gap-2"
@@ -286,6 +288,12 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           <TabsContent value="broadcast" className="mt-4">
             <AdminBroadcastPanel />
           </TabsContent>
+
+          {isSuperAdmin && (
+            <TabsContent value="users" className="mt-4">
+              <AdminUsersPanel />
+            </TabsContent>
+          )}
         </Tabs>
 
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t">

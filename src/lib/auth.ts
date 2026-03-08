@@ -1,57 +1,167 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Hash a password using SHA-256
-export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+export type AdminRole = "super_admin" | "admin";
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  display_name: string | null;
+  role: AdminRole;
+  can_manage_schedule: boolean;
+  can_manage_settings: boolean;
+  can_send_broadcasts: boolean;
+  created_at: string;
 }
 
-// Fallback hash (used only if DB lookup fails)
-const FALLBACK_HASH = "c4ac81b4b37ebb96f1cc6031d2cdeeeb21f8e3223cbbafa0144876c1f6c238a2";
+export interface UserPermissions {
+  canManageSchedule: boolean;
+  canManageSettings: boolean;
+  canSendBroadcasts: boolean;
+  canManageUsers: boolean; // Only super_admin
+}
 
-// Get the current admin password hash from DB
-export async function getAdminPasswordHash(): Promise<string> {
-  const { data, error } = await supabase
-    .from("app_settings")
-    .select("value")
-    .eq("key", "admin_password_hash")
+export async function getCurrentUser(): Promise<UserProfile | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
     .single();
 
-  if (error || !data?.value) {
-    return FALLBACK_HASH;
-  }
-  return data.value;
+  if (!profile) return null;
+
+  return {
+    id: profile.id,
+    email: profile.email,
+    display_name: profile.display_name,
+    role: profile.role as AdminRole,
+    can_manage_schedule: profile.can_manage_schedule,
+    can_manage_settings: profile.can_manage_settings,
+    can_send_broadcasts: profile.can_send_broadcasts,
+    created_at: profile.created_at,
+  };
 }
 
-// Verify password against stored hash
-export async function verifyPassword(inputPassword: string): Promise<boolean> {
-  const storedHash = await getAdminPasswordHash();
-  const inputHash = await hashPassword(inputPassword);
-  return inputHash === storedHash;
-}
-
-// Change admin password
-export async function changeAdminPassword(
-  currentPassword: string,
-  newPassword: string
-): Promise<{ success: boolean; error?: string }> {
-  const isValid = await verifyPassword(currentPassword);
-  if (!isValid) {
-    return { success: false, error: "Текущата парола е грешна" };
+export function getPermissions(profile: UserProfile | null): UserPermissions {
+  if (!profile) {
+    return {
+      canManageSchedule: false,
+      canManageSettings: false,
+      canSendBroadcasts: false,
+      canManageUsers: false,
+    };
   }
 
-  const newHash = await hashPassword(newPassword);
-  const { error } = await supabase
-    .from("app_settings")
-    .update({ value: newHash, updated_at: new Date().toISOString() })
-    .eq("key", "admin_password_hash");
+  const isSuperAdmin = profile.role === "super_admin";
+
+  return {
+    canManageSchedule: isSuperAdmin || profile.can_manage_schedule,
+    canManageSettings: isSuperAdmin || profile.can_manage_settings,
+    canSendBroadcasts: isSuperAdmin || profile.can_send_broadcasts,
+    canManageUsers: isSuperAdmin,
+  };
+}
+
+export async function signIn(email: string, password: string): Promise<{ error: string | null }> {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    if (error.message.includes("Invalid login credentials")) {
+      return { error: "Грешен имейл или парола" };
+    }
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+export async function signOut(): Promise<void> {
+  await supabase.auth.signOut();
+}
+
+export async function createAdminUser(
+  email: string,
+  password: string,
+  displayName: string,
+  permissions: {
+    canManageSchedule: boolean;
+    canManageSettings: boolean;
+    canSendBroadcasts: boolean;
+  }
+): Promise<{ error: string | null }> {
+  // This requires the service role key, so we'll use an edge function
+  const { data, error } = await supabase.functions.invoke("create-admin", {
+    body: { email, password, displayName, permissions },
+  });
 
   if (error) {
-    return { success: false, error: "Грешка при запазване на новата парола" };
+    return { error: error.message };
   }
 
-  return { success: true };
+  if (data?.error) {
+    return { error: data.error };
+  }
+
+  return { error: null };
+}
+
+export async function updateAdminPermissions(
+  userId: string,
+  permissions: {
+    canManageSchedule: boolean;
+    canManageSettings: boolean;
+    canSendBroadcasts: boolean;
+  }
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      can_manage_schedule: permissions.canManageSchedule,
+      can_manage_settings: permissions.canManageSettings,
+      can_send_broadcasts: permissions.canSendBroadcasts,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
+export async function deleteAdmin(userId: string): Promise<{ error: string | null }> {
+  const { data, error } = await supabase.functions.invoke("delete-admin", {
+    body: { userId },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (data?.error) {
+    return { error: data.error };
+  }
+
+  return { error: null };
+}
+
+export async function getAllAdmins(): Promise<UserProfile[]> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (!data) return [];
+
+  return data.map((p) => ({
+    id: p.id,
+    email: p.email,
+    display_name: p.display_name,
+    role: p.role as AdminRole,
+    can_manage_schedule: p.can_manage_schedule,
+    can_manage_settings: p.can_manage_settings,
+    can_send_broadcasts: p.can_send_broadcasts,
+    created_at: p.created_at,
+  }));
 }
