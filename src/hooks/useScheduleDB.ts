@@ -341,8 +341,9 @@ export function useScheduleDB() {
 
     // Create all cell combinations with required teacher count
     const allSlots: { day: string; location: string }[] = [];
+    const dynamicLocations = [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
     DAYS.forEach((day) => {
-      LOCATIONS.forEach((location) => {
+      dynamicLocations.forEach((location) => {
         const count = getTeachersPerLocation(location);
         for (let i = 0; i < count; i++) {
           allSlots.push({ day, location });
