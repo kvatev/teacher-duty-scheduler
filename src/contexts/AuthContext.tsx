@@ -34,20 +34,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+    // Check initial session first
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log("[AuthContext] getSession result:", session ? "has session" : "no session");
+      if (session) {
         await refreshUser();
-      } else if (event === "SIGNED_OUT") {
-        setUser(null);
       }
       setIsLoading(false);
     });
 
-    // Check initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        await refreshUser();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[AuthContext] onAuthStateChange:", event);
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        // Use setTimeout to avoid deadlock with Supabase internal state
+        setTimeout(async () => {
+          await refreshUser();
+        }, 0);
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
       }
+      if (event === "INITIAL_SESSION") return; // Already handled by getSession
       setIsLoading(false);
     });
 
