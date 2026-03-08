@@ -104,6 +104,45 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          can_manage_schedule: boolean
+          can_manage_settings: boolean
+          can_send_broadcasts: boolean
+          created_at: string
+          created_by: string | null
+          display_name: string | null
+          email: string
+          id: string
+          role: Database["public"]["Enums"]["admin_role"]
+          updated_at: string
+        }
+        Insert: {
+          can_manage_schedule?: boolean
+          can_manage_settings?: boolean
+          can_send_broadcasts?: boolean
+          created_at?: string
+          created_by?: string | null
+          display_name?: string | null
+          email: string
+          id: string
+          role?: Database["public"]["Enums"]["admin_role"]
+          updated_at?: string
+        }
+        Update: {
+          can_manage_schedule?: boolean
+          can_manage_settings?: boolean
+          can_send_broadcasts?: boolean
+          created_at?: string
+          created_by?: string | null
+          display_name?: string | null
+          email?: string
+          id?: string
+          role?: Database["public"]["Enums"]["admin_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       school_periods: {
         Row: {
           created_at: string
@@ -159,10 +198,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_permissions: {
+        Args: { _user_id: string }
+        Returns: {
+          can_manage_schedule: boolean
+          can_manage_settings: boolean
+          can_send_broadcasts: boolean
+        }[]
+      }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["admin_role"]
+      }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      admin_role: "super_admin" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -289,6 +340,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      admin_role: ["super_admin", "admin"],
+    },
   },
 } as const
