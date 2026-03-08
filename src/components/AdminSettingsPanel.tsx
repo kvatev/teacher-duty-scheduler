@@ -54,7 +54,6 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
   const [logoPreview, setLogoPreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newPass, setNewPass] = useState("");
-  const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [isChangingPass, setIsChangingPass] = useState(false);
 
