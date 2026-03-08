@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { AdminSettingsPanel } from "@/components/AdminSettingsPanel";
 import { AppSettings } from "@/hooks/useAppSettings";
 
-import schoolLogo from "@/assets/su-konstantin-petkanов-logo.png";
+import defaultLogo from "@/assets/su-konstantin-petkanов-logo.png";
 
 interface HeaderProps {
   settings: AppSettings;
@@ -25,6 +25,8 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
   const { isAdmin, login, logout } = useAuth();
   const [password, setPassword] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const logoSrc = settings.logo_url || defaultLogo;
 
   const handleLogin = async () => {
     const success = await login(password);
@@ -48,8 +50,8 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <img
-              src={schoolLogo}
-              alt="Лого на СУ Константин Петканов, Бургас"
+              src={logoSrc}
+              alt="Лого на училището"
               className="w-12 h-12 md:w-14 md:h-14 object-contain"
               loading="eager"
             />
@@ -75,8 +77,6 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                 <AdminSettingsPanel settings={settings} onSave={onSaveSettings} />
               </>
             )}
-
-
 
             {isAdmin ? (
               <Button

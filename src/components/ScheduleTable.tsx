@@ -127,7 +127,7 @@ export function ScheduleTable({
             <thead>
               <tr>
                 <th className="p-3 text-left font-semibold border-r border-primary/20 min-w-[120px]">
-                  Ден от седмицата
+                  {settings?.day_column_header || "Ден от седмицата"}
                 </th>
                 {locations.map((location) => (
                   <th

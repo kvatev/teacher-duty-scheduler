@@ -104,9 +104,9 @@ const Index = () => {
               settings={settings}
             />
             
-            {isAdmin && (
+            {isAdmin && settings.tip_text && (
               <p className="mt-4 text-sm text-muted-foreground text-center">
-                💡 Съвет: Провлачете учител от списъка вляво в желаната клетка, или преместете между клетки
+                {settings.tip_text}
               </p>
             )}
           </section>
