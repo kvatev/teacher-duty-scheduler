@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Teacher, DutyAssignment, SchoolPeriod, getCurrentPeriod, DAYS, LOCATIONS, CellTeacher } from "@/types/schedule";
+import { useAppSettings } from "@/hooks/useAppSettings";
 import { toast } from "sonner";
 
 interface DBPeriod {
@@ -10,6 +11,7 @@ interface DBPeriod {
 }
 
 export function useScheduleDB() {
+  const { settings } = useAppSettings();
   const [currentPeriod, setCurrentPeriod] = useState<SchoolPeriod>(getCurrentPeriod);
   const [periodId, setPeriodId] = useState<string | null>(null);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -339,8 +341,9 @@ export function useScheduleDB() {
 
     // Create all cell combinations with required teacher count
     const allSlots: { day: string; location: string }[] = [];
+    const dynamicLocations = [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
     DAYS.forEach((day) => {
-      LOCATIONS.forEach((location) => {
+      dynamicLocations.forEach((location) => {
         const count = getTeachersPerLocation(location);
         for (let i = 0; i < count; i++) {
           allSlots.push({ day, location });
@@ -406,7 +409,7 @@ export function useScheduleDB() {
       day: a.day,
       location: a.location
     })));
-  }, [periodId, teachers]);
+  }, [periodId, teachers, settings]);
 
   // Add a new period (year + term)
   const addPeriod = useCallback(async (year: string, term: 1 | 2): Promise<boolean> => {

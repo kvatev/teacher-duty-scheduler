@@ -64,7 +64,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="secondary" size="sm" className="gap-2 bg-accent text-accent-foreground hover:bg-accent/80">
           <Settings className="w-4 h-4" />
           <span className="hidden sm:inline">Настройки</span>
         </Button>
@@ -78,8 +78,9 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="general">Общи</TabsTrigger>
+            <TabsTrigger value="locations">Локации</TabsTrigger>
             <TabsTrigger value="pdf">PDF документ</TabsTrigger>
             <TabsTrigger value="contact">Контакти</TabsTrigger>
           </TabsList>
@@ -108,6 +109,42 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                 value={draft.footer_note}
                 onChange={(e) => updateDraft("footer_note", e.target.value)}
                 rows={2}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="locations" className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">Редактирайте имената на колоните в графика за дежурства.</p>
+            <div className="space-y-2">
+              <Label htmlFor="location_1">Локация 1</Label>
+              <Input
+                id="location_1"
+                value={draft.location_1}
+                onChange={(e) => updateDraft("location_1", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location_2">Локация 2</Label>
+              <Input
+                id="location_2"
+                value={draft.location_2}
+                onChange={(e) => updateDraft("location_2", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location_3">Локация 3</Label>
+              <Input
+                id="location_3"
+                value={draft.location_3}
+                onChange={(e) => updateDraft("location_3", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location_4">Локация 4 (дежурен с номерация)</Label>
+              <Input
+                id="location_4"
+                value={draft.location_4}
+                onChange={(e) => updateDraft("location_4", e.target.value)}
               />
             </div>
           </TabsContent>

@@ -1,5 +1,5 @@
-import React, { forwardRef } from "react";
-import { DAYS, LOCATIONS, CellTeacher, SchoolPeriod } from "@/types/schedule";
+import React, { forwardRef, useMemo } from "react";
+import { DAYS, CellTeacher, SchoolPeriod } from "@/types/schedule";
 import { AppSettings } from "@/hooks/useAppSettings";
 import logoImage from "@/assets/su-konstantin-petkanов-logo.png";
 
@@ -14,6 +14,8 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
     if (!currentPeriod) {
       return null;
     }
+
+    const locations = [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
     
     const termText = currentPeriod.term === 1 ? "I учебен срок" : "II учебен срок";
     const yearText = `${currentPeriod.year} учебна година`;
@@ -62,7 +64,7 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
               <th className="border border-black p-2 text-left font-bold w-24">
                 Ден от седмицата
               </th>
-              {LOCATIONS.map((location) => (
+              {locations.map((location) => (
                 <th key={location} className="border border-black p-2 text-center font-bold">
                   {location}
                 </th>
@@ -73,7 +75,7 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
             {DAYS.map((day) => (
               <tr key={day}>
                 <td className="border border-black p-2 font-bold align-top">{day}</td>
-                {LOCATIONS.map((location) => {
+                {locations.map((location) => {
                   const teachers = getAssignmentsForCell(day, location);
                   return (
                     <td key={`${day}-${location}`} className="border border-black p-2 align-top">

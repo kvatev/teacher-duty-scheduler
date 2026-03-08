@@ -76,6 +76,8 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
               </>
             )}
 
+
+
             {isAdmin ? (
               <Button
                 variant="outline"

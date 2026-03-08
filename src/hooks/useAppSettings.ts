@@ -13,6 +13,10 @@ export interface AppSettings {
   pdf_school_info2: string;
   pdf_director_name: string;
   pdf_schedule_description: string;
+  location_1: string;
+  location_2: string;
+  location_3: string;
+  location_4: string;
 }
 
 const DEFAULTS: AppSettings = {
@@ -26,6 +30,10 @@ const DEFAULTS: AppSettings = {
   pdf_school_info2: 'ж.к. „Меден рудник" e-mail: info-200232@edu.mon.bg',
   pdf_director_name: "ИВАЙЛО МАРКОВ",
   pdf_schedule_description: "за дежурство на учителите от прогимназиален и гимназиален етап",
+  location_1: "Дежурни на III-ти етаж",
+  location_2: "Дежурни на IV-ти етаж",
+  location_3: "Училищен стол и пред кабинет по музика",
+  location_4: "Главен дежурен – западен вход 07:30-08:40 ч.",
 };
 
 export function useAppSettings() {

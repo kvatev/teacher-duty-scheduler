@@ -1,13 +1,13 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import { AppSettings } from "@/hooks/useAppSettings";
-import { DAYS, LOCATIONS, CellTeacher, SchoolPeriod } from "@/types/schedule";
+import { DAYS, CellTeacher, SchoolPeriod } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-const SHIFT_LOCATION = "Главен дежурен – западен вход 07:30-08:40 ч.";
+const DEFAULT_SHIFT_LOCATION = "Главен дежурен – западен вход 07:30-08:40 ч.";
 
 interface ScheduleTableProps {
   getAssignmentsForCell: (day: string, location: string) => CellTeacher[];
@@ -40,6 +40,15 @@ export function ScheduleTable({
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
+
+  const locations = useMemo(() => {
+    if (settings) {
+      return [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
+    }
+    return ["Дежурни на III-ти етаж", "Дежурни на IV-ти етаж", "Училищен стол и пред кабинет по музика", DEFAULT_SHIFT_LOCATION];
+  }, [settings]);
+
+  const shiftLocation = settings?.location_4 || DEFAULT_SHIFT_LOCATION;
 
   const handleExportPDF = async () => {
     if (!printableRef.current) {
@@ -120,7 +129,7 @@ export function ScheduleTable({
                 <th className="p-3 text-left font-semibold border-r border-primary/20 min-w-[120px]">
                   Ден от седмицата
                 </th>
-                {LOCATIONS.map((location) => (
+                {locations.map((location) => (
                   <th
                     key={location}
                     className="p-3 text-center font-semibold border-r border-primary/20 last:border-r-0 min-w-[180px]"
@@ -136,7 +145,7 @@ export function ScheduleTable({
                   <td className="p-3 font-medium border-r border-table-border bg-secondary/50">
                     {day}
                   </td>
-                  {LOCATIONS.map((location) => (
+                  {locations.map((location) => (
                     <td
                       key={`${day}-${location}`}
                       className="p-2 border-r border-table-border last:border-r-0 align-top"
@@ -150,7 +159,7 @@ export function ScheduleTable({
                         onUnassign={onUnassign}
                         onMove={onMove}
                         onUpdateShiftNumber={onUpdateShiftNumber}
-                        isShiftLocation={location === SHIFT_LOCATION}
+                        isShiftLocation={location === shiftLocation}
                       />
                     </td>
                   ))}
