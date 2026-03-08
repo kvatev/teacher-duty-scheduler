@@ -240,11 +240,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4 mt-4">
-            <p className="text-sm text-muted-foreground">Сменете паролата за администраторски достъп.</p>
-            <div className="space-y-2">
-              <Label htmlFor="current_pass">Текуща парола</Label>
-              <Input id="current_pass" type="password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} />
-            </div>
+            <p className="text-sm text-muted-foreground">Сменете паролата си за достъп до системата.</p>
             <div className="space-y-2">
               <Label htmlFor="new_pass">Нова парола</Label>
               <Input id="new_pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} />
