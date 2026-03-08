@@ -11,6 +11,7 @@ interface DBPeriod {
 }
 
 export function useScheduleDB() {
+  const { settings } = useAppSettings();
   const [currentPeriod, setCurrentPeriod] = useState<SchoolPeriod>(getCurrentPeriod);
   const [periodId, setPeriodId] = useState<string | null>(null);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
