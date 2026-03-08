@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { verifyPassword, ADMIN_PASSWORD_HASH } from "@/lib/auth";
+import { verifyPassword } from "@/lib/auth";
 
 interface AuthContextType {
   isAdmin: boolean;
@@ -15,7 +15,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const login = useCallback(async (password: string): Promise<boolean> => {
-    const isValid = await verifyPassword(password, ADMIN_PASSWORD_HASH);
+    const isValid = await verifyPassword(password);
     if (isValid) {
       setIsAdmin(true);
       localStorage.setItem("isAdmin", "true");

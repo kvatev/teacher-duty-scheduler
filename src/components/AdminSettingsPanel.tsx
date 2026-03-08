@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Settings, Save, X, Upload, Image } from "lucide-react";
+import { Settings, Save, X, Upload, Image, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ import {
 import { AppSettings } from "@/hooks/useAppSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { changeAdminPassword } from "@/lib/auth";
 
 interface AdminSettingsPanelProps {
   settings: AppSettings;
@@ -51,6 +52,10 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
   const [isUploading, setIsUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [currentPass, setCurrentPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [isChangingPass, setIsChangingPass] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -148,12 +153,13 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         </DialogHeader>
 
         <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="general">Общи</TabsTrigger>
             <TabsTrigger value="logo">Лого</TabsTrigger>
             <TabsTrigger value="locations">Локации</TabsTrigger>
             <TabsTrigger value="pdf">PDF</TabsTrigger>
             <TabsTrigger value="contact">Контакти</TabsTrigger>
+            <TabsTrigger value="security">Парола</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 mt-4">
@@ -226,6 +232,50 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           <TabsContent value="contact" className="space-y-4 mt-4">
             <SettingInput id="admin_name" label="Име на администратора" value={draft.admin_name} onChange={(v) => updateDraft("admin_name", v)} />
             <SettingInput id="admin_email" label="Имейл за връзка" value={draft.admin_email} onChange={(v) => updateDraft("admin_email", v)} />
+          </TabsContent>
+
+          <TabsContent value="security" className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">Сменете паролата за администраторски достъп.</p>
+            <div className="space-y-2">
+              <Label htmlFor="current_pass">Текуща парола</Label>
+              <Input id="current_pass" type="password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_pass">Нова парола</Label>
+              <Input id="new_pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_pass">Потвърдете новата парола</Label>
+              <Input id="confirm_pass" type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
+            </div>
+            <Button
+              disabled={isChangingPass || !currentPass || !newPass || !confirmPass}
+              onClick={async () => {
+                if (newPass !== confirmPass) {
+                  toast.error("Новата парола и потвърждението не съвпадат");
+                  return;
+                }
+                if (newPass.length < 6) {
+                  toast.error("Паролата трябва да е поне 6 символа");
+                  return;
+                }
+                setIsChangingPass(true);
+                const result = await changeAdminPassword(currentPass, newPass);
+                setIsChangingPass(false);
+                if (result.success) {
+                  toast.success("Паролата е сменена успешно");
+                  setCurrentPass("");
+                  setNewPass("");
+                  setConfirmPass("");
+                } else {
+                  toast.error(result.error || "Грешка при смяна на паролата");
+                }
+              }}
+              className="gap-2"
+            >
+              <KeyRound className="w-4 h-4" />
+              {isChangingPass ? "Смяна..." : "Смени паролата"}
+            </Button>
           </TabsContent>
         </Tabs>
 
