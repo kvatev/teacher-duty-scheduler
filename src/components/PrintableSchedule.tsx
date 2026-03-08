@@ -64,7 +64,7 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
               <th className="border border-black p-2 text-left font-bold w-24">
                 Ден от седмицата
               </th>
-              {LOCATIONS.map((location) => (
+              {locations.map((location) => (
                 <th key={location} className="border border-black p-2 text-center font-bold">
                   {location}
                 </th>
