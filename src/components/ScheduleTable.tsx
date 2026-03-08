@@ -129,7 +129,7 @@ export function ScheduleTable({
                 <th className="p-3 text-left font-semibold border-r border-primary/20 min-w-[120px]">
                   Ден от седмицата
                 </th>
-                {LOCATIONS.map((location) => (
+                {locations.map((location) => (
                   <th
                     key={location}
                     className="p-3 text-center font-semibold border-r border-primary/20 last:border-r-0 min-w-[180px]"
