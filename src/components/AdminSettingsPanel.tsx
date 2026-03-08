@@ -233,6 +233,50 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
             <SettingInput id="admin_name" label="Име на администратора" value={draft.admin_name} onChange={(v) => updateDraft("admin_name", v)} />
             <SettingInput id="admin_email" label="Имейл за връзка" value={draft.admin_email} onChange={(v) => updateDraft("admin_email", v)} />
           </TabsContent>
+
+          <TabsContent value="security" className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">Сменете паролата за администраторски достъп.</p>
+            <div className="space-y-2">
+              <Label htmlFor="current_pass">Текуща парола</Label>
+              <Input id="current_pass" type="password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_pass">Нова парола</Label>
+              <Input id="new_pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_pass">Потвърдете новата парола</Label>
+              <Input id="confirm_pass" type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
+            </div>
+            <Button
+              disabled={isChangingPass || !currentPass || !newPass || !confirmPass}
+              onClick={async () => {
+                if (newPass !== confirmPass) {
+                  toast.error("Новата парола и потвърждението не съвпадат");
+                  return;
+                }
+                if (newPass.length < 6) {
+                  toast.error("Паролата трябва да е поне 6 символа");
+                  return;
+                }
+                setIsChangingPass(true);
+                const result = await changeAdminPassword(currentPass, newPass);
+                setIsChangingPass(false);
+                if (result.success) {
+                  toast.success("Паролата е сменена успешно");
+                  setCurrentPass("");
+                  setNewPass("");
+                  setConfirmPass("");
+                } else {
+                  toast.error(result.error || "Грешка при смяна на паролата");
+                }
+              }}
+              className="gap-2"
+            >
+              <KeyRound className="w-4 h-4" />
+              {isChangingPass ? "Смяна..." : "Смени паролата"}
+            </Button>
+          </TabsContent>
         </Tabs>
 
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
