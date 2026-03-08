@@ -1,18 +1,42 @@
 import React, { useState, useEffect } from "react";
-import { Megaphone, Send, Trash2 } from "lucide-react";
+import { Megaphone, Send, Trash2, Info, AlertTriangle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+type Priority = "info" | "warning" | "urgent";
 
 interface Broadcast {
   id: string;
   message: string;
+  priority: Priority;
   created_at: string;
 }
 
+const priorityConfig: Record<Priority, { label: string; description: string; color: string }> = {
+  info: { label: "Информация", description: "Обикновено съобщение", color: "text-primary" },
+  warning: { label: "Предупреждение", description: "Изисква внимание", color: "text-yellow-600" },
+  urgent: { label: "Спешно", description: "Критично важно", color: "text-destructive" },
+};
+
+const PriorityIcon = ({ priority, className }: { priority: Priority; className?: string }) => {
+  switch (priority) {
+    case "urgent":
+      return <AlertCircle className={cn("w-4 h-4", className)} />;
+    case "warning":
+      return <AlertTriangle className={cn("w-4 h-4", className)} />;
+    default:
+      return <Info className={cn("w-4 h-4", className)} />;
+  }
+};
+
 export function AdminBroadcastPanel() {
   const [message, setMessage] = useState("");
+  const [priority, setPriority] = useState<Priority>("info");
   const [isSending, setIsSending] = useState(false);
   const [history, setHistory] = useState<Broadcast[]>([]);
 
@@ -23,7 +47,7 @@ export function AdminBroadcastPanel() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(10);
-      if (data) setHistory(data);
+      if (data) setHistory(data as Broadcast[]);
     };
     fetch();
   }, []);
@@ -33,7 +57,7 @@ export function AdminBroadcastPanel() {
     setIsSending(true);
     const { data, error } = await supabase
       .from("broadcasts")
-      .insert({ message: message.trim() })
+      .insert({ message: message.trim(), priority })
       .select()
       .single();
     setIsSending(false);
@@ -44,7 +68,8 @@ export function AdminBroadcastPanel() {
     }
     toast.success("Съобщението е изпратено до всички потребители");
     setMessage("");
-    if (data) setHistory((prev) => [data, ...prev].slice(0, 10));
+    setPriority("info");
+    if (data) setHistory((prev) => [data as Broadcast, ...prev].slice(0, 10));
   };
 
   const handleDelete = async (id: string) => {
@@ -62,6 +87,23 @@ export function AdminBroadcastPanel() {
       <p className="text-sm text-muted-foreground">
         Изпратете съобщение, което ще се покаже на всички потребители в приложението.
       </p>
+
+      <div className="space-y-2">
+        <Label>Ниво на важност</Label>
+        <RadioGroup value={priority} onValueChange={(v) => setPriority(v as Priority)} className="flex gap-4">
+          {(Object.keys(priorityConfig) as Priority[]).map((p) => (
+            <div key={p} className="flex items-center space-x-2">
+              <RadioGroupItem value={p} id={`priority-${p}`} />
+              <Label htmlFor={`priority-${p}`} className={cn("flex items-center gap-1.5 cursor-pointer", priorityConfig[p].color)}>
+                <PriorityIcon priority={p} />
+                {priorityConfig[p].label}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+        <p className="text-xs text-muted-foreground">{priorityConfig[priority].description}</p>
+      </div>
+
       <Textarea
         placeholder="Напишете съобщение..."
         value={message}
@@ -78,11 +120,11 @@ export function AdminBroadcastPanel() {
           <h4 className="text-sm font-medium text-muted-foreground">Последни съобщения</h4>
           {history.map((b) => (
             <div key={b.id} className="flex items-start gap-2 p-2 rounded-md bg-muted/50 text-sm">
-              <Megaphone className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+              <PriorityIcon priority={b.priority} className={cn("mt-0.5 flex-shrink-0", priorityConfig[b.priority]?.color || "text-muted-foreground")} />
               <div className="flex-1 min-w-0">
                 <p className="break-words">{b.message}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(b.created_at).toLocaleString("bg-BG")}
+                  {priorityConfig[b.priority]?.label || "Информация"} • {new Date(b.created_at).toLocaleString("bg-BG")}
                 </p>
               </div>
               <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-destructive hover:text-destructive" onClick={() => handleDelete(b.id)}>
