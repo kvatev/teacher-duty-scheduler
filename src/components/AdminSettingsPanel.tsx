@@ -113,6 +113,42 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
             </div>
           </TabsContent>
 
+          <TabsContent value="locations" className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">Редактирайте имената на колоните в графика за дежурства.</p>
+            <div className="space-y-2">
+              <Label htmlFor="location_1">Локация 1</Label>
+              <Input
+                id="location_1"
+                value={draft.location_1}
+                onChange={(e) => updateDraft("location_1", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location_2">Локация 2</Label>
+              <Input
+                id="location_2"
+                value={draft.location_2}
+                onChange={(e) => updateDraft("location_2", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location_3">Локация 3</Label>
+              <Input
+                id="location_3"
+                value={draft.location_3}
+                onChange={(e) => updateDraft("location_3", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location_4">Локация 4 (дежурен с номерация)</Label>
+              <Input
+                id="location_4"
+                value={draft.location_4}
+                onChange={(e) => updateDraft("location_4", e.target.value)}
+              />
+            </div>
+          </TabsContent>
+
           <TabsContent value="pdf" className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label htmlFor="pdf_school_name">Име на училището (PDF)</Label>
