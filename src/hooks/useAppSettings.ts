@@ -13,6 +13,10 @@ export interface AppSettings {
   pdf_school_info2: string;
   pdf_director_name: string;
   pdf_schedule_description: string;
+  location_1: string;
+  location_2: string;
+  location_3: string;
+  location_4: string;
 }
 
 const DEFAULTS: AppSettings = {
