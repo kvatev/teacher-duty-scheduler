@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from "react";
+import { AppSettings } from "@/hooks/useAppSettings";
 import { DAYS, LOCATIONS, CellTeacher, SchoolPeriod } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
