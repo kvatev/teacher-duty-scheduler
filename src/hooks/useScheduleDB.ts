@@ -83,9 +83,12 @@ export function useScheduleDB() {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
+      console.log("[useScheduleDB] loadData started, period:", currentPeriod);
       
       const pId = await ensurePeriod(currentPeriod);
+      console.log("[useScheduleDB] ensurePeriod returned:", pId);
       if (!pId) {
+        console.warn("[useScheduleDB] No period ID, stopping load");
         setIsLoading(false);
         return;
       }
