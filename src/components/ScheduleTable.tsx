@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from "react";
+import { AppSettings } from "@/hooks/useAppSettings";
 import { DAYS, LOCATIONS, CellTeacher, SchoolPeriod } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
@@ -23,6 +24,7 @@ interface ScheduleTableProps {
   onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
   currentPeriod: SchoolPeriod;
   onExportReady?: (exportFn: () => Promise<void>) => void;
+  settings?: AppSettings;
 }
 
 export function ScheduleTable({
@@ -34,6 +36,7 @@ export function ScheduleTable({
   onUpdateShiftNumber,
   currentPeriod,
   onExportReady,
+  settings,
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
@@ -173,6 +176,7 @@ export function ScheduleTable({
           ref={printableRef}
           getAssignmentsForCell={getAssignmentsForCell}
           currentPeriod={currentPeriod}
+          settings={settings!}
         />
       </div>
     </div>

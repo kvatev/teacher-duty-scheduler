@@ -6,6 +6,7 @@ import { Legend } from "@/components/Legend";
 import { PeriodSelector } from "@/components/PeriodSelector";
 import { useScheduleDB } from "@/hooks/useScheduleDB";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAppSettings } from "@/hooks/useAppSettings";
 
 const Index = () => {
   const {
@@ -31,6 +32,7 @@ const Index = () => {
   } = useScheduleDB();
 
   const { isAdmin } = useAuth();
+  const { settings, updateMultipleSettings } = useAppSettings();
   const [exportPDFFn, setExportPDFFn] = useState<(() => Promise<void>) | null>(null);
 
   const handleExportReady = useCallback((fn: () => Promise<void>) => {
@@ -53,7 +55,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header settings={settings} onSaveSettings={updateMultipleSettings} />
       
       <main className="container mx-auto px-4 py-6">
         {/* Period selector */}
@@ -77,7 +79,7 @@ const Index = () => {
 
         {/* Main content */}
         <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-          {/* Teacher list sidebar - matches schedule table height */}
+          {/* Teacher list sidebar */}
           <aside className="w-full lg:w-[20%] lg:min-w-[240px] lg:max-w-[320px] flex-shrink-0">
             <TeacherList
               teachers={teachers}
@@ -99,6 +101,7 @@ const Index = () => {
               currentPeriod={currentPeriod}
               onExportReady={handleExportReady}
               onUpdateShiftNumber={updateShiftNumber}
+              settings={settings}
             />
             
             {isAdmin && (
@@ -111,8 +114,8 @@ const Index = () => {
 
         {/* Footer note */}
         <footer className="mt-8 text-center text-sm text-muted-foreground space-y-1">
-          <p>*Забележка: 1 - дежури от 07:30-08:00 ч.; 2 - дежури от 08:00 до 08:40</p>
-          <p className="text-xs">Администратор на приложението е Красимир Ватев | За връзка: <a href="mailto:kvatev@outlook.com" className="underline hover:text-foreground transition-colors">kvatev@outlook.com</a></p>
+          <p>{settings.footer_note}</p>
+          <p className="text-xs">Администратор на приложението е {settings.admin_name} | За връзка: <a href={`mailto:${settings.admin_email}`} className="underline hover:text-foreground transition-colors">{settings.admin_email}</a></p>
         </footer>
       </main>
     </div>

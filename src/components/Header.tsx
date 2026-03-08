@@ -11,10 +11,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { AdminSettingsPanel } from "@/components/AdminSettingsPanel";
+import { AppSettings } from "@/hooks/useAppSettings";
 
 import schoolLogo from "@/assets/su-konstantin-petkanов-logo.png";
 
-export function Header() {
+interface HeaderProps {
+  settings: AppSettings;
+  onSaveSettings: (updates: Partial<AppSettings>) => Promise<boolean>;
+}
+
+export function Header({ settings, onSaveSettings }: HeaderProps) {
   const { isAdmin, login, logout } = useAuth();
   const [password, setPassword] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -48,22 +55,25 @@ export function Header() {
             />
             <div className="min-w-0">
               <h1 className="text-xl md:text-2xl font-bold truncate">
-                График за дежурства
+                {settings.header_title}
               </h1>
               <p className="text-sm opacity-90 truncate">
-                СУ "Константин Петканов", град Бургас
+                {settings.header_subtitle}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {isAdmin && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">
-                <Shield className="w-4 h-4" />
-                <span className="text-sm font-medium hidden sm:inline">
-                  Администратор
-                </span>
-              </div>
+              <>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">
+                  <Shield className="w-4 h-4" />
+                  <span className="text-sm font-medium hidden sm:inline">
+                    Администратор
+                  </span>
+                </div>
+                <AdminSettingsPanel settings={settings} onSave={onSaveSettings} />
+              </>
             )}
 
             {isAdmin ? (
