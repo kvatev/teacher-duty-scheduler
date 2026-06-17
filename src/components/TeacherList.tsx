@@ -125,19 +125,21 @@ export function TeacherList({
               .map((e) => WEEKDAY_TO_BG[e.weekday!].slice(0, 2))
               .join(", ");
             return (
-              <div key={teacher.id} className="flex items-start gap-1">
+              <div key={teacher.id} className="flex items-start gap-2">
                 {isAdmin && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 shrink-0 relative z-10 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    title="Задай дни на недостъпност"
-                    onClick={() => setUnavailTeacher(teacher)}
-                  >
-                    <CalendarOff className="w-4 h-4" />
-                  </Button>
+                  <div className="shrink-0 relative z-30 w-9 flex items-center justify-center pt-0.5">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8 shrink-0 relative z-50 text-muted-foreground hover:text-primary hover:bg-primary/10 bg-background/80 backdrop-blur-sm"
+                      title="Задай дни на недостъпност"
+                      onClick={() => setUnavailTeacher(teacher)}
+                    >
+                      <CalendarOff className="w-4 h-4" />
+                    </Button>
+                  </div>
                 )}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 overflow-hidden">
                   <TeacherBadge
                     id={teacher.id}
                     name={teacher.name}
