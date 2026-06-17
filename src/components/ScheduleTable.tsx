@@ -1,11 +1,13 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import { AppSettings } from "@/hooks/useAppSettings";
-import { DAYS, CellTeacher, SchoolPeriod } from "@/types/schedule";
+import { DAYS, CellTeacher, SchoolPeriod, Teacher } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
+import { useUnavailability } from "@/hooks/useUnavailability";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
 
 const DEFAULT_SHIFT_LOCATION = "Главен дежурен – западен вход 07:30-08:40 ч.";
 
@@ -25,7 +27,9 @@ interface ScheduleTableProps {
   currentPeriod: SchoolPeriod;
   onExportReady?: (exportFn: () => Promise<void>) => void;
   settings?: AppSettings;
+  teachers?: Teacher[];
 }
+
 
 export function ScheduleTable({
   getAssignmentsForCell,
@@ -37,9 +41,14 @@ export function ScheduleTable({
   currentPeriod,
   onExportReady,
   settings,
+  teachers = [],
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
+  const { isUnavailable } = useUnavailability();
+
+  const getTeacherName = (id: string) => teachers.find((t) => t.id === id)?.name;
+
 
   const locations = useMemo(() => {
     if (settings) {
@@ -160,7 +169,10 @@ export function ScheduleTable({
                         onMove={onMove}
                         onUpdateShiftNumber={onUpdateShiftNumber}
                         isShiftLocation={location === shiftLocation}
+                        getTeacherName={getTeacherName}
+                        isTeacherUnavailable={isUnavailable}
                       />
+
                     </td>
                   ))}
                 </tr>

@@ -164,6 +164,41 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_unavailability: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          specific_date: string | null
+          teacher_id: string
+          weekday: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          specific_date?: string | null
+          teacher_id: string
+          weekday?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          specific_date?: string | null
+          teacher_id?: string
+          weekday?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_unavailability_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teachers: {
         Row: {
           created_at: string
