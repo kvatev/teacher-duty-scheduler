@@ -108,7 +108,9 @@ const Index = () => {
               onExportReady={handleExportReady}
               onUpdateShiftNumber={updateShiftNumber}
               settings={settings}
+              teachers={teachers}
             />
+
             
             {isAdmin && settings.tip_text && (
               <p className="mt-4 text-sm text-muted-foreground text-center">
