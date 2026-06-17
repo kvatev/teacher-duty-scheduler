@@ -169,7 +169,10 @@ export function ScheduleTable({
                         onMove={onMove}
                         onUpdateShiftNumber={onUpdateShiftNumber}
                         isShiftLocation={location === shiftLocation}
+                        getTeacherName={getTeacherName}
+                        isTeacherUnavailable={isUnavailable}
                       />
+
                     </td>
                   ))}
                 </tr>
