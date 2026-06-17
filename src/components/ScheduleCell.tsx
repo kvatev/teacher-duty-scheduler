@@ -100,6 +100,8 @@ export function ScheduleCell({
       const success = await onAssign(teacherId, day, location);
       if (!success) {
         toast.error("Този учител вече е в тази клетка!");
+      } else {
+        notifyIfUnavailable(teacherId);
       }
     } else if (source === "cell") {
       const fromDay = e.dataTransfer.getData("fromDay");
@@ -107,10 +109,12 @@ export function ScheduleCell({
       if (fromDay && fromLocation) {
         if (fromDay !== day || fromLocation !== location) {
           await onMove(teacherId, fromDay, fromLocation, day, location);
+          notifyIfUnavailable(teacherId);
         }
       }
     }
   };
+
 
   const handleTeacherDragStart = (e: React.DragEvent, teacher: CellTeacher) => {
     e.dataTransfer.setData("teacherId", teacher.id);
