@@ -99,22 +99,23 @@ export function TeacherBadge({
       )}
       <span className="truncate max-w-[150px]">{name}</span>
       {unavailable && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (unavailableNote) {
-              toast.error(`Не е свободен: ${unavailableNote}`, { duration: 3000 });
-            } else {
-              toast.error("Учителят не е свободен този ден", { duration: 3000 });
-            }
-          }}
-          className="flex items-center justify-center min-h-[44px] min-w-[44px] -my-2 -mx-1.5 touch-manipulation"
-          aria-label={`Не е свободен${unavailableNote ? `: ${unavailableNote}` : ""}`}
-          title={unavailableNote || "Не е свободен този ден"}
-        >
-          <Ban className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0 pointer-events-none" />
-        </button>
+        <span className="relative inline-flex items-center justify-center shrink-0">
+          <Ban className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (unavailableNote) {
+                toast.error(`Не е свободен: ${unavailableNote}`, { duration: 3000 });
+              } else {
+                toast.error("Учителят не е свободен този ден", { duration: 3000 });
+              }
+            }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 sm:w-5 sm:h-5 cursor-pointer touch-manipulation border-0 bg-transparent p-0"
+            aria-label={`Не е свободен${unavailableNote ? `: ${unavailableNote}` : ""}`}
+            title={unavailableNote || "Не е свободен този ден"}
+          />
+        </span>
       )}
       <span className={cn(
         "flex items-center justify-center min-w-[20px] h-5 rounded-full text-xs font-bold px-1",
