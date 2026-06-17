@@ -36,9 +36,25 @@ export function ScheduleCell({
   onMove,
   onUpdateShiftNumber,
   isShiftLocation = false,
+  getTeacherName,
+  isTeacherUnavailable,
 }: ScheduleCellProps) {
   const { isAdmin } = useAuth();
   const [isDragOver, setIsDragOver] = useState(false);
+
+  const notifyIfUnavailable = (teacherId: string) => {
+    if (!isTeacherUnavailable) return;
+    const u = isTeacherUnavailable(teacherId, day);
+    if (u) {
+      const name = getTeacherName?.(teacherId) || "Учителят";
+      const noteSuffix = u.note ? ` (${u.note})` : "";
+      toast.warning(
+        `${name} не е свободен този ден да бъде дежурен${noteSuffix}`,
+        { duration: 4500 }
+      );
+    }
+  };
+
 
   const handleDragOver = (e: React.DragEvent) => {
     if (!isAdmin) return;
