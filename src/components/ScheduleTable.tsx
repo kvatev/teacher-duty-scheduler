@@ -41,9 +41,14 @@ export function ScheduleTable({
   currentPeriod,
   onExportReady,
   settings,
+  teachers = [],
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
+  const { isUnavailable } = useUnavailability();
+
+  const getTeacherName = (id: string) => teachers.find((t) => t.id === id)?.name;
+
 
   const locations = useMemo(() => {
     if (settings) {
