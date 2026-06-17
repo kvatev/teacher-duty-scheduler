@@ -1,5 +1,5 @@
 import React from "react";
-import { X, GripVertical } from "lucide-react";
+import { Ban, GripVertical, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -11,6 +11,7 @@ interface TeacherBadgeProps {
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: (e: React.DragEvent) => void;
+  unavailable?: boolean;
   showRemove?: boolean;
   size?: "sm" | "md";
   shiftNumber?: number | null;
@@ -35,6 +36,7 @@ export function TeacherBadge({
   onDragEnd,
   showRemove = false,
   size = "md",
+  unavailable = false,
   shiftNumber,
   onShiftNumberChange,
 }: TeacherBadgeProps) {
@@ -57,7 +59,8 @@ export function TeacherBadge({
         "teacher-badge inline-flex items-center gap-1.5 select-none",
         getCountClass(count),
         size === "sm" && "px-2 py-1 text-xs",
-        canDrag && "hover:shadow-md hover:scale-105 cursor-grab active:cursor-grabbing"
+        unavailable && "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:text-destructive-foreground",
+        canDrag && !unavailable && "hover:shadow-md hover:scale-105 cursor-grab active:cursor-grabbing"
       )}
       draggable={canDrag}
       onDragStart={handleDragStart}
@@ -90,7 +93,13 @@ export function TeacherBadge({
         </button>
       )}
       <span className="truncate max-w-[150px]">{name}</span>
-      <span className="flex items-center justify-center min-w-[20px] h-5 rounded-full bg-white/50 text-xs font-bold px-1">
+      {unavailable && (
+        <Ban className="w-3 h-3 flex-shrink-0" />
+      )}
+      <span className={cn(
+        "flex items-center justify-center min-w-[20px] h-5 rounded-full text-xs font-bold px-1",
+        unavailable ? "bg-white/20 text-destructive-foreground" : "bg-white/50"
+      )}>
         {count}
       </span>
       {showRemove && isAdmin && onRemove && (
