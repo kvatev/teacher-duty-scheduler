@@ -27,7 +27,9 @@ interface ScheduleTableProps {
   currentPeriod: SchoolPeriod;
   onExportReady?: (exportFn: () => Promise<void>) => void;
   settings?: AppSettings;
+  teachers?: Teacher[];
 }
+
 
 export function ScheduleTable({
   getAssignmentsForCell,
