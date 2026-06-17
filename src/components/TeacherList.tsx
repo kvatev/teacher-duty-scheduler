@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Users, Shuffle, Search } from "lucide-react";
+import { Plus, Users, Shuffle, Search, CalendarOff } from "lucide-react";
 import { Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,6 +7,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useUnavailability, WEEKDAY_TO_BG } from "@/hooks/useUnavailability";
+import { TeacherUnavailabilityDialog } from "./TeacherUnavailabilityDialog";
 
 import {
   Dialog,
