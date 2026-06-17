@@ -118,19 +118,47 @@ export function TeacherList({
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <div className="p-3 space-y-2">
-          {filteredTeachers.map((teacher) => (
-            <div key={teacher.id} className="flex items-center">
-              <TeacherBadge
-                id={teacher.id}
-                name={teacher.name}
-                count={counts[teacher.id] || 0}
-                draggable={enableDrag}
-                onDragStart={enableDrag ? (e) => handleDragStart(e, teacher) : undefined}
-                showRemove={isAdmin}
-                onRemove={() => onRemoveTeacher(teacher.id)}
-              />
-            </div>
-          ))}
+          {filteredTeachers.map((teacher) => {
+            const teacherUnavail = getTeacherEntries(teacher.id);
+            const weekdays = teacherUnavail
+              .filter((e) => e.weekday)
+              .map((e) => WEEKDAY_TO_BG[e.weekday!].slice(0, 2))
+              .join(", ");
+            return (
+              <div key={teacher.id} className="flex items-center gap-1">
+                <div className="flex-1 min-w-0">
+                  <TeacherBadge
+                    id={teacher.id}
+                    name={teacher.name}
+                    count={counts[teacher.id] || 0}
+                    draggable={enableDrag}
+                    onDragStart={enableDrag ? (e) => handleDragStart(e, teacher) : undefined}
+                    showRemove={isAdmin}
+                    onRemove={() => onRemoveTeacher(teacher.id)}
+                  />
+                  {teacherUnavail.length > 0 && (
+                    <p className="text-[10px] text-destructive/80 mt-0.5 ml-1 flex items-center gap-1">
+                      <CalendarOff className="w-2.5 h-2.5" />
+                      Не е свободен: {weekdays}
+                      {teacherUnavail.some((e) => e.specific_date) &&
+                        ` +${teacherUnavail.filter((e) => e.specific_date).length} дата(и)`}
+                    </p>
+                  )}
+                </div>
+                {isAdmin && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 shrink-0"
+                    title="Достъпност"
+                    onClick={() => setUnavailTeacher(teacher)}
+                  >
+                    <CalendarOff className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
+            );
+          })}
           {filteredTeachers.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
               Няма намерени учители
@@ -138,6 +166,7 @@ export function TeacherList({
           )}
         </div>
       </div>
+
 
       {isAdmin && (
         <div className="p-3 border-t space-y-2">
