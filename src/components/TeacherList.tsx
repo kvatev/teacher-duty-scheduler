@@ -212,6 +212,20 @@ export function TeacherList({
           </Dialog>
         </div>
       )}
+
+      {unavailTeacher && (
+        <TeacherUnavailabilityDialog
+          open={!!unavailTeacher}
+          onOpenChange={(o) => !o && setUnavailTeacher(null)}
+          teacherId={unavailTeacher.id}
+          teacherName={unavailTeacher.name}
+          entries={getTeacherEntries(unavailTeacher.id)}
+          onAddWeekday={addWeekday}
+          onAddDate={addDate}
+          onRemove={removeUnavail}
+        />
+      )}
     </div>
   );
 }
+
