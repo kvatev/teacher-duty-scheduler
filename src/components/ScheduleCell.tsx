@@ -137,25 +137,40 @@ export function ScheduleCell({
       onDrop={handleDrop}
     >
       <div className="flex flex-wrap gap-1.5">
-        {teachers.map((teacher) => (
-          <TeacherBadge
-            key={teacher.id}
-            id={teacher.id}
-            name={teacher.name}
-            count={counts[teacher.id] || 0}
-            size="sm"
-            draggable={isAdmin}
-            onDragStart={(e) => handleTeacherDragStart(e, teacher)}
-            showRemove={isAdmin}
-            onRemove={() => onUnassign(teacher.id, day, location)}
-            shiftNumber={isShiftLocation ? teacher.shiftNumber : undefined}
-            onShiftNumberChange={
-              isShiftLocation && isAdmin && onUpdateShiftNumber
-                ? (sn) => onUpdateShiftNumber(teacher.id, day, location, sn)
-                : undefined
-            }
-          />
-        ))}
+        {teachers.map((teacher) => {
+          const unavail = isTeacherUnavailable?.(teacher.id, day);
+          return (
+            <div
+              key={teacher.id}
+              className={cn(
+                unavail && "ring-2 ring-destructive rounded-md"
+              )}
+              title={
+                unavail
+                  ? `Не е свободен този ден${unavail.note ? ` (${unavail.note})` : ""}`
+                  : undefined
+              }
+            >
+              <TeacherBadge
+                id={teacher.id}
+                name={teacher.name}
+                count={counts[teacher.id] || 0}
+                size="sm"
+                draggable={isAdmin}
+                onDragStart={(e) => handleTeacherDragStart(e, teacher)}
+                showRemove={isAdmin}
+                onRemove={() => onUnassign(teacher.id, day, location)}
+                shiftNumber={isShiftLocation ? teacher.shiftNumber : undefined}
+                onShiftNumberChange={
+                  isShiftLocation && isAdmin && onUpdateShiftNumber
+                    ? (sn) => onUpdateShiftNumber(teacher.id, day, location, sn)
+                    : undefined
+                }
+              />
+            </div>
+          );
+        })}
+
         {teachers.length === 0 && (
           <span className="text-xs text-muted-foreground italic">
             {isAdmin ? "Провлачете учител тук" : "Няма дежурен"}
