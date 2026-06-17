@@ -125,7 +125,18 @@ export function TeacherList({
               .map((e) => WEEKDAY_TO_BG[e.weekday!].slice(0, 2))
               .join(", ");
             return (
-              <div key={teacher.id} className="flex items-center gap-1">
+              <div key={teacher.id} className="flex items-start gap-1">
+                {isAdmin && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 shrink-0 relative z-10 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                    title="Задай дни на недостъпност"
+                    onClick={() => setUnavailTeacher(teacher)}
+                  >
+                    <CalendarOff className="w-4 h-4" />
+                  </Button>
+                )}
                 <div className="flex-1 min-w-0">
                   <TeacherBadge
                     id={teacher.id}
@@ -145,19 +156,9 @@ export function TeacherList({
                     </p>
                   )}
                 </div>
-                {isAdmin && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 shrink-0"
-                    title="Достъпност"
-                    onClick={() => setUnavailTeacher(teacher)}
-                  >
-                    <CalendarOff className="w-3.5 h-3.5" />
-                  </Button>
-                )}
               </div>
             );
+
           })}
           {filteredTeachers.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
