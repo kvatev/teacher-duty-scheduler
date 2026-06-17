@@ -21,7 +21,10 @@ interface ScheduleCellProps {
   ) => void | Promise<void>;
   onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
   isShiftLocation?: boolean;
+  getTeacherName?: (teacherId: string) => string | undefined;
+  isTeacherUnavailable?: (teacherId: string, day: string) => { note?: string | null } | null;
 }
+
 
 export function ScheduleCell({
   day,
