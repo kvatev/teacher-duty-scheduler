@@ -146,7 +146,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           <span className="hidden sm:inline">Настройки</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto sm:rounded-lg w-full h-full sm:h-auto sm:max-h-[85vh] rounded-none duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-90 data-[state=open]:zoom-in-90 data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:slide-in-from-bottom-4">
+      <DialogContent className="w-full h-full rounded-none overflow-y-auto p-4 sm:p-6 max-w-none sm:max-w-2xl sm:h-auto sm:max-h-[85vh] sm:rounded-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-90 data-[state=open]:zoom-in-90 data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:slide-in-from-bottom-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
