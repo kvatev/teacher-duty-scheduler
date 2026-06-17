@@ -140,34 +140,33 @@ export function ScheduleCell({
         {teachers.map((teacher) => {
           const unavail = isTeacherUnavailable?.(teacher.id, day);
           return (
-            <div
-              key={teacher.id}
-              className={cn(
-                unavail && "ring-2 ring-destructive rounded-md"
-              )}
-              title={
-                unavail
-                  ? `Не е свободен този ден${unavail.note ? ` (${unavail.note})` : ""}`
+          <div
+            key={teacher.id}
+            className={cn(unavail && "rounded-md")}
+            title={
+              unavail
+                ? `Не е свободен този ден${unavail.note ? ` (${unavail.note})` : ""}`
+                : undefined
+            }
+          >
+            <TeacherBadge
+              id={teacher.id}
+              name={teacher.name}
+              count={counts[teacher.id] || 0}
+              size="sm"
+              unavailable={!!unavail}
+              draggable={isAdmin}
+              onDragStart={(e) => handleTeacherDragStart(e, teacher)}
+              showRemove={isAdmin}
+              onRemove={() => onUnassign(teacher.id, day, location)}
+              shiftNumber={isShiftLocation ? teacher.shiftNumber : undefined}
+              onShiftNumberChange={
+                isShiftLocation && isAdmin && onUpdateShiftNumber
+                  ? (sn) => onUpdateShiftNumber(teacher.id, day, location, sn)
                   : undefined
               }
-            >
-              <TeacherBadge
-                id={teacher.id}
-                name={teacher.name}
-                count={counts[teacher.id] || 0}
-                size="sm"
-                draggable={isAdmin}
-                onDragStart={(e) => handleTeacherDragStart(e, teacher)}
-                showRemove={isAdmin}
-                onRemove={() => onUnassign(teacher.id, day, location)}
-                shiftNumber={isShiftLocation ? teacher.shiftNumber : undefined}
-                onShiftNumberChange={
-                  isShiftLocation && isAdmin && onUpdateShiftNumber
-                    ? (sn) => onUpdateShiftNumber(teacher.id, day, location, sn)
-                    : undefined
-                }
-              />
-            </div>
+            />
+          </div>
           );
         })}
 
