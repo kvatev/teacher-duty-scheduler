@@ -99,7 +99,22 @@ export function TeacherBadge({
       )}
       <span className="truncate max-w-[150px]">{name}</span>
       {unavailable && (
-        <Ban className="w-3 h-3 flex-shrink-0" />
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (unavailableNote) {
+              toast.error(`Не е свободен: ${unavailableNote}`, { duration: 3000 });
+            } else {
+              toast.error("Учителят не е свободен този ден", { duration: 3000 });
+            }
+          }}
+          className="flex items-center justify-center min-h-[44px] min-w-[44px] -my-2 -mx-1.5 touch-manipulation"
+          aria-label={`Не е свободен${unavailableNote ? `: ${unavailableNote}` : ""}`}
+          title={unavailableNote || "Не е свободен този ден"}
+        >
+          <Ban className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0 pointer-events-none" />
+        </button>
       )}
       <span className={cn(
         "flex items-center justify-center min-w-[20px] h-5 rounded-full text-xs font-bold px-1",
