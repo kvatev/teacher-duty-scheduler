@@ -41,6 +41,7 @@ export function TeacherBadge({
   showRemove = false,
   size = "md",
   unavailable = false,
+  unavailableNote,
   shiftNumber,
   onShiftNumberChange,
 }: TeacherBadgeProps) {
