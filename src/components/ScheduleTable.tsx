@@ -1,11 +1,13 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import { AppSettings } from "@/hooks/useAppSettings";
-import { DAYS, CellTeacher, SchoolPeriod } from "@/types/schedule";
+import { DAYS, CellTeacher, SchoolPeriod, Teacher } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
+import { useUnavailability } from "@/hooks/useUnavailability";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
 
 const DEFAULT_SHIFT_LOCATION = "Главен дежурен – западен вход 07:30-08:40 ч.";
 
