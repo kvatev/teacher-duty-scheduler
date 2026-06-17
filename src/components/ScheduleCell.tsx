@@ -48,7 +48,7 @@ export function ScheduleCell({
     if (u) {
       const name = getTeacherName?.(teacherId) || "Учителят";
       const noteSuffix = u.note ? ` (${u.note})` : "";
-      toast.warning(
+      toast.error(
         `${name} не е свободен този ден да бъде дежурен${noteSuffix}`,
         { duration: 4500 }
       );
