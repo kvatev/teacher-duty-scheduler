@@ -2,6 +2,8 @@ import React from "react";
 import { Ban, GripVertical, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
 
 interface TeacherBadgeProps {
   id: string;
@@ -12,10 +14,12 @@ interface TeacherBadgeProps {
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: (e: React.DragEvent) => void;
   unavailable?: boolean;
+  unavailableNote?: string | null;
   showRemove?: boolean;
   size?: "sm" | "md";
   shiftNumber?: number | null;
   onShiftNumberChange?: (shiftNumber: number | null) => void;
+
 }
 
 function getCountClass(count: number): string {

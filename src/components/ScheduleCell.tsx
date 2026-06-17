@@ -155,6 +155,7 @@ export function ScheduleCell({
               count={counts[teacher.id] || 0}
               size="sm"
               unavailable={!!unavail}
+              unavailableNote={unavail?.note}
               draggable={isAdmin}
               onDragStart={(e) => handleTeacherDragStart(e, teacher)}
               showRemove={isAdmin}
