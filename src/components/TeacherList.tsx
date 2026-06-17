@@ -40,6 +40,15 @@ export function TeacherList({
   const [newTeacherName, setNewTeacherName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [unavailTeacher, setUnavailTeacher] = useState<Teacher | null>(null);
+
+  const {
+    getTeacherEntries,
+    addWeekday,
+    addDate,
+    remove: removeUnavail,
+  } = useUnavailability();
+
 
   const handleAutoArrange = async () => {
     if (teachers.length === 0) {
