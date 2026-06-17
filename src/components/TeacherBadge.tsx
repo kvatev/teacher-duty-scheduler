@@ -1,5 +1,5 @@
 import React from "react";
-import { X, GripVertical } from "lucide-react";
+import { Ban, GripVertical, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -11,6 +11,7 @@ interface TeacherBadgeProps {
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: (e: React.DragEvent) => void;
+  unavailable?: boolean;
   showRemove?: boolean;
   size?: "sm" | "md";
   shiftNumber?: number | null;
@@ -35,6 +36,7 @@ export function TeacherBadge({
   onDragEnd,
   showRemove = false,
   size = "md",
+  unavailable = false,
   shiftNumber,
   onShiftNumberChange,
 }: TeacherBadgeProps) {
