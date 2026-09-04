@@ -252,11 +252,11 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
             <p className="text-sm text-muted-foreground">Сменете паролата си за достъп до системата.</p>
             <div className="space-y-2">
               <Label htmlFor="new_pass">Нова парола</Label>
-              <Input id="new_pass" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} />
+              <PasswordInput id="new_pass" value={newPass} onChange={(e) => setNewPass(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm_pass">Потвърдете новата парола</Label>
-              <Input id="confirm_pass" type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
+              <PasswordInput id="confirm_pass" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
             </div>
             <Button
               disabled={isChangingPass || !newPass || !confirmPass}
