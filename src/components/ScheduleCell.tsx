@@ -136,7 +136,7 @@ export function ScheduleCell({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="flex flex-wrap gap-1.5">
+      <div className={cn("flex flex-wrap", teachers.length >= 4 ? "gap-1" : "gap-1.5")}>
         {teachers.map((teacher) => {
           const unavail = isTeacherUnavailable?.(teacher.id, day);
           return (
@@ -153,7 +153,7 @@ export function ScheduleCell({
               id={teacher.id}
               name={teacher.name}
               count={counts[teacher.id] || 0}
-              size="sm"
+              size={teachers.length >= 4 ? "xs" : "sm"}
               unavailable={!!unavail}
               unavailableNote={unavail?.note}
               draggable={isAdmin}
