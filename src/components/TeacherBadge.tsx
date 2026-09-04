@@ -16,7 +16,7 @@ interface TeacherBadgeProps {
   unavailable?: boolean;
   unavailableNote?: string | null;
   showRemove?: boolean;
-  size?: "sm" | "md";
+  size?: "xs" | "sm" | "md";
   shiftNumber?: number | null;
   onShiftNumberChange?: (shiftNumber: number | null) => void;
 
