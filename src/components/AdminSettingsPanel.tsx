@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { AdminBroadcastPanel } from "@/components/AdminBroadcastPanel";
 import { AdminUsersPanel } from "@/components/AdminUsersPanel";
 import { useAuth } from "@/contexts/AuthContext";
+import { PasswordInput } from "@/components/PasswordInput";
 
 interface AdminSettingsPanelProps {
   settings: AppSettings;
