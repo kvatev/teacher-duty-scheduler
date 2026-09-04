@@ -135,14 +135,19 @@ export function AdminUsersPanel() {
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="new-email">Имейл</Label>
+                <Label htmlFor="new-email">Потребителско име или имейл</Label>
                 <Input
                   id="new-email"
-                  type="email"
+                  type="text"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="admin@example.com"
+                  placeholder="напр. ivan или ivan@example.com"
+                  autoCapitalize="none"
+                  autoCorrect="off"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Ако въведете само име, ще се използва име@admin.com за вход.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new-password">Парола</Label>

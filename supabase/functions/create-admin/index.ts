@@ -46,10 +46,22 @@ Deno.serve(async (req) => {
     }
 
     // Get request body
-    const { email, password, displayName, permissions } = await req.json();
+    const body = await req.json();
+    const rawEmail = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const { password, displayName, permissions } = body;
 
-    if (!email || !password) {
-      return new Response(JSON.stringify({ error: "Имейл и парола са задължителни" }), {
+    if (!rawEmail || !password) {
+      return new Response(JSON.stringify({ error: "Потребителско име и парола са задължителни" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Allow plain usernames (e.g. "admin") by mapping them to a valid email
+    const email = rawEmail.includes("@") ? rawEmail : `${rawEmail.replace(/\s+/g, "")}@admin.com`;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      return new Response(JSON.stringify({ error: "Невалиден имейл адрес" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
