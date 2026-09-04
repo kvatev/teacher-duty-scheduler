@@ -131,9 +131,8 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="login-password">Парола</Label>
-                      <Input
+                      <PasswordInput
                         id="login-password"
-                        type="password"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
