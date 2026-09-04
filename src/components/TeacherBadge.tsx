@@ -47,6 +47,7 @@ export function TeacherBadge({
 }: TeacherBadgeProps) {
   const { isAdmin } = useAuth();
   const canDrag = draggable && isAdmin;
+  const isXs = size === "xs";
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     if (!canDrag) {
