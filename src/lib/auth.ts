@@ -93,9 +93,13 @@ export async function createAdminUser(
     canSendBroadcasts: boolean;
   }
 ): Promise<{ error: string | null }> {
+  // Allow plain usernames (e.g. "admin") — map them to a valid email
+  const identifier = email.trim().toLowerCase();
+  const loginEmail = identifier.includes("@") ? identifier : `${identifier}@admin.com`;
+
   // This requires the service role key, so we'll use an edge function
   const { data, error } = await supabase.functions.invoke("create-admin", {
-    body: { email, password, displayName, permissions },
+    body: { email: loginEmail, password, displayName, permissions },
   });
 
   if (error) {
