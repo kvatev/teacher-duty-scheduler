@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { PasswordInput } from "@/components/PasswordInput";
 import { toast } from "sonner";
 import { 
   UserProfile, 
