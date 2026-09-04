@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { PasswordInput } from "@/components/PasswordInput";
 import { toast } from "sonner";
 import { 
   UserProfile, 
@@ -145,9 +146,8 @@ export function AdminUsersPanel() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new-password">Парола</Label>
-                <Input
+                <PasswordInput
                   id="new-password"
-                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Мин. 6 символа"
