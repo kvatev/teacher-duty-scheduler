@@ -65,10 +65,14 @@ export function getPermissions(profile: UserProfile | null): UserPermissions {
 }
 
 export async function signIn(email: string, password: string): Promise<{ error: string | null }> {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  // Позволяваме вход само с потребителско име (напр. "admin")
+  const identifier = email.trim();
+  const loginEmail = identifier.includes("@") ? identifier : `${identifier}@admin.com`;
+
+  const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
   if (error) {
     if (error.message.includes("Invalid login credentials")) {
-      return { error: "Грешен имейл или парола" };
+      return { error: "Грешно потребителско име или парола" };
     }
     return { error: error.message };
   }

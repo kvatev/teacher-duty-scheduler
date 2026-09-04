@@ -116,11 +116,12 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">Имейл</Label>
+                      <Label htmlFor="login-email">Потребителско име</Label>
                       <Input
                         id="login-email"
-                        type="email"
-                        placeholder="admin@example.com"
+                        type="text"
+                        autoCapitalize="none"
+                        placeholder="admin"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         onKeyDown={(e) => {
