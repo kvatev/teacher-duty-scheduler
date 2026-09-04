@@ -101,10 +101,9 @@ export default function SetupPage() {
           <div className="space-y-2">
             <Label htmlFor="setup-password">Парола</Label>
             <div className="relative">
-              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+              <PasswordInput
                 id="setup-password"
-                type="password"
                 className="pl-10"
                 placeholder="Мин. 6 символа"
                 value={password}
@@ -115,10 +114,9 @@ export default function SetupPage() {
           <div className="space-y-2">
             <Label htmlFor="setup-confirm">Потвърдете паролата</Label>
             <div className="relative">
-              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+              <PasswordInput
                 id="setup-confirm"
-                type="password"
                 className="pl-10"
                 placeholder="Повторете паролата"
                 value={confirmPassword}
