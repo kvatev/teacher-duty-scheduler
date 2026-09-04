@@ -145,9 +145,8 @@ export function AdminUsersPanel() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new-password">Парола</Label>
-                <Input
+                <PasswordInput
                   id="new-password"
-                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Мин. 6 символа"
