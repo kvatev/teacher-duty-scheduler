@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Lock, LogOut, Shield } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Lock, LogOut, Shield, Bell, BellRing } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +16,76 @@ import { toast } from "sonner";
 import { AdminSettingsPanel } from "@/components/AdminSettingsPanel";
 import { AppSettings } from "@/hooks/useAppSettings";
 import { MobileInstallButton } from "@/components/PWAInstallPrompt";
+import {
+  getNotificationPermission,
+  requestNotificationPermission,
+  sendSystemNotification,
+  isNotificationSupported,
+  NotificationPermissionState,
+} from "@/lib/notifications";
+import { cn } from "@/lib/utils";
 
 import defaultLogo from "@/assets/su-konstantin-petkanов-logo.png";
 
 interface HeaderProps {
   settings: AppSettings;
   onSaveSettings: (updates: Partial<AppSettings>) => Promise<boolean>;
+}
+
+function NotificationHeaderButton() {
+  const [permission, setPermission] = useState<NotificationPermissionState>(getNotificationPermission);
+
+  useEffect(() => {
+    const handlePerm = () => setPermission(getNotificationPermission());
+    window.addEventListener("notification-permission-change", handlePerm);
+    return () => window.removeEventListener("notification-permission-change", handlePerm);
+  }, []);
+
+  if (!isNotificationSupported()) return null;
+
+  const handleClick = async () => {
+    if (permission === "granted") {
+      await sendSystemNotification("🔔 Тестово известие", {
+        body: "Известията за дежурства работят отлично на това устройство!",
+        tag: "header-test-notification",
+      });
+      toast.success("Изпратено е тестово известие!");
+    } else {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        setPermission("granted");
+        toast.success("Известията са активирани!");
+      } else {
+        toast.error("Известията не са разрешени в настройките на браузъра");
+      }
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleClick}
+      className={cn(
+        "gap-1.5 bg-transparent border-white/30 hover:bg-white/10 text-xs sm:text-sm h-8 sm:h-9",
+        permission === "granted" && "text-emerald-300 border-emerald-400/40"
+      )}
+      title={
+        permission === "granted"
+          ? "Известията са включени. Натиснете за тестване."
+          : "Включете известията за съобщения"
+      }
+    >
+      {permission === "granted" ? (
+        <BellRing className="w-3.5 h-3.5 text-emerald-300" />
+      ) : (
+        <Bell className="w-3.5 h-3.5" />
+      )}
+      <span className="hidden md:inline">
+        {permission === "granted" ? "Известия (Вкл.)" : "Известия"}
+      </span>
+    </Button>
+  );
 }
 
 export function Header({ settings, onSaveSettings }: HeaderProps) {
@@ -79,6 +143,7 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
 
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <MobileInstallButton />
+            <NotificationHeaderButton />
             {isAdmin && (
               <>
                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">

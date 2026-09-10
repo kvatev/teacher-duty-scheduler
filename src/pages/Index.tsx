@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { TeacherList } from "@/components/TeacherList";
 import { ScheduleTable } from "@/components/ScheduleTable";
@@ -6,6 +6,9 @@ import { Legend } from "@/components/Legend";
 import { PeriodSelector } from "@/components/PeriodSelector";
 import { BroadcastBanner } from "@/components/BroadcastBanner";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { NotificationPrompt } from "@/components/NotificationPrompt";
+import { initBroadcastListener } from "@/lib/notifications";
+import { toast } from "sonner";
 import { useScheduleDB } from "@/hooks/useScheduleDB";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppSettings } from "@/hooks/useAppSettings";
@@ -40,6 +43,24 @@ const Index = () => {
   const [exportPDFFn, setExportPDFFn] = useState<(() => Promise<void>) | null>(null);
   const [mobileSection, setMobileSection] = useState<"schedule" | "teachers">("schedule");
 
+  // Listen for broadcast messages from other tabs and background
+  useEffect(() => {
+    const unsubscribe = initBroadcastListener((broadcast) => {
+      const title =
+        broadcast.priority === "urgent"
+          ? "🚨 СПЕШНО СЪОБЩЕНИЕ"
+          : broadcast.priority === "warning"
+          ? "⚠️ ВАЖНО СЪОБЩЕНИЕ"
+          : "📢 Ново съобщение";
+
+      toast(title, {
+        description: broadcast.message,
+        duration: 9000,
+      });
+    });
+    return unsubscribe;
+  }, []);
+
   const handleExportReady = useCallback((fn: () => Promise<void>) => {
     setExportPDFFn(() => fn);
   }, []);
@@ -59,60 +80,55 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header settings={settings} onSaveSettings={updateMultipleSettings} />
-      
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex-1">
-        {/* Broadcast messages */}
-        <div className="mb-4">
-          <BroadcastBanner />
-        </div>
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-200">
+      <Header settings={settings} onExportPDF={handleExportPDF} />
 
-        {/* Period selector */}
-        <div className="mb-4 sm:mb-6">
-          <PeriodSelector 
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-4 space-y-4">
+        {/* Broadcast banner for announcements */}
+        <BroadcastBanner />
+
+        {/* Top Controls Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card rounded-lg border p-3 shadow-xs">
+          <PeriodSelector
             currentPeriod={currentPeriod}
-            availableYears={availableYears}
             availablePeriods={availablePeriods}
+            availableYears={availableYears}
             getTermsForYear={getTermsForYear}
-            onPeriodChange={changePeriod}
+            onChangePeriod={changePeriod}
             onAddPeriod={addPeriod}
             onDeletePeriod={deletePeriod}
             onCopyTeachers={copyTeachersFromPeriod}
+            settings={settings}
           />
+          <Legend />
         </div>
 
-        {/* Legend with PDF export */}
-        <div className="mb-4 sm:mb-6">
-          <Legend onExportPDF={handleExportPDF} />
-        </div>
-
-        {/* Mobile View Switcher: Schedule vs Teachers */}
-        <div className="flex lg:hidden items-center p-1 bg-muted/80 rounded-xl mb-4 text-sm border shadow-xs">
+        {/* Mobile Section Switcher */}
+        <div className="flex sm:hidden rounded-lg bg-muted p-1 gap-1">
           <button
             type="button"
             onClick={() => setMobileSection("schedule")}
             className={cn(
-              "flex-1 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5",
+              "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all",
               mobileSection === "schedule"
-                ? "bg-card text-foreground shadow-xs font-semibold"
+                ? "bg-card text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Calendar className="w-4 h-4 text-primary" />
-            <span>График за дежурства</span>
+            <Calendar className="w-3.5 h-3.5" />
+            <span>График</span>
           </button>
           <button
             type="button"
             onClick={() => setMobileSection("teachers")}
             className={cn(
-              "flex-1 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5",
+              "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all",
               mobileSection === "teachers"
-                ? "bg-card text-foreground shadow-xs font-semibold"
+                ? "bg-card text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Users className="w-4 h-4 text-primary" />
+            <Users className="w-3.5 h-3.5" />
             <span>Учители ({teachers.length})</span>
           </button>
         </div>
@@ -180,6 +196,9 @@ const Index = () => {
 
       {/* Floating PWA Install Prompt */}
       <PWAInstallPrompt />
+
+      {/* Floating Notification Permission Prompt */}
+      <NotificationPrompt />
     </div>
   );
 };
