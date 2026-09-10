@@ -49,7 +49,7 @@ export interface FullDatabaseBackup {
   broadcasts: DBBroadcast[];
 }
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   PERIODS: "teacher_scheduler_periods",
   TEACHERS: "teacher_scheduler_teachers",
   ASSIGNMENTS: "teacher_scheduler_assignments",
@@ -349,9 +349,31 @@ export const localDB = {
 
   // Assignments
   getAssignments(periodId?: string): DBAssignment[] {
-    const assignments = getFromStorage<DBAssignment[]>(STORAGE_KEYS.ASSIGNMENTS, []);
-    if (!periodId) return assignments;
-    return assignments.filter((a) => a.periodId === periodId);
+    const raw = getFromStorage<DBAssignment[]>(STORAGE_KEYS.ASSIGNMENTS, []);
+    const seen = new Set<string>();
+    const deduplicated: DBAssignment[] = [];
+    let hadDuplicates = false;
+
+    for (const a of raw) {
+      const key = `${a.periodId}-${a.teacherId}-${a.day}-${a.location}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduplicated.push(a);
+      } else {
+        hadDuplicates = true;
+      }
+    }
+
+    if (hadDuplicates && typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEYS.ASSIGNMENTS, JSON.stringify(deduplicated));
+      } catch (e) {
+        console.error("Error cleaning duplicate assignments:", e);
+      }
+    }
+
+    if (!periodId) return deduplicated;
+    return deduplicated.filter((a) => a.periodId === periodId);
   },
 
   assignTeacher(periodId: string, teacherId: string, day: string, location: string, shiftNumber: number | null = null): boolean {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { CellTeacher, Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,6 +54,7 @@ export function ScheduleCell({
   const [isDragOver, setIsDragOver] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [searchTeacher, setSearchTeacher] = useState("");
+  const isDroppingRef = useRef(false);
 
   const notifyIfUnavailable = (teacherId: string) => {
     if (!isTeacherUnavailable) return;
@@ -95,36 +96,46 @@ export function ScheduleCell({
   const handleDrop = async (e: React.DragEvent) => {
     if (!isAdmin) return;
     e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
 
-    const teacherId = e.dataTransfer.getData("teacherId");
-    const source = e.dataTransfer.getData("source");
+    if (isDroppingRef.current) return;
+    isDroppingRef.current = true;
 
-    if (!teacherId) return;
+    try {
+      const teacherId = e.dataTransfer.getData("teacherId");
+      const source = e.dataTransfer.getData("source");
 
-    // Check if teacher is already in this cell
-    const alreadyInCell = teachers.some(t => t.id === teacherId);
-    if (alreadyInCell) {
-      toast.error("Този учител вече е в тази клетка!");
-      return;
-    }
+      if (!teacherId) return;
 
-    if (source === "list") {
-      const success = await onAssign(teacherId, day, location);
-      if (!success) {
+      // Check if teacher is already in this cell
+      const alreadyInCell = teachers.some((t) => t.id === teacherId);
+      if (alreadyInCell) {
         toast.error("Този учител вече е в тази клетка!");
-      } else {
-        notifyIfUnavailable(teacherId);
+        return;
       }
-    } else if (source === "cell") {
-      const fromDay = e.dataTransfer.getData("fromDay");
-      const fromLocation = e.dataTransfer.getData("fromLocation");
-      if (fromDay && fromLocation) {
-        if (fromDay !== day || fromLocation !== location) {
-          await onMove(teacherId, fromDay, fromLocation, day, location);
+
+      if (source === "list") {
+        const success = await onAssign(teacherId, day, location);
+        if (!success) {
+          toast.error("Този учител вече е в тази клетка!");
+        } else {
           notifyIfUnavailable(teacherId);
         }
+      } else if (source === "cell") {
+        const fromDay = e.dataTransfer.getData("fromDay");
+        const fromLocation = e.dataTransfer.getData("fromLocation");
+        if (fromDay && fromLocation) {
+          if (fromDay !== day || fromLocation !== location) {
+            await onMove(teacherId, fromDay, fromLocation, day, location);
+            notifyIfUnavailable(teacherId);
+          }
+        }
       }
+    } finally {
+      setTimeout(() => {
+        isDroppingRef.current = false;
+      }, 150);
     }
   };
 

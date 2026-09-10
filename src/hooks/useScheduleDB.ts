@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { localDB, DBPeriod } from "@/lib/localDB";
+import { localDB, DBPeriod, STORAGE_KEYS } from "@/lib/localDB";
 import { Teacher, DutyAssignment, SchoolPeriod, getCurrentPeriod, DAYS, CellTeacher } from "@/types/schedule";
 import { DAY_NAME_TO_WEEKDAY } from "@/hooks/useUnavailability";
 import { useAppSettings } from "@/hooks/useAppSettings";
@@ -50,7 +50,19 @@ export function useScheduleDB() {
 
   // Listen to cross-component database changes (e.g. backup restore)
   useEffect(() => {
-    const handleDbChange = () => {
+    const handleDbChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const key = customEvent.detail?.key;
+      // Only reload schedule if it's relevant to schedule data or full restore
+      if (
+        key &&
+        key !== "all" &&
+        key !== STORAGE_KEYS.ASSIGNMENTS &&
+        key !== STORAGE_KEYS.TEACHERS &&
+        key !== STORAGE_KEYS.PERIODS
+      ) {
+        return;
+      }
       loadData();
     };
     window.addEventListener("local-db-change", handleDbChange);
@@ -66,9 +78,14 @@ export function useScheduleDB() {
     teachers.forEach((t) => {
       counts[t.id] = 0;
     });
+    const seenKeys = new Set<string>();
     assignments.forEach((a) => {
-      if (counts[a.teacherId] !== undefined) {
-        counts[a.teacherId]++;
+      const key = `${a.teacherId}-${a.day}-${a.location}`;
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        if (counts[a.teacherId] !== undefined) {
+          counts[a.teacherId]++;
+        }
       }
     });
     return counts;
@@ -81,7 +98,10 @@ export function useScheduleDB() {
       if (!created) {
         return false;
       }
-      setTeachers((prev) => [...prev, { id: created.id, name: created.name }]);
+      setTeachers((prev) => {
+        if (prev.some((t) => t.id === created.id)) return prev;
+        return [...prev, { id: created.id, name: created.name }];
+      });
       return true;
     },
     [periodId]
@@ -102,7 +122,13 @@ export function useScheduleDB() {
       const success = localDB.assignTeacher(periodId, teacherId, day, location);
       if (!success) return false;
 
-      setAssignments((prev) => [...prev, { teacherId, day, location, shiftNumber: null }]);
+      // Deduplicate state in case loadData already updated or runs concurrently
+      setAssignments((prev) => {
+        if (prev.some((a) => a.teacherId === teacherId && a.day === day && a.location === location)) {
+          return prev;
+        }
+        return [...prev, { teacherId, day, location, shiftNumber: null }];
+      });
       return true;
     },
     [periodId]
@@ -144,6 +170,9 @@ export function useScheduleDB() {
         const filtered = prev.filter(
           (a) => !(a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation)
         );
+        if (filtered.some((a) => a.teacherId === teacherId && a.day === toDay && a.location === toLocation)) {
+          return filtered;
+        }
         return [...filtered, { teacherId, day: toDay, location: toLocation, shiftNumber }];
       });
     },
@@ -152,14 +181,19 @@ export function useScheduleDB() {
 
   const getAssignmentsForCell = useCallback(
     (day: string, location: string): CellTeacher[] => {
-      return assignments
-        .filter((a) => a.day === day && a.location === location)
-        .map((a) => {
-          const teacher = teachers.find((t) => t.id === a.teacherId);
-          if (!teacher) return null;
-          return { ...teacher, shiftNumber: a.shiftNumber };
-        })
-        .filter(Boolean) as CellTeacher[];
+      const cellAssignments = assignments.filter((a) => a.day === day && a.location === location);
+      const seenTeacherIds = new Set<string>();
+      const result: CellTeacher[] = [];
+
+      for (const a of cellAssignments) {
+        if (seenTeacherIds.has(a.teacherId)) continue;
+        seenTeacherIds.add(a.teacherId);
+        const teacher = teachers.find((t) => t.id === a.teacherId);
+        if (teacher) {
+          result.push({ ...teacher, shiftNumber: a.shiftNumber });
+        }
+      }
+      return result;
     },
     [assignments, teachers]
   );
