@@ -89,6 +89,14 @@ export function TeacherUnavailabilityDialog({
     }
   };
 
+  const formatDateSafe = (dateStr: string) => {
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      return `${parts[2]}.${parts[1]}.${parts[0]}`;
+    }
+    return dateStr;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -184,7 +192,7 @@ export function TeacherUnavailabilityDialog({
                   >
                     <div>
                       <span className="font-medium">
-                        {format(new Date(e.specific_date!), "dd.MM.yyyy")}
+                        {formatDateSafe(e.specific_date!)}
                       </span>
                       {e.note && (
                         <span className="text-muted-foreground ml-2">

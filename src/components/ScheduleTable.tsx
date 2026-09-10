@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import { AppSettings } from "@/hooks/useAppSettings";
 import { DAYS, CellTeacher, SchoolPeriod, Teacher } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
@@ -59,7 +59,7 @@ export function ScheduleTable({
 
   const shiftLocation = settings?.location_4 || DEFAULT_SHIFT_LOCATION;
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = useCallback(async () => {
     if (!printableRef.current) {
       toast.error("Грешка: Не може да се генерира PDF", { id: "pdf-export" });
       return;
@@ -119,14 +119,14 @@ export function ScheduleTable({
       console.error("Error exporting PDF:", error);
       toast.error("Грешка при генериране на PDF", { id: "pdf-export" });
     }
-  };
+  }, [currentPeriod]);
 
   // Expose export function to parent
   useEffect(() => {
     if (onExportReady) {
       onExportReady(handleExportPDF);
     }
-  }, [onExportReady, currentPeriod]);
+  }, [onExportReady, handleExportPDF]);
 
   return (
     <div className="space-y-4">

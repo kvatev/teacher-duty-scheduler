@@ -234,6 +234,12 @@ export function AdminUsersPanel() {
   );
 }
 
+interface AdminPermissionsInput {
+  canManageSchedule: boolean;
+  canManageSettings: boolean;
+  canSendBroadcasts: boolean;
+}
+
 function AdminUserRow({
   admin,
   isCurrent,
@@ -242,7 +248,7 @@ function AdminUserRow({
 }: {
   admin: UserProfile;
   isCurrent: boolean;
-  onUpdatePermissions: (admin: UserProfile, perms: any) => Promise<void>;
+  onUpdatePermissions: (admin: UserProfile, perms: AdminPermissionsInput) => Promise<void>;
   onDelete: (admin: UserProfile) => Promise<void>;
 }) {
   const [canSchedule, setCanSchedule] = useState(admin.can_manage_schedule);

@@ -139,6 +139,10 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
     updateDraft("logo_url", "");
   };
 
+  const canSettings = isSuperAdmin || permissions.canManageSettings;
+  const canBroadcast = isSuperAdmin || permissions.canSendBroadcasts;
+  const defaultTab = canSettings ? "general" : canBroadcast ? "broadcast" : isSuperAdmin ? "users" : "security";
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -155,18 +159,24 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="general" className="mt-4">
+        <Tabs defaultValue={defaultTab} className="mt-4">
           <div className="overflow-x-auto -mx-2 px-2">
             <TabsList className="inline-flex w-max min-w-full gap-1">
-              <TabsTrigger value="general" className="text-xs sm:text-sm px-2 sm:px-3">Общи</TabsTrigger>
-              <TabsTrigger value="logo" className="text-xs sm:text-sm px-2 sm:px-3">Лого</TabsTrigger>
-              <TabsTrigger value="locations" className="text-xs sm:text-sm px-2 sm:px-3">Локации</TabsTrigger>
-              <TabsTrigger value="pdf" className="text-xs sm:text-sm px-2 sm:px-3">PDF</TabsTrigger>
-              <TabsTrigger value="contact" className="text-xs sm:text-sm px-2 sm:px-3">Контакти</TabsTrigger>
-              <TabsTrigger value="broadcast" className="text-xs sm:text-sm px-2 sm:px-3 gap-1">
-                <Megaphone className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Съобщения</span>
-              </TabsTrigger>
+              {canSettings && (
+                <>
+                  <TabsTrigger value="general" className="text-xs sm:text-sm px-2 sm:px-3">Общи</TabsTrigger>
+                  <TabsTrigger value="logo" className="text-xs sm:text-sm px-2 sm:px-3">Лого</TabsTrigger>
+                  <TabsTrigger value="locations" className="text-xs sm:text-sm px-2 sm:px-3">Локации</TabsTrigger>
+                  <TabsTrigger value="pdf" className="text-xs sm:text-sm px-2 sm:px-3">PDF</TabsTrigger>
+                  <TabsTrigger value="contact" className="text-xs sm:text-sm px-2 sm:px-3">Контакти</TabsTrigger>
+                </>
+              )}
+              {canBroadcast && (
+                <TabsTrigger value="broadcast" className="text-xs sm:text-sm px-2 sm:px-3 gap-1">
+                  <Megaphone className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Съобщения</span>
+                </TabsTrigger>
+              )}
               {isSuperAdmin && (
                 <TabsTrigger value="users" className="text-xs sm:text-sm px-2 sm:px-3 gap-1">
                   <Users className="w-3.5 h-3.5" />
@@ -177,77 +187,81 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
             </TabsList>
           </div>
 
-          <TabsContent value="general" className="space-y-4 mt-4">
-            <SettingInput id="header_title" label="Заглавие в хедъра" value={draft.header_title} onChange={(v) => updateDraft("header_title", v)} />
-            <SettingInput id="header_subtitle" label="Подзаглавие в хедъра" value={draft.header_subtitle} onChange={(v) => updateDraft("header_subtitle", v)} />
-            <SettingTextarea id="footer_note" label="Бележка във футъра" value={draft.footer_note} onChange={(v) => updateDraft("footer_note", v)} />
-            <SettingInput id="day_column_header" label="Заглавие на колоната за дни" value={draft.day_column_header} onChange={(v) => updateDraft("day_column_header", v)} />
-            <SettingTextarea id="tip_text" label="Съвет за администратора (показва се под графика)" value={draft.tip_text} onChange={(v) => updateDraft("tip_text", v)} />
-            <SettingInput id="term_1_label" label="Етикет за I-ви срок" value={draft.term_1_label} onChange={(v) => updateDraft("term_1_label", v)} />
-            <SettingInput id="term_2_label" label="Етикет за II-ри срок" value={draft.term_2_label} onChange={(v) => updateDraft("term_2_label", v)} />
-          </TabsContent>
+          {canSettings && (
+            <>
+              <TabsContent value="general" className="space-y-4 mt-4">
+                <SettingInput id="header_title" label="Заглавие в хедъра" value={draft.header_title} onChange={(v) => updateDraft("header_title", v)} />
+                <SettingInput id="header_subtitle" label="Подзаглавие в хедъра" value={draft.header_subtitle} onChange={(v) => updateDraft("header_subtitle", v)} />
+                <SettingTextarea id="footer_note" label="Бележка във футъра" value={draft.footer_note} onChange={(v) => updateDraft("footer_note", v)} />
+                <SettingInput id="day_column_header" label="Заглавие на колоната за дни" value={draft.day_column_header} onChange={(v) => updateDraft("day_column_header", v)} />
+                <SettingTextarea id="tip_text" label="Съвет за администратора (показва се под графика)" value={draft.tip_text} onChange={(v) => updateDraft("tip_text", v)} />
+                <SettingInput id="term_1_label" label="Етикет за I-ви срок" value={draft.term_1_label} onChange={(v) => updateDraft("term_1_label", v)} />
+                <SettingInput id="term_2_label" label="Етикет за II-ри срок" value={draft.term_2_label} onChange={(v) => updateDraft("term_2_label", v)} />
+              </TabsContent>
 
-          <TabsContent value="logo" className="space-y-4 mt-4">
-            <p className="text-sm text-muted-foreground">Качете ново лого на училището. То ще се показва в хедъра и в PDF документа.</p>
-            
-            <div className="flex items-center gap-4">
-              {logoPreview ? (
-                <img src={logoPreview} alt="Преглед на лого" className="w-20 h-20 object-contain border rounded-md p-1 bg-white" />
-              ) : (
-                <div className="w-20 h-20 border-2 border-dashed rounded-md flex items-center justify-center bg-muted">
-                  <Image className="w-8 h-8 text-muted-foreground" />
+              <TabsContent value="logo" className="space-y-4 mt-4">
+                <p className="text-sm text-muted-foreground">Качете ново лого на училището. То ще се показва в хедъра и в PDF документа.</p>
+                
+                <div className="flex items-center gap-4">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Преглед на лого" className="w-20 h-20 object-contain border rounded-md p-1 bg-white" />
+                  ) : (
+                    <div className="w-20 h-20 border-2 border-dashed rounded-md flex items-center justify-center bg-muted">
+                      <Image className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="gap-2"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {isUploading ? "Качване..." : "Качи ново лого"}
+                    </Button>
+                    {logoPreview && (
+                      <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive">
+                        Премахни логото
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              )}
-              <div className="space-y-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleLogoUpload}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  {isUploading ? "Качване..." : "Качи ново лого"}
-                </Button>
-                {logoPreview && (
-                  <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive">
-                    Премахни логото
-                  </Button>
-                )}
-              </div>
-            </div>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="locations" className="space-y-4 mt-4">
-            <p className="text-sm text-muted-foreground">Редактирайте имената на колоните в графика за дежурства.</p>
-            <SettingInput id="location_1" label="Локация 1" value={draft.location_1} onChange={(v) => updateDraft("location_1", v)} />
-            <SettingInput id="location_2" label="Локация 2" value={draft.location_2} onChange={(v) => updateDraft("location_2", v)} />
-            <SettingInput id="location_3" label="Локация 3" value={draft.location_3} onChange={(v) => updateDraft("location_3", v)} />
-            <SettingInput id="location_4" label="Локация 4 (дежурен с номерация)" value={draft.location_4} onChange={(v) => updateDraft("location_4", v)} />
-          </TabsContent>
+              <TabsContent value="locations" className="space-y-4 mt-4">
+                <p className="text-sm text-muted-foreground">Редактирайте имената на колоните в графика за дежурства.</p>
+                <SettingInput id="location_1" label="Локация 1" value={draft.location_1} onChange={(v) => updateDraft("location_1", v)} />
+                <SettingInput id="location_2" label="Локация 2" value={draft.location_2} onChange={(v) => updateDraft("location_2", v)} />
+                <SettingInput id="location_3" label="Локация 3" value={draft.location_3} onChange={(v) => updateDraft("location_3", v)} />
+                <SettingInput id="location_4" label="Локация 4 (дежурен с номерация)" value={draft.location_4} onChange={(v) => updateDraft("location_4", v)} />
+              </TabsContent>
 
-          <TabsContent value="pdf" className="space-y-4 mt-4">
-            <SettingInput id="pdf_school_name" label="Име на училището (PDF)" value={draft.pdf_school_name} onChange={(v) => updateDraft("pdf_school_name", v)} />
-            <SettingInput id="pdf_school_info1" label="Адрес и телефони (ред 1)" value={draft.pdf_school_info1} onChange={(v) => updateDraft("pdf_school_info1", v)} />
-            <SettingInput id="pdf_school_info2" label="Адрес и имейл (ред 2)" value={draft.pdf_school_info2} onChange={(v) => updateDraft("pdf_school_info2", v)} />
-            <SettingInput id="pdf_director_name" label="Име на директора" value={draft.pdf_director_name} onChange={(v) => updateDraft("pdf_director_name", v)} />
-            <SettingTextarea id="pdf_schedule_description" label="Описание на графика (PDF)" value={draft.pdf_schedule_description} onChange={(v) => updateDraft("pdf_schedule_description", v)} />
-            <SettingInput id="schedule_title" label="Заглавие на графика в PDF (напр. ГРАФИК)" value={draft.schedule_title} onChange={(v) => updateDraft("schedule_title", v)} />
-            <SettingInput id="approval_text" label="Текст за утвърждаване (напр. УТВЪРЖДАВАМ:)" value={draft.approval_text} onChange={(v) => updateDraft("approval_text", v)} />
-            <SettingInput id="approval_role" label="Длъжност (напр. ДИРЕКТОР)" value={draft.approval_role} onChange={(v) => updateDraft("approval_role", v)} />
-          </TabsContent>
+              <TabsContent value="pdf" className="space-y-4 mt-4">
+                <SettingInput id="pdf_school_name" label="Име на училището (PDF)" value={draft.pdf_school_name} onChange={(v) => updateDraft("pdf_school_name", v)} />
+                <SettingInput id="pdf_school_info1" label="Адрес и телефони (ред 1)" value={draft.pdf_school_info1} onChange={(v) => updateDraft("pdf_school_info1", v)} />
+                <SettingInput id="pdf_school_info2" label="Адрес и имейл (ред 2)" value={draft.pdf_school_info2} onChange={(v) => updateDraft("pdf_school_info2", v)} />
+                <SettingInput id="pdf_director_name" label="Име на директора" value={draft.pdf_director_name} onChange={(v) => updateDraft("pdf_director_name", v)} />
+                <SettingTextarea id="pdf_schedule_description" label="Описание на графика (PDF)" value={draft.pdf_schedule_description} onChange={(v) => updateDraft("pdf_schedule_description", v)} />
+                <SettingInput id="schedule_title" label="Заглавие на графика в PDF (напр. ГРАФИК)" value={draft.schedule_title} onChange={(v) => updateDraft("schedule_title", v)} />
+                <SettingInput id="approval_text" label="Текст за утвърждаване (напр. УТВЪРЖДАВАМ:)" value={draft.approval_text} onChange={(v) => updateDraft("approval_text", v)} />
+                <SettingInput id="approval_role" label="Длъжност (напр. ДИРЕКТОР)" value={draft.approval_role} onChange={(v) => updateDraft("approval_role", v)} />
+              </TabsContent>
 
-          <TabsContent value="contact" className="space-y-4 mt-4">
-            <SettingInput id="admin_name" label="Име на администратора" value={draft.admin_name} onChange={(v) => updateDraft("admin_name", v)} />
-            <SettingInput id="admin_email" label="Имейл за връзка" value={draft.admin_email} onChange={(v) => updateDraft("admin_email", v)} />
-          </TabsContent>
+              <TabsContent value="contact" className="space-y-4 mt-4">
+                <SettingInput id="admin_name" label="Име на администратора" value={draft.admin_name} onChange={(v) => updateDraft("admin_name", v)} />
+                <SettingInput id="admin_email" label="Имейл за връзка" value={draft.admin_email} onChange={(v) => updateDraft("admin_email", v)} />
+              </TabsContent>
+            </>
+          )}
 
           <TabsContent value="security" className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">Сменете паролата си за достъп до системата.</p>
@@ -288,9 +302,11 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
             </Button>
           </TabsContent>
 
-          <TabsContent value="broadcast" className="mt-4">
-            <AdminBroadcastPanel />
-          </TabsContent>
+          {canBroadcast && (
+            <TabsContent value="broadcast" className="mt-4">
+              <AdminBroadcastPanel />
+            </TabsContent>
+          )}
 
           {isSuperAdmin && (
             <TabsContent value="users" className="mt-4">
@@ -302,12 +318,14 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
           <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isSaving}>
             <X className="w-4 h-4 mr-1" />
-            Отказ
+            {canSettings ? "Отказ" : "Затвори"}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            <Save className="w-4 h-4 mr-1" />
-            {isSaving ? "Запазване..." : "Запази"}
-          </Button>
+          {canSettings && (
+            <Button onClick={handleSave} disabled={isSaving}>
+              <Save className="w-4 h-4 mr-1" />
+              {isSaving ? "Запазване..." : "Запази"}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

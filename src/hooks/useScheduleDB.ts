@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Teacher, DutyAssignment, SchoolPeriod, getCurrentPeriod, DAYS, LOCATIONS, CellTeacher } from "@/types/schedule";
+import { DAY_NAME_TO_WEEKDAY } from "@/hooks/useUnavailability";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { toast } from "sonner";
 
@@ -89,6 +90,15 @@ export function useScheduleDB() {
       console.log("[useScheduleDB] ensurePeriod returned:", pId);
       if (!pId) {
         console.warn("[useScheduleDB] No period ID, stopping load");
+        const { data: periods } = await supabase
+          .from("school_periods")
+          .select("id, year, term")
+          .order("year", { ascending: false })
+          .order("term", { ascending: false });
+        if (periods && periods.length > 0 && (periods[0].year !== currentPeriod.year || periods[0].term !== currentPeriod.term)) {
+          setCurrentPeriod({ year: periods[0].year, term: periods[0].term as 1 | 2 });
+          return;
+        }
         setIsLoading(false);
         return;
       }
@@ -124,7 +134,7 @@ export function useScheduleDB() {
           teacherId: a.teacher_id,
           day: a.day,
           location: a.location,
-          shiftNumber: (a as any).shift_number ?? null
+          shiftNumber: a.shift_number ?? null
         })));
       }
 
@@ -257,6 +267,11 @@ export function useScheduleDB() {
       
       if (existsAtDest) return;
 
+      const currentAssignment = assignments.find(
+        (a) => a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation
+      );
+      const shiftNumber = currentAssignment?.shiftNumber ?? null;
+
       // Delete old, insert new
       const { error: deleteError } = await supabase
         .from("duty_assignments")
@@ -273,7 +288,13 @@ export function useScheduleDB() {
 
       const { error: insertError } = await supabase
         .from("duty_assignments")
-        .insert({ period_id: periodId, teacher_id: teacherId, day: toDay, location: toLocation });
+        .insert({
+          period_id: periodId,
+          teacher_id: teacherId,
+          day: toDay,
+          location: toLocation,
+          shift_number: shiftNumber,
+        });
 
       if (insertError) {
         console.error("Error moving teacher (insert):", insertError);
@@ -284,7 +305,7 @@ export function useScheduleDB() {
         const filtered = prev.filter(
           (a) => !(a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation)
         );
-        return [...filtered, { teacherId, day: toDay, location: toLocation }];
+        return [...filtered, { teacherId, day: toDay, location: toLocation, shiftNumber }];
       });
     },
     [periodId, assignments]
@@ -309,7 +330,7 @@ export function useScheduleDB() {
 
     const { error } = await supabase
       .from("duty_assignments")
-      .update({ shift_number: shiftNumber } as any)
+      .update({ shift_number: shiftNumber })
       .eq("period_id", periodId)
       .eq("teacher_id", teacherId)
       .eq("day", day)
@@ -333,21 +354,35 @@ export function useScheduleDB() {
   const autoArrangeTeachers = useCallback(async () => {
     if (!periodId || teachers.length === 0) return;
 
-    // Define teachers per location
-    const getTeachersPerLocation = (location: string): number => {
-      if (location.includes("III-ти етаж") || location.includes("IV-ти етаж")) {
+    // Define teachers per location with index fallback
+    const dynamicLocations = [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
+    const getTeachersPerLocation = (location: string, index: number): number => {
+      if (index === 0 || index === 1 || location.includes("III-ти") || location.includes("IV-ти")) {
         return 4;
       }
-      // "Училищен стол" and "Главен дежурен" get 3 teachers
       return 3;
     };
 
+    // Try fetching unavailabilities to avoid conflicts during auto-arrange
+    const unavailSet = new Set<string>();
+    try {
+      const { data: unavailData } = await supabase
+        .from("teacher_unavailability")
+        .select("teacher_id, weekday");
+      if (unavailData) {
+        unavailData.forEach((u) => {
+          if (u.weekday) unavailSet.add(`${u.teacher_id}-${u.weekday}`);
+        });
+      }
+    } catch (e) {
+      console.warn("Could not fetch unavailabilities for auto-arrange:", e);
+    }
+
     // Create all cell combinations with required teacher count
     const allSlots: { day: string; location: string }[] = [];
-    const dynamicLocations = [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
     DAYS.forEach((day) => {
-      dynamicLocations.forEach((location) => {
-        const count = getTeachersPerLocation(location);
+      dynamicLocations.forEach((location, index) => {
+        const count = getTeachersPerLocation(location, index);
         for (let i = 0; i < count; i++) {
           allSlots.push({ day, location });
         }
@@ -363,24 +398,46 @@ export function useScheduleDB() {
     const newAssignments: { period_id: string; teacher_id: string; day: string; location: string }[] = [];
     const assignedPairs = new Set<string>(); // Track teacher-day-location combos
     
-    // Round-robin: assign teachers to slots, avoiding duplicates in same cell
+    // Round-robin: assign teachers to slots, avoiding duplicates in same cell and respecting unavailability
     shuffledSlots.forEach((slot, index) => {
-      // Try to find a teacher not already in this cell
+      const weekdayKey = DAY_NAME_TO_WEEKDAY[slot.day];
+
+      // First pass: find a teacher who is available on this day and not already in this cell
+      let chosenTeacher: Teacher | null = null;
       for (let attempt = 0; attempt < shuffledTeachers.length; attempt++) {
         const teacherIndex = (index + attempt) % shuffledTeachers.length;
         const teacher = shuffledTeachers[teacherIndex];
         const pairKey = `${teacher.id}-${slot.day}-${slot.location}`;
+        const isUnavailable = weekdayKey ? unavailSet.has(`${teacher.id}-${weekdayKey}`) : false;
         
-        if (!assignedPairs.has(pairKey)) {
+        if (!assignedPairs.has(pairKey) && !isUnavailable) {
+          chosenTeacher = teacher;
           assignedPairs.add(pairKey);
-          newAssignments.push({
-            period_id: periodId,
-            teacher_id: teacher.id,
-            day: slot.day,
-            location: slot.location,
-          });
           break;
         }
+      }
+
+      // Fallback pass: if all candidates had conflicts, accept any teacher not in this cell
+      if (!chosenTeacher) {
+        for (let attempt = 0; attempt < shuffledTeachers.length; attempt++) {
+          const teacherIndex = (index + attempt) % shuffledTeachers.length;
+          const teacher = shuffledTeachers[teacherIndex];
+          const pairKey = `${teacher.id}-${slot.day}-${slot.location}`;
+          if (!assignedPairs.has(pairKey)) {
+            chosenTeacher = teacher;
+            assignedPairs.add(pairKey);
+            break;
+          }
+        }
+      }
+
+      if (chosenTeacher) {
+        newAssignments.push({
+          period_id: periodId,
+          teacher_id: chosenTeacher.id,
+          day: slot.day,
+          location: slot.location,
+        });
       }
     });
 
@@ -552,7 +609,7 @@ export function useScheduleDB() {
       // Get assignments from source period
       const { data: sourceAssignments, error: assignError } = await supabase
         .from("duty_assignments")
-        .select("teacher_id, day, location")
+        .select("teacher_id, day, location, shift_number")
         .eq("period_id", sourcePeriod.id);
 
       if (assignError) {
@@ -572,7 +629,7 @@ export function useScheduleDB() {
         insertedTeachers.forEach(t => nameToNewId.set(t.name.toLowerCase(), t.id));
 
         // Map old assignments to new teacher IDs
-        const newAssignments: { period_id: string; teacher_id: string; day: string; location: string }[] = [];
+        const newAssignments: { period_id: string; teacher_id: string; day: string; location: string; shift_number: number | null }[] = [];
         const existingAssignmentKeys = new Set(
           assignments.map(a => `${a.teacherId}-${a.day}-${a.location}`)
         );
@@ -591,7 +648,8 @@ export function useScheduleDB() {
             period_id: periodId,
             teacher_id: newTeacherId,
             day: assignment.day,
-            location: assignment.location
+            location: assignment.location,
+            shift_number: assignment.shift_number ?? null,
           });
           existingAssignmentKeys.add(assignmentKey);
         }
@@ -612,7 +670,8 @@ export function useScheduleDB() {
             ...newAssignments.map(a => ({
               teacherId: a.teacher_id,
               day: a.day,
-              location: a.location
+              location: a.location,
+              shiftNumber: a.shift_number ?? null,
             }))
           ]);
 

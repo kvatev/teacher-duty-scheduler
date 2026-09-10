@@ -50,7 +50,11 @@ export function BroadcastBanner() {
   useEffect(() => {
     const stored = localStorage.getItem("dismissedBroadcasts");
     if (stored) {
-      try { setDismissed(new Set(JSON.parse(stored))); } catch {}
+      try {
+        setDismissed(new Set(JSON.parse(stored)));
+      } catch {
+        // Ignore invalid local storage JSON
+      }
     }
   }, []);
 
@@ -71,7 +75,10 @@ export function BroadcastBanner() {
         setBroadcasts((prev) => [payload.new as Broadcast, ...prev].slice(0, 5));
       })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "broadcasts" }, (payload) => {
-        setBroadcasts((prev) => prev.filter((b) => b.id !== (payload.old as any).id));
+        const deletedId = (payload.old as { id?: string })?.id;
+        if (deletedId) {
+          setBroadcasts((prev) => prev.filter((b) => b.id !== deletedId));
+        }
       })
       .subscribe();
 

@@ -57,25 +57,29 @@ export function useAppSettings() {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("app_settings")
-      .select("key, value");
+    try {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("key, value");
 
-    if (error) {
-      console.error("Error fetching settings:", error);
-      return;
-    }
+      if (error) {
+        console.error("Error fetching settings:", error);
+        return;
+      }
 
-    if (data) {
-      const merged = { ...DEFAULTS };
-      data.forEach((row) => {
-        if (row.key in merged) {
-          (merged as any)[row.key] = row.value;
-        }
-      });
-      setSettings(merged);
+      if (data) {
+        const merged: AppSettings = { ...DEFAULTS };
+        data.forEach((row) => {
+          const key = row.key as keyof AppSettings;
+          if (key in merged) {
+            merged[key] = row.value;
+          }
+        });
+        setSettings(merged);
+      }
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {

@@ -14,8 +14,11 @@ export function brokeredPreviewStorage() {
     ? (host.match(new RegExp('^(?:id-preview(?:-[a-z0-9]+)?|project)--(' + UUID + ')(?:-dev)?(?=\\.|$)', 'i'))?.[1]
         ?? host.match(new RegExp('^(' + UUID + ')(?=[.-])', 'i'))?.[1])
     : undefined;
-  const framed = window.parent && window.parent !== window;
-  if (!projectId || !framed) return localStorage;
+  if (!projectId || !framed) {
+    return typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function'
+      ? localStorage
+      : undefined;
+  }
 
   // Post only to the real editor ancestor, validated as a Lovable origin, so the
   // session token can never reach an untrusted embedder.
@@ -35,11 +38,11 @@ export function brokeredPreviewStorage() {
     new Promise((resolve) => {
       const requestId = newId();
       let done = false;
-      let timer: ReturnType<typeof setTimeout>;
+      let timer: ReturnType<typeof setTimeout> | null = null;
       const finish = (r: { ok: boolean; value?: string | null } | null) => {
         if (done) return;
         done = true;
-        clearTimeout(timer);
+        if (timer) clearTimeout(timer);
         window.removeEventListener('message', onMessage);
         resolve(r);
       };

@@ -82,10 +82,14 @@ export function PeriodSelector({
   };
 
   const handleAddPeriod = async () => {
-    if (!newYear.trim()) return;
+    if (!newYear.trim()) {
+      toast.error("Моля, въведете учебна година");
+      return;
+    }
     
     const yearPattern = /^\d{4}\/\d{4}$/;
     if (!yearPattern.test(newYear.trim())) {
+      toast.error("Невалиден формат на учебната година. Използвайте формат: 2025/2026");
       return;
     }
 
@@ -129,6 +133,14 @@ export function PeriodSelector({
   const copySourceTerms = copySourceYear ? getTermsForYear(copySourceYear) : [];
   const availableTermsForCurrentYear = getTermsForYear(currentPeriod.year);
 
+  const displayedYears = availableYears.length > 0
+    ? (availableYears.includes(currentPeriod.year) ? availableYears : [currentPeriod.year, ...availableYears])
+    : [currentPeriod.year];
+
+  const displayedTerms = availableTermsForCurrentYear.length > 0
+    ? TERMS.filter(term => availableTermsForCurrentYear.includes(term.value))
+    : TERMS;
+
   return (
     <div className="flex flex-wrap items-center gap-3 p-4 bg-card rounded-lg border shadow-sm">
       <div className="flex items-center gap-2 text-muted-foreground">
@@ -142,7 +154,7 @@ export function PeriodSelector({
             <SelectValue placeholder="Учебна година" />
           </SelectTrigger>
           <SelectContent>
-            {availableYears.map((year) => (
+            {displayedYears.map((year) => (
               <SelectItem key={year} value={year}>
                 {year}
               </SelectItem>
@@ -155,7 +167,7 @@ export function PeriodSelector({
             <SelectValue placeholder="Срок" />
           </SelectTrigger>
           <SelectContent>
-            {TERMS.filter(term => availableTermsForCurrentYear.includes(term.value)).map((term) => (
+            {displayedTerms.map((term) => (
               <SelectItem key={term.value} value={term.value.toString()}>
                 {term.label}
               </SelectItem>

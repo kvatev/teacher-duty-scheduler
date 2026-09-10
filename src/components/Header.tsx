@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Lock, LogOut, Shield, Mail } from "lucide-react";
+import { Lock, LogOut, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -76,11 +76,11 @@ export function getCurrentPeriod(): SchoolPeriod {
   if (month >= 8) {
     // September onwards - start of new school year, term 1
     return { year: `${year}/${year + 1}`, term: 1 };
-  } else if (month <= 5) {
-    // January - June - second term of previous school year
-    return { year: `${year - 1}/${year}`, term: 2 };
+  } else if (month === 0) {
+    // January - still term 1 of the ongoing school year
+    return { year: `${year - 1}/${year}`, term: 1 };
   } else {
-    // July-August - summer break, show last term (term 2 of prev year)
+    // February - August: term 2 of the school year (or summer break)
     return { year: `${year - 1}/${year}`, term: 2 };
   }
 }
