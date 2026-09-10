@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Download, X, Smartphone, Share, PlusSquare, Check } from "lucide-react";
+import { Calendar, Download, X, Smartphone, Share, PlusSquare, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -109,21 +109,21 @@ export function PWAInstallPrompt() {
       <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
         <div className="bg-card border-2 border-primary/20 rounded-xl shadow-xl p-4 flex items-center gap-3 backdrop-blur-md bg-card/95">
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Smartphone className="w-5 h-5 text-primary" />
+            <Calendar className="w-5 h-5 text-primary" />
           </div>
 
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold leading-none truncate">
-              Инсталирай като приложение
+              Инсталирай графика
             </h4>
             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-              Бърз достъп до графика директно от началния екран на телефона!
+              Бърз достъп до графика за дежурства директно от началния екран на телефона!
             </p>
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
             <Button size="sm" onClick={handleInstallClick} className="gap-1.5 h-8 text-xs font-medium px-3">
-              <Download className="w-3.5 h-3.5" />
+              <Calendar className="w-3.5 h-3.5" />
               Инсталирай
             </Button>
             <Button
@@ -144,7 +144,7 @@ export function PWAInstallPrompt() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-primary" />
+              <Calendar className="w-5 h-5 text-primary" />
               Инсталиране на iPhone / iPad
             </DialogTitle>
             <DialogDescription>
@@ -253,10 +253,10 @@ export function MobileInstallButton() {
         size="sm"
         onClick={handleClick}
         className="gap-1.5 bg-accent text-accent-foreground border-accent hover:bg-accent/80 h-8 px-2.5 text-xs sm:text-sm font-medium"
-        title="Инсталирай като приложение на телефона"
+        title="Инсталирай графика на телефона (Календар приложение)"
       >
-        <Download className="w-3.5 h-3.5" />
-        <span className="hidden xs:inline">Приложение</span>
+        <Calendar className="w-3.5 h-3.5" />
+        <span className="hidden xs:inline">График</span>
       </Button>
 
       {/* iOS Dialog */}
@@ -264,7 +264,7 @@ export function MobileInstallButton() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-primary" />
+              <Calendar className="w-5 h-5 text-primary" />
               Инсталиране на телефон
             </DialogTitle>
             <DialogDescription>

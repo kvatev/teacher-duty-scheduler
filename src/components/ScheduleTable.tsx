@@ -5,7 +5,7 @@ import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
 import { useUnavailability } from "@/hooks/useUnavailability";
-import { Calendar, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { Calendar, CalendarDays, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -159,7 +159,7 @@ export function ScheduleTable({
               onClick={() => setViewMode("day")}
               className="h-7 px-2.5 text-xs gap-1.5"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <CalendarDays className="w-3.5 h-3.5" />
               <span>По дни (Карти)</span>
             </Button>
             <Button
