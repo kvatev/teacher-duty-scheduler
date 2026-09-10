@@ -56,8 +56,10 @@ export function getPermissions(profile: UserProfile | null): UserPermissions {
 }
 
 export async function signIn(username: string, password: string): Promise<{ error: string | null }> {
-  const normalized = username.trim().toLowerCase();
-  if (normalized !== "admin" && normalized !== "admin@school.local" && normalized !== "admin@school.bg") {
+  const normalizedUser = (username || "").trim().toLowerCase();
+  const validUsernames = ["admin", "админ", "admin@school.local", "admin@school.bg"];
+
+  if (!validUsernames.includes(normalizedUser)) {
     return { error: "Грешно потребителско име или парола" };
   }
 

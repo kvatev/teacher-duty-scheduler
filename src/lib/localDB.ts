@@ -113,6 +113,13 @@ const SECURITY_SALT = "tds_su_petkanov_salt_secure_2026_k8v9";
 // The plaintext password is NEVER stored anywhere in the codebase, bundle, or localStorage.
 const INITIAL_ADMIN_HASH = "e548dff393af38d5da031f7fb1f6590472b267fae12c25312e213449babd5ff5";
 const INITIAL_ADMIN_FALLBACK = "h-1ed41819";
+const CURRENT_AUTH_SCHEMA_VERSION = 2;
+
+export interface AuthStoragePayload {
+  hash?: string;
+  version?: number;
+  updatedAt?: string;
+}
 
 // Salted cryptographic hash with 1000 rounds of SHA-256 key stretching
 export async function hashPassword(password: string): Promise<string> {
@@ -140,6 +147,34 @@ export async function hashPassword(password: string): Promise<string> {
     hash |= 0;
   }
   return "h-" + Math.abs(hash).toString(16);
+}
+
+// Ensure stale or legacy credentials from previous versions are automatically cleaned up
+export function getSanitizedAuthData(): AuthStoragePayload {
+  const authData = getFromStorage<AuthStoragePayload>(STORAGE_KEYS.AUTH, {});
+  if (!authData || !authData.hash) {
+    return {};
+  }
+
+  // Any legacy schema v1 or known old un-salted hash of "admin"
+  const isLegacy =
+    authData.version !== CURRENT_AUTH_SCHEMA_VERSION ||
+    authData.hash === "c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd4" ||
+    authData.hash.startsWith("local-hash-");
+
+  if (isLegacy) {
+    try {
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem(STORAGE_KEYS.AUTH);
+        localStorage.removeItem("teacher_duty_admin_session");
+      }
+    } catch {
+      // ignore
+    }
+    return {};
+  }
+
+  return authData;
 }
 
 // Safe storage access
@@ -201,8 +236,9 @@ function initializeSeedData(): { period: DBPeriod } {
   return { period: periods[0] };
 }
 
-// Check initial seed on module load
+// Check initial seed and clean legacy auth data on module load
 if (typeof window !== "undefined") {
+  getSanitizedAuthData();
   initializeSeedData();
 }
 
@@ -477,11 +513,11 @@ export const localDB = {
 
   // Auth / Admin Password
   async checkAdminPassword(password: string): Promise<boolean> {
-    const authData = getFromStorage<{ hash?: string }>(STORAGE_KEYS.AUTH, {});
+    const authData = getSanitizedAuthData();
     const inputHash = await hashPassword(password);
 
     const targetHash = authData.hash || INITIAL_ADMIN_HASH;
-    const targetFallback = authData.hash || INITIAL_ADMIN_FALLBACK;
+    const targetFallback = authData.hash ? authData.hash : INITIAL_ADMIN_FALLBACK;
 
     const matches = inputHash === targetHash || inputHash === targetFallback;
     if (matches) {
@@ -492,12 +528,16 @@ export const localDB = {
 
   async setAdminPassword(newPassword: string): Promise<void> {
     const hash = await hashPassword(newPassword);
-    setToStorage(STORAGE_KEYS.AUTH, { hash });
+    setToStorage<AuthStoragePayload>(STORAGE_KEYS.AUTH, {
+      hash,
+      version: CURRENT_AUTH_SCHEMA_VERSION,
+      updatedAt: new Date().toISOString(),
+    });
   },
 
   getAdminSession(): boolean {
     const session = getFromStorage<{ active?: boolean; sig?: string }>("teacher_duty_admin_session", {});
-    const authData = getFromStorage<{ hash?: string }>(STORAGE_KEYS.AUTH, {});
+    const authData = getSanitizedAuthData();
     const currentHash = authData.hash || INITIAL_ADMIN_HASH;
     return !!(session.active && session.sig === currentHash.slice(0, 16));
   },
@@ -506,7 +546,7 @@ export const localDB = {
     if (!active) {
       setToStorage("teacher_duty_admin_session", { active: false });
     } else {
-      const authData = getFromStorage<{ hash?: string }>(STORAGE_KEYS.AUTH, {});
+      const authData = getSanitizedAuthData();
       const currentHash = authData.hash || INITIAL_ADMIN_HASH;
       setToStorage("teacher_duty_admin_session", {
         active: true,

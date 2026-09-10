@@ -34,12 +34,12 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
   const logoSrc = settings.logo_url || defaultLogo;
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      toast.error("Моля, въведете имейл и парола");
+    if (!email.trim() || !password) {
+      toast.error("Моля, въведете потребителско име и парола");
       return;
     }
     setIsLoggingIn(true);
-    const result = await login(email, password);
+    const result = await login(email.trim(), password);
     setIsLoggingIn(false);
     if (!result.error) {
       setEmail("");
@@ -124,6 +124,8 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                         id="login-email"
                         type="text"
                         autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
                         placeholder="admin"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -136,6 +138,9 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                       <Label htmlFor="login-password">Парола</Label>
                       <PasswordInput
                         id="login-password"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -151,7 +156,7 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                       >
                         Отказ
                       </Button>
-                      <Button onClick={handleLogin} disabled={isLoggingIn}>
+                      <Button id="btn-login-submit" onClick={handleLogin} disabled={isLoggingIn}>
                         {isLoggingIn ? "Влизане..." : "Вход"}
                       </Button>
                     </div>

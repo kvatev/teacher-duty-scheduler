@@ -135,6 +135,14 @@ describe("localDB - In-browser Database", () => {
     expect(resSuccess.error).toBeNull();
     expect(localDB.getAdminSession()).toBe(true);
 
+    // Cyrillic keyboard support
+    const resCyrillic = await signIn("админ", "P@ssword123!");
+    expect(resCyrillic.error).toBeNull();
+
+    // With leading/trailing whitespace
+    const resWhitespace = await signIn("  admin  ", "P@ssword123!");
+    expect(resWhitespace.error).toBeNull();
+
     // Wrong username
     const resBadUser = await signIn("wronguser", "P@ssword123!");
     expect(resBadUser.error).toBe("Грешно потребителско име или парола");
@@ -147,4 +155,22 @@ describe("localDB - In-browser Database", () => {
     const resOldPass = await signIn("admin", "admin");
     expect(resOldPass.error).toBe("Грешно потребителско име или парола");
   });
+
+  it("automatically purges legacy auth cache from localStorage and allows P@ssword123!", async () => {
+    // Simulate user having the old schema / old "admin" hash in their browser's localStorage
+    localStorage.setItem(
+      "teacher_duty_auth",
+      JSON.stringify({ hash: "c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd4" })
+    );
+
+    // Calling checkAdminPassword with P@ssword123! should purge the legacy hash and succeed
+    const isValid = await localDB.checkAdminPassword("P@ssword123!");
+    expect(isValid).toBe(true);
+
+    // signIn should also succeed immediately
+    const loginRes = await signIn("admin", "P@ssword123!");
+    expect(loginRes.error).toBeNull();
+    expect(localDB.getAdminSession()).toBe(true);
+  });
 });
+
