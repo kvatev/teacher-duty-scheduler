@@ -288,12 +288,14 @@ function AdminUserRow({
           )}
           <div>
             <p className="font-medium text-sm">
-              {admin.display_name || admin.email}
+              {admin.display_name || admin.email.replace("@admin.com", "")}
               {isCurrent && <span className="text-muted-foreground ml-2">(Вие)</span>}
             </p>
-            {admin.display_name && (
-              <p className="text-xs text-muted-foreground">{admin.email}</p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              {admin.display_name
+                ? admin.email.replace("@admin.com", "")
+                : admin.email.includes("@admin.com") ? "" : admin.email}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">

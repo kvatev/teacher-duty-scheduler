@@ -520,9 +520,6 @@ export const localDB = {
     const targetFallback = authData.hash ? authData.hash : INITIAL_ADMIN_FALLBACK;
 
     const matches = inputHash === targetHash || inputHash === targetFallback;
-    if (matches) {
-      this.setAdminSession(true);
-    }
     return matches;
   },
 
