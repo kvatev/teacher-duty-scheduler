@@ -83,11 +83,11 @@ export function AdminBroadcastPanel() {
 
       <div className="space-y-2">
         <Label>Ниво на важност</Label>
-        <RadioGroup value={priority} onValueChange={(v) => setPriority(v as Priority)} className="flex gap-4">
+        <RadioGroup value={priority} onValueChange={(v) => setPriority(v as Priority)} className="flex flex-wrap gap-3">
           {(Object.keys(priorityConfig) as Priority[]).map((p) => (
             <div key={p} className="flex items-center space-x-2">
               <RadioGroupItem value={p} id={`priority-${p}`} />
-              <Label htmlFor={`priority-${p}`} className={cn("flex items-center gap-1.5 cursor-pointer", priorityConfig[p].color)}>
+              <Label htmlFor={`priority-${p}`} className={cn("flex items-center gap-1.5 cursor-pointer text-sm", priorityConfig[p].color)}>
                 <PriorityIcon priority={p} />
                 {priorityConfig[p].label}
               </Label>

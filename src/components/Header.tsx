@@ -113,13 +113,13 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                     <span className="hidden sm:inline">Вход за админ</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
                   <DialogHeader>
                     <DialogTitle>Вход за администратор</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">Потребителско име</Label>
+                      <Label htmlFor="login-email">Потребителско Iме</Label>
                       <Input
                         id="login-email"
                         type="text"
@@ -149,14 +149,15 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                         }}
                       />
                     </div>
-                    <div className="flex gap-2 justify-end">
+                    <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
                       <Button
                         variant="outline"
                         onClick={() => setIsDialogOpen(false)}
+                        className="w-full sm:w-auto"
                       >
                         Отказ
                       </Button>
-                      <Button id="btn-login-submit" onClick={handleLogin} disabled={isLoggingIn}>
+                      <Button id="btn-login-submit" onClick={handleLogin} disabled={isLoggingIn} className="w-full sm:w-auto">
                         {isLoggingIn ? "Влизане..." : "Вход"}
                       </Button>
                     </div>

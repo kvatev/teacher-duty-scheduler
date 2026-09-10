@@ -200,43 +200,44 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           <span className="hidden sm:inline">Настройки</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full h-full rounded-none overflow-y-auto p-4 sm:p-6 max-w-none sm:max-w-2xl sm:h-auto sm:max-h-[85vh] sm:rounded-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-90 data-[state=open]:zoom-in-90 data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:slide-in-from-bottom-4">
+      <DialogContent className="w-full h-full rounded-none overflow-y-auto p-4 sm:p-6 max-w-none sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-90 data-[state=open]:zoom-in-90 data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:slide-in-from-bottom-4">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Settings className="w-5 h-5 shrink-0" />
             Настройки на приложението
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue={defaultTab} className="mt-4">
-          <div className="overflow-x-auto -mx-2 px-2">
-            <TabsList className="inline-flex w-max min-w-full gap-1">
+        <Tabs defaultValue={defaultTab} className="mt-3 sm:mt-4">
+          {/* Scrollable tabs on mobile */}
+          <div className="overflow-x-auto -mx-4 px-4 sm:-mx-2 sm:px-2 pb-1">
+            <TabsList className="inline-flex w-max min-w-full h-auto flex-wrap gap-1 p-1">
               {canSettings && (
                 <>
-                  <TabsTrigger value="general" className="text-xs sm:text-sm px-2 sm:px-3">Общи</TabsTrigger>
-                  <TabsTrigger value="logo" className="text-xs sm:text-sm px-2 sm:px-3">Лого</TabsTrigger>
-                  <TabsTrigger value="locations" className="text-xs sm:text-sm px-2 sm:px-3">Локации</TabsTrigger>
-                  <TabsTrigger value="pdf" className="text-xs sm:text-sm px-2 sm:px-3">PDF</TabsTrigger>
-                  <TabsTrigger value="contact" className="text-xs sm:text-sm px-2 sm:px-3">Контакти</TabsTrigger>
-                  <TabsTrigger value="backup" className="text-xs sm:text-sm px-2 sm:px-3 gap-1">
-                    <Database className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Архив</span>
+                  <TabsTrigger value="general" className="text-xs px-2.5 py-1.5 h-auto">Общи</TabsTrigger>
+                  <TabsTrigger value="logo" className="text-xs px-2.5 py-1.5 h-auto">Лого</TabsTrigger>
+                  <TabsTrigger value="locations" className="text-xs px-2.5 py-1.5 h-auto">Локации</TabsTrigger>
+                  <TabsTrigger value="pdf" className="text-xs px-2.5 py-1.5 h-auto">PDF</TabsTrigger>
+                  <TabsTrigger value="contact" className="text-xs px-2.5 py-1.5 h-auto">Контакти</TabsTrigger>
+                  <TabsTrigger value="backup" className="text-xs px-2.5 py-1.5 h-auto gap-1">
+                    <Database className="w-3 h-3" />
+                    Архив
                   </TabsTrigger>
                 </>
               )}
               {canBroadcast && (
-                <TabsTrigger value="broadcast" className="text-xs sm:text-sm px-2 sm:px-3 gap-1">
-                  <Megaphone className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Съобщения</span>
+                <TabsTrigger value="broadcast" className="text-xs px-2.5 py-1.5 h-auto gap-1">
+                  <Megaphone className="w-3 h-3" />
+                  Съобщения
                 </TabsTrigger>
               )}
               {isSuperAdmin && (
-                <TabsTrigger value="users" className="text-xs sm:text-sm px-2 sm:px-3 gap-1">
-                  <Users className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Админи</span>
+                <TabsTrigger value="users" className="text-xs px-2.5 py-1.5 h-auto gap-1">
+                  <Users className="w-3 h-3" />
+                  Админи
                 </TabsTrigger>
               )}
-              <TabsTrigger value="security" className="text-xs sm:text-sm px-2 sm:px-3">Парола</TabsTrigger>
+              <TabsTrigger value="security" className="text-xs px-2.5 py-1.5 h-auto">Парола</TabsTrigger>
             </TabsList>
           </div>
 
@@ -248,22 +249,24 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                 <SettingTextarea id="footer_note" label="Бележка във футъра" value={draft.footer_note} onChange={(v) => updateDraft("footer_note", v)} />
                 <SettingInput id="day_column_header" label="Заглавие на колоната за дни" value={draft.day_column_header} onChange={(v) => updateDraft("day_column_header", v)} />
                 <SettingTextarea id="tip_text" label="Съвет за администратора (показва се под графика)" value={draft.tip_text} onChange={(v) => updateDraft("tip_text", v)} />
-                <SettingInput id="term_1_label" label="Етикет за I-ви срок" value={draft.term_1_label} onChange={(v) => updateDraft("term_1_label", v)} />
-                <SettingInput id="term_2_label" label="Етикет за II-ри срок" value={draft.term_2_label} onChange={(v) => updateDraft("term_2_label", v)} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SettingInput id="term_1_label" label="Етикет за I-ви срок" value={draft.term_1_label} onChange={(v) => updateDraft("term_1_label", v)} />
+                  <SettingInput id="term_2_label" label="Етикет за II-ри срок" value={draft.term_2_label} onChange={(v) => updateDraft("term_2_label", v)} />
+                </div>
               </TabsContent>
 
               <TabsContent value="logo" className="space-y-4 mt-4">
                 <p className="text-sm text-muted-foreground">Качете ново лого на училището. То ще се показва в хедъра и в PDF документа.</p>
                 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   {logoPreview ? (
-                    <img src={logoPreview} alt="Преглед на лого" className="w-20 h-20 object-contain border rounded-md p-1 bg-white" />
+                    <img src={logoPreview} alt="Преглед на лого" className="w-20 h-20 object-contain border rounded-md p-1 bg-white shrink-0" />
                   ) : (
-                    <div className="w-20 h-20 border-2 border-dashed rounded-md flex items-center justify-center bg-muted">
+                    <div className="w-20 h-20 border-2 border-dashed rounded-md flex items-center justify-center bg-muted shrink-0">
                       <Image className="w-8 h-8 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full sm:flex-1">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -276,13 +279,13 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
                     >
                       <Upload className="w-4 h-4" />
                       {isUploading ? "Качване..." : "Качи ново лого"}
                     </Button>
                     {logoPreview && (
-                      <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive">
+                      <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive w-full sm:w-auto">
                         Премахни логото
                       </Button>
                     )}
@@ -300,18 +303,24 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
 
               <TabsContent value="pdf" className="space-y-4 mt-4">
                 <SettingInput id="pdf_school_name" label="Име на училището (PDF)" value={draft.pdf_school_name} onChange={(v) => updateDraft("pdf_school_name", v)} />
-                <SettingInput id="pdf_school_info1" label="Адрес и телефони (ред 1)" value={draft.pdf_school_info1} onChange={(v) => updateDraft("pdf_school_info1", v)} />
-                <SettingInput id="pdf_school_info2" label="Адрес и имейл (ред 2)" value={draft.pdf_school_info2} onChange={(v) => updateDraft("pdf_school_info2", v)} />
-                <SettingInput id="pdf_director_name" label="Име на директора" value={draft.pdf_director_name} onChange={(v) => updateDraft("pdf_director_name", v)} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SettingInput id="pdf_school_info1" label="Адрес и телефони (ред 1)" value={draft.pdf_school_info1} onChange={(v) => updateDraft("pdf_school_info1", v)} />
+                  <SettingInput id="pdf_school_info2" label="Адрес и имейл (ред 2)" value={draft.pdf_school_info2} onChange={(v) => updateDraft("pdf_school_info2", v)} />
+                </div>
+                <SettingInput id="pdf_director_name" label="Ime на директора" value={draft.pdf_director_name} onChange={(v) => updateDraft("pdf_director_name", v)} />
                 <SettingTextarea id="pdf_schedule_description" label="Описание на графика (PDF)" value={draft.pdf_schedule_description} onChange={(v) => updateDraft("pdf_schedule_description", v)} />
-                <SettingInput id="schedule_title" label="Заглавие на графика в PDF (напр. ГРАФИК)" value={draft.schedule_title} onChange={(v) => updateDraft("schedule_title", v)} />
-                <SettingInput id="approval_text" label="Текст за утвърждаване (напр. УТВЪРЖДАВАМ:)" value={draft.approval_text} onChange={(v) => updateDraft("approval_text", v)} />
-                <SettingInput id="approval_role" label="Длъжност (напр. ДИРЕКТОР)" value={draft.approval_role} onChange={(v) => updateDraft("approval_role", v)} />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <SettingInput id="schedule_title" label="Заглавие на графика" value={draft.schedule_title} onChange={(v) => updateDraft("schedule_title", v)} />
+                  <SettingInput id="approval_text" label="Текст за утвърждаване" value={draft.approval_text} onChange={(v) => updateDraft("approval_text", v)} />
+                  <SettingInput id="approval_role" label="Длъжност" value={draft.approval_role} onChange={(v) => updateDraft("approval_role", v)} />
+                </div>
               </TabsContent>
 
               <TabsContent value="contact" className="space-y-4 mt-4">
-                <SettingInput id="admin_name" label="Име на администратора" value={draft.admin_name} onChange={(v) => updateDraft("admin_name", v)} />
-                <SettingInput id="admin_email" label="Имейл за връзка" value={draft.admin_email} onChange={(v) => updateDraft("admin_email", v)} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SettingInput id="admin_name" label="Ime на администратора" value={draft.admin_name} onChange={(v) => updateDraft("admin_name", v)} />
+                  <SettingInput id="admin_email" label="Имейл за връзка" value={draft.admin_email} onChange={(v) => updateDraft("admin_email", v)} />
+                </div>
               </TabsContent>
 
               <TabsContent value="backup" className="space-y-6 mt-4">
@@ -320,7 +329,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                   <p className="text-xs text-muted-foreground mt-1 mb-3">
                     Запазете пълен архив на всички графици, списъци с учители, отсъствия и настройки в един JSON файл на вашия компютър.
                   </p>
-                  <Button variant="outline" size="sm" onClick={handleExportBackup} className="gap-2">
+                  <Button variant="outline" size="sm" onClick={handleExportBackup} className="gap-2 w-full sm:w-auto">
                     <Download className="w-4 h-4" />
                     Свали пълен архив (JSON)
                   </Button>
@@ -342,7 +351,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                     variant="outline"
                     size="sm"
                     onClick={() => backupInputRef.current?.click()}
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                   >
                     <Upload className="w-4 h-4" />
                     Избери файл с архив (.json)
@@ -356,21 +365,21 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                   </p>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm" className="gap-2">
+                      <Button variant="destructive" size="sm" className="gap-2 w-full sm:w-auto">
                         <RefreshCw className="w-4 h-4" />
                         Начални настройки
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-md">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Възстановяване на първоначалните данни?</AlertDialogTitle>
                         <AlertDialogDescription>
                           Това ще върне учителите и настройките към началните училищни шаблони. Препоръчително е първо да свалите резервно копие (JSON).
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Отказ</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleResetDefaults} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                        <AlertDialogCancel className="w-full sm:w-auto mt-0">Отказ</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleResetDefaults} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto">
                           Възстанови
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -413,7 +422,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                   toast.error(result.error || "Грешка при смяна на паролата");
                 }
               }}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               <KeyRound className="w-4 h-4" />
               {isChangingPass ? "Смяна..." : "Смени паролата"}

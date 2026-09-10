@@ -143,7 +143,7 @@ export function PeriodSelector({
     : TERMS;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 p-4 bg-card rounded-lg border shadow-sm">
+    <div className="flex flex-wrap items-start sm:items-center gap-3 p-3 sm:p-4 bg-card rounded-lg border shadow-sm">
       <div className="flex items-center gap-2 text-muted-foreground">
         <Calendar className="w-5 h-5" />
         <span className="font-medium text-foreground">Период:</span>
@@ -185,7 +185,7 @@ export function PeriodSelector({
                   <Plus className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
                 <DialogHeader>
                   <DialogTitle>Добави нов период</DialogTitle>
                   <DialogDescription>
@@ -216,11 +216,11 @@ export function PeriodSelector({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="w-full sm:w-auto">
                       Отказ
                     </Button>
-                    <Button onClick={handleAddPeriod} disabled={isAdding || !newYear.trim()}>
+                    <Button onClick={handleAddPeriod} disabled={isAdding || !newYear.trim()} className="w-full sm:w-auto">
                       {isAdding ? "Добавяне..." : "Добави"}
                     </Button>
                   </div>
@@ -241,7 +241,7 @@ export function PeriodSelector({
                   <Copy className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
                 <DialogHeader>
                   <DialogTitle>Копиране на учители</DialogTitle>
                   <DialogDescription>
@@ -297,7 +297,7 @@ export function PeriodSelector({
                   )}
                   
                   {/* Checkbox for including assignments */}
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 p-2.5 rounded-md border">
                     <Checkbox 
                       id="includeAssignments" 
                       checked={includeAssignments}
@@ -305,7 +305,7 @@ export function PeriodSelector({
                     />
                     <label 
                       htmlFor="includeAssignments" 
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      className="text-sm font-medium leading-none cursor-pointer flex-1 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
                       Копирай и дежурствата
                     </label>
@@ -314,13 +314,14 @@ export function PeriodSelector({
                   <p className="text-sm text-muted-foreground">
                     Учителите, които вече съществуват в текущия период, няма да бъдат дублирани.
                   </p>
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => setIsCopyDialogOpen(false)}>
+                  <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setIsCopyDialogOpen(false)} className="w-full sm:w-auto">
                       Отказ
                     </Button>
                     <Button 
                       onClick={handleCopyTeachers} 
                       disabled={isCopying || !copySourceYear}
+                      className="w-full sm:w-auto"
                     >
                       {isCopying ? "Копиране..." : "Копирай"}
                     </Button>
@@ -336,7 +337,7 @@ export function PeriodSelector({
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Изтриване на период</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -348,12 +349,12 @@ export function PeriodSelector({
                     </span>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Отказ</AlertDialogCancel>
+                <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                  <AlertDialogCancel className="w-full sm:w-auto mt-0">Отказ</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeletePeriod}
                     disabled={isDeleting}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                   >
                     {isDeleting ? "Изтриване..." : "Изтрий"}
                   </AlertDialogAction>

@@ -188,27 +188,28 @@ export function TeacherList({
                 Добави учител
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
               <DialogHeader>
                 <DialogTitle>Добави нов учител</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <Input
-                  placeholder="Име на учителя"
+                  placeholder="Ime на учителя"
                   value={newTeacherName}
                   onChange={(e) => setNewTeacherName(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleAddTeacher();
                   }}
                 />
-                <div className="flex gap-2 justify-end">
+                <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
                   <Button
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
+                    className="w-full sm:w-auto"
                   >
                     Отказ
                   </Button>
-                  <Button onClick={handleAddTeacher}>Добави</Button>
+                  <Button onClick={handleAddTeacher} className="w-full sm:w-auto">Добави</Button>
                 </div>
               </div>
             </DialogContent>

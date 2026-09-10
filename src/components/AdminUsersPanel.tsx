@@ -118,18 +118,18 @@ export function AdminUsersPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
         <p className="text-sm text-muted-foreground">
           Управлявайте администраторските акаунти и техните права.
         </p>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="gap-2">
+            <Button size="sm" className="gap-2 w-full sm:w-auto shrink-0">
               <Plus className="w-4 h-4" />
               Нов администратор
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Създаване на нов администратор</DialogTitle>
             </DialogHeader>
@@ -169,42 +169,44 @@ export function AdminUsersPanel() {
               </div>
               <div className="space-y-3">
                 <Label>Права</Label>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="perm-schedule"
-                    checked={newCanSchedule}
-                    onCheckedChange={(c) => setNewCanSchedule(!!c)}
-                  />
-                  <label htmlFor="perm-schedule" className="text-sm cursor-pointer">
-                    Управление на графика
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="perm-settings"
-                    checked={newCanSettings}
-                    onCheckedChange={(c) => setNewCanSettings(!!c)}
-                  />
-                  <label htmlFor="perm-settings" className="text-sm cursor-pointer">
-                    Настройки на приложението
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="perm-broadcasts"
-                    checked={newCanBroadcasts}
-                    onCheckedChange={(c) => setNewCanBroadcasts(!!c)}
-                  />
-                  <label htmlFor="perm-broadcasts" className="text-sm cursor-pointer">
-                    Изпращане на съобщения
-                  </label>
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="flex items-center space-x-2 p-2.5 rounded-md border hover:bg-muted/50 transition-colors">
+                    <Checkbox
+                      id="perm-schedule"
+                      checked={newCanSchedule}
+                      onCheckedChange={(c) => setNewCanSchedule(!!c)}
+                    />
+                    <label htmlFor="perm-schedule" className="text-sm cursor-pointer flex-1">
+                      Управление на графика
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-2.5 rounded-md border hover:bg-muted/50 transition-colors">
+                    <Checkbox
+                      id="perm-settings"
+                      checked={newCanSettings}
+                      onCheckedChange={(c) => setNewCanSettings(!!c)}
+                    />
+                    <label htmlFor="perm-settings" className="text-sm cursor-pointer flex-1">
+                      Настройки на приложението
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-2.5 rounded-md border hover:bg-muted/50 transition-colors">
+                    <Checkbox
+                      id="perm-broadcasts"
+                      checked={newCanBroadcasts}
+                      onCheckedChange={(c) => setNewCanBroadcasts(!!c)}
+                    />
+                    <label htmlFor="perm-broadcasts" className="text-sm cursor-pointer flex-1">
+                      Изпращане на съобщения
+                    </label>
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setIsCreateOpen(false)} className="w-full sm:w-auto">
                   Отказ
                 </Button>
-                <Button onClick={handleCreate} disabled={isCreating}>
+                <Button onClick={handleCreate} disabled={isCreating} className="w-full sm:w-auto">
                   {isCreating ? "Създаване..." : "Създай"}
                 </Button>
               </div>
@@ -311,16 +313,16 @@ function AdminUserRow({
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Изтриване на администратор</AlertDialogTitle>
                     <AlertDialogDescription>
                       Сигурни ли сте, че искате да изтриете {admin.display_name || admin.email}? Това действие е необратимо.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Отказ</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onDelete(admin)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                    <AlertDialogCancel className="w-full sm:w-auto mt-0">Отказ</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onDelete(admin)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto">
                       Изтрий
                     </AlertDialogAction>
                   </AlertDialogFooter>
