@@ -210,7 +210,7 @@ export async function signIn(
         localDB.setAdminSession(true);
         return { error: null };
       }
-      return { error: "Грешно потребителско Iме или парола" };
+      return { error: "Грешно потребителско име или парола" };
     }
   }
 
@@ -229,12 +229,12 @@ export async function signIn(
   });
 
   if (!candidate) {
-    return { error: "Грешно потребителско Iме или парола" };
+    return { error: "Грешно потребителско име или парола" };
   }
 
   const valid = await checkUserPassword(candidate.id, password);
   if (!valid) {
-    return { error: "Грешно потребителско Iме или парола" };
+    return { error: "Грешно потребителско име или парола" };
   }
 
   writeSession(candidate.id);

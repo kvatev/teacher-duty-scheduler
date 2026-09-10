@@ -121,7 +121,7 @@ export function TeacherList({
           {filteredTeachers.map((teacher) => {
             const teacherUnavail = getTeacherEntries(teacher.id);
             const weekdays = teacherUnavail
-              .filter((e) => e.weekday)
+              .filter((e) => e.weekday && WEEKDAY_TO_BG[e.weekday])
               .map((e) => WEEKDAY_TO_BG[e.weekday!].slice(0, 2))
               .join(", ");
             return (
@@ -194,7 +194,7 @@ export function TeacherList({
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <Input
-                  placeholder="Ime на учителя"
+                  placeholder="Име на учителя"
                   value={newTeacherName}
                   onChange={(e) => setNewTeacherName(e.target.value)}
                   onKeyDown={(e) => {

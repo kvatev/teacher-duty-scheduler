@@ -7,6 +7,8 @@ import { TeacherBadge } from "@/components/TeacherBadge";
 import { AppSettings } from "@/hooks/useAppSettings";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MobileInstallButton } from "@/components/PWAInstallPrompt";
+import { AdminSettingsPanel } from "@/components/AdminSettingsPanel";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const mockSettings: AppSettings = {
   header_title: "График за дежурства",
@@ -108,3 +110,39 @@ describe("PWA Components", () => {
     expect(container).toBeDefined();
   });
 });
+
+describe("AdminSettingsPanel Component", () => {
+  it("renders Settings button without throwing any reference error", () => {
+    const handleSave = vi.fn().mockResolvedValue(true);
+    const { container } = render(
+      <AuthProvider>
+        <AdminSettingsPanel settings={mockSettings} onSave={handleSave} />
+      </AuthProvider>
+    );
+    expect(screen.getByRole("button", { name: /Настройки/i })).toBeInTheDocument();
+  });
+});
+
+describe("ErrorBoundary Component", () => {
+  it("catches errors and renders fallback UI", () => {
+    const ProblemChild = () => {
+      throw new Error("Test intentional crash");
+    };
+
+    // Suppress console.error in vitest for this expected error test
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(
+      <ErrorBoundary>
+        <ProblemChild />
+      </ErrorBoundary>
+    );
+
+    expect(screen.getByText("Възникна непредвидена грешка")).toBeInTheDocument();
+    expect(screen.getByText("Test intentional crash")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Презареди страницата/i })).toBeInTheDocument();
+
+    consoleErrorSpy.mockRestore();
+  });
+});
+

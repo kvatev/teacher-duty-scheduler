@@ -87,7 +87,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-200">
-      <Header settings={settings} onExportPDF={handleExportPDF} />
+      <Header settings={settings} onSaveSettings={updateMultipleSettings} />
 
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-4 space-y-4">
         {/* Broadcast banner for announcements */}
@@ -100,13 +100,12 @@ const Index = () => {
             availablePeriods={availablePeriods}
             availableYears={availableYears}
             getTermsForYear={getTermsForYear}
-            onChangePeriod={changePeriod}
+            onPeriodChange={changePeriod}
             onAddPeriod={addPeriod}
             onDeletePeriod={deletePeriod}
             onCopyTeachers={copyTeachersFromPeriod}
-            settings={settings}
           />
-          <Legend />
+          <Legend onExportPDF={handleExportPDF} />
         </div>
 
         {/* Mobile Section Switcher - only for admin */}

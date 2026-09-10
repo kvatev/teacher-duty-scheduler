@@ -14,6 +14,7 @@ export function brokeredPreviewStorage() {
     ? (host.match(new RegExp('^(?:id-preview(?:-[a-z0-9]+)?|project)--(' + UUID + ')(?:-dev)?(?=\\.|$)', 'i'))?.[1]
         ?? host.match(new RegExp('^(' + UUID + ')(?=[.-])', 'i'))?.[1])
     : undefined;
+  const framed = typeof window !== 'undefined' && window.parent && window.parent !== window;
   if (!projectId || !framed) {
     return typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function'
       ? localStorage

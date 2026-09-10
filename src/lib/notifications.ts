@@ -67,7 +67,7 @@ export async function sendSystemNotification(
     return false;
   }
 
-  const notificationOptions: NotificationOptions = {
+  const notificationOptions: NotificationOptions & { renotify?: boolean } = {
     body: options.body || "",
     icon: options.icon || "/pwa-icon-192.png",
     badge: options.badge || "/pwa-icon-192.png",

@@ -63,7 +63,7 @@ describe("localDB - In-browser Database", () => {
   it("manages unavailability notes correctly", () => {
     const teachers = localDB.getTeachers();
 
-    const unavail = localDB.addWeekdayUnavailability(teachers[0].id, 2, "Свободен ден");
+    const unavail = localDB.addWeekdayUnavailability(teachers[0].id, "tuesday", "Свободен ден");
 
     expect(unavail.id).toBeDefined();
     const list = localDB.getUnavailabilities(teachers[0].id);

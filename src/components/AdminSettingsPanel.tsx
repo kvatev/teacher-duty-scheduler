@@ -42,20 +42,20 @@ interface AdminSettingsPanelProps {
   onSave: (updates: Partial<AppSettings>) => Promise<boolean>;
 }
 
-function SettingInput({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
+function SettingInput({ id, label, value = "", onChange }: { id: string; label: string; value?: string; onChange: (v: string) => void }) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} />
+      <Input id={id} value={value || ""} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
 
-function SettingTextarea({ id, label, value, onChange, rows = 2 }: { id: string; label: string; value: string; onChange: (v: string) => void; rows?: number }) {
+function SettingTextarea({ id, label, value = "", onChange, rows = 2 }: { id: string; label: string; value?: string; onChange: (v: string) => void; rows?: number }) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
-      <Textarea id={id} value={value} onChange={(e) => onChange(e.target.value)} rows={rows} />
+      <Textarea id={id} value={value || ""} onChange={(e) => onChange(e.target.value)} rows={rows} />
     </div>
   );
 }
@@ -72,6 +72,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [isChangingPass, setIsChangingPass] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -160,6 +161,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
   const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setIsImporting(true);
     const reader = new FileReader();
     reader.onload = (fileEvent) => {
       try {
@@ -175,7 +177,13 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
         }
       } catch {
         toast.error("Грешка при четене на JSON файла");
+      } finally {
+        setIsImporting(false);
       }
+    };
+    reader.onerror = () => {
+      toast.error("Грешка при четене на файла");
+      setIsImporting(false);
     };
     reader.readAsText(file);
   };

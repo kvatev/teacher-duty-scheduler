@@ -184,7 +184,7 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">Потребителско Iме</Label>
+                      <Label htmlFor="login-email">Потребителско име</Label>
                       <Input
                         id="login-email"
                         type="text"
