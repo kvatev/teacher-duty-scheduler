@@ -72,6 +72,18 @@ describe("Header Component", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Вход за админ/i)).toBeInTheDocument();
   });
+
+  it("does NOT render NotificationHeaderButton for regular unauthenticated users", () => {
+    const handleSave = vi.fn().mockResolvedValue(true);
+    render(
+      <AuthProvider>
+        <Header settings={mockSettings} onSaveSettings={handleSave} />
+      </AuthProvider>
+    );
+
+    // Notification test button must NOT be visible to regular users
+    expect(screen.queryByRole("button", { name: /Известия/i })).not.toBeInTheDocument();
+  });
 });
 
 describe("TeacherBadge Component", () => {

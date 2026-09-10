@@ -59,8 +59,13 @@ export function BroadcastBanner() {
   useEffect(() => {
     fetchBroadcasts();
     const handleDbChange = () => fetchBroadcasts();
+    const handleNewBroadcast = () => fetchBroadcasts();
     window.addEventListener("local-db-change", handleDbChange);
-    return () => window.removeEventListener("local-db-change", handleDbChange);
+    window.addEventListener("new-broadcast-received", handleNewBroadcast);
+    return () => {
+      window.removeEventListener("local-db-change", handleDbChange);
+      window.removeEventListener("new-broadcast-received", handleNewBroadcast);
+    };
   }, [fetchBroadcasts]);
 
   const dismiss = (id: string) => {
@@ -80,21 +85,48 @@ export function BroadcastBanner() {
   });
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {sorted.map((b) => {
         const styles = priorityStyles[b.priority] || priorityStyles.info;
+        const priorityTitle =
+          b.priority === "urgent"
+            ? "🚨 СПЕШНО СЪОБЩЕНИЕ"
+            : b.priority === "warning"
+            ? "⚠️ ВАЖНО СЪОБЩЕНИЕ"
+            : "📢 СЪОБЩЕНИЕ";
+
         return (
           <div
             key={b.id}
             className={cn(
-              "rounded-lg px-4 py-3 flex items-start gap-3 animate-in slide-in-from-top-2 border",
+              "rounded-xl px-4 py-3.5 flex items-start gap-3.5 animate-in slide-in-from-top-2 border shadow-sm transition-all",
               styles.bg,
               styles.border
             )}
           >
             <PriorityIcon priority={b.priority} />
-            <p className="flex-1 text-sm text-foreground">{b.message}</p>
-            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => dismiss(b.id)}>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className={cn("text-xs font-bold uppercase tracking-wider", styles.icon)}>
+                  {priorityTitle}
+                </span>
+                {b.created_at && (
+                  <span className="text-[11px] text-muted-foreground">
+                    • {new Date(b.created_at).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm sm:text-base text-foreground font-medium leading-relaxed whitespace-pre-wrap">
+                {b.message}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-foreground -mr-1 -mt-1 rounded-full"
+              onClick={() => dismiss(b.id)}
+              title="Скрий съобщението"
+            >
               <X className="w-4 h-4" />
             </Button>
           </div>

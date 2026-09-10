@@ -79,7 +79,10 @@ export async function sendSystemNotification(
   // 1. Try via Service Worker (crucial for mobile/PWA and background)
   if ("serviceWorker" in navigator) {
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000)),
+      ]);
       if (registration && "showNotification" in registration) {
         await registration.showNotification(title, {
           ...notificationOptions,
@@ -122,15 +125,30 @@ export async function notifyBroadcast(broadcast: DBBroadcast): Promise<void> {
     vibratePattern = [250, 100, 250];
   }
 
-  // Send native system notification
-  await sendSystemNotification(title, {
-    body: broadcast.message,
-    tag: `broadcast-${broadcast.id}`,
-    vibrate: vibratePattern,
-    data: { url: "/", broadcastId: broadcast.id },
-  });
+  // 1. Send native system notification (for mobile/desktop OS notification)
+  try {
+    await sendSystemNotification(title, {
+      body: broadcast.message,
+      tag: `broadcast-${broadcast.id}`,
+      vibrate: vibratePattern,
+      data: { url: "/", broadcastId: broadcast.id },
+    });
+  } catch (e) {
+    console.warn("System notification failed:", e);
+  }
 
-  // Broadcast to other tabs/windows via BroadcastChannel
+  // 2. Dispatch local event in current window so in-app toasts & banners fire immediately
+  try {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("new-broadcast-received", { detail: broadcast })
+      );
+    }
+  } catch {
+    // Ignore window event errors
+  }
+
+  // 3. Broadcast to other tabs/windows via BroadcastChannel
   try {
     if (typeof BroadcastChannel !== "undefined") {
       const bc = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
@@ -169,6 +187,15 @@ export function initBroadcastListener(onNewBroadcast?: (b: DBBroadcast) => void)
     }
   }
 
+  // Listen for local broadcast dispatch (in the current tab/window)
+  const handleLocal = (e: Event) => {
+    const custom = e as CustomEvent<DBBroadcast>;
+    if (custom.detail) {
+      onNewBroadcast?.(custom.detail);
+    }
+  };
+  window.addEventListener("new-broadcast-received", handleLocal);
+
   // Also listen for cross-tab storage changes
   const handleStorageChange = (e: StorageEvent) => {
     if (e.key === "teacher_scheduler_broadcasts" && e.newValue) {
@@ -195,6 +222,7 @@ export function initBroadcastListener(onNewBroadcast?: (b: DBBroadcast) => void)
 
   return () => {
     channel?.close();
+    window.removeEventListener("new-broadcast-received", handleLocal);
     window.removeEventListener("storage", handleStorageChange);
   };
 }

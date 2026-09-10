@@ -65,19 +65,37 @@ export function AdminBroadcastPanel() {
   }, []);
 
   const handleSend = async () => {
-    if (!message.trim()) return;
+    const trimmed = message.trim();
+    if (!trimmed) {
+      toast.error("Моля, въведете текст на съобщението");
+      return;
+    }
     setIsSending(true);
     try {
-      const created = localDB.addBroadcast(message.trim(), priority);
+      const created = localDB.addBroadcast(trimmed, priority);
       
-      // Trigger system notifications on phones & desktop
+      // Trigger system notifications on phones & desktop and in current window
       await notifyBroadcast(created);
 
-      toast.success("Съобщението е публикувано и изпратено като известие!");
+      // Show immediate prominent toast popup with the actual message content
+      const popupTitle =
+        created.priority === "urgent"
+          ? "🚨 СПЕШНО СЪОБЩЕНИЕ"
+          : created.priority === "warning"
+          ? "⚠️ ВАЖНО СЪОБЩЕНИЕ"
+          : "📢 Ново съобщение";
+
+      toast(popupTitle, {
+        description: created.message,
+        duration: 9000,
+      });
+
+      toast.success("Съобщението е публикувано успешно в графика!");
       setMessage("");
       setPriority("info");
-      setHistory((prev) => [created, ...prev.filter((b) => b.id !== created.id)].slice(0, 10));
-    } catch {
+      loadBroadcasts();
+    } catch (err) {
+      console.error("Error sending broadcast:", err);
       toast.error("Грешка при запис на съобщението");
     } finally {
       setIsSending(false);
@@ -101,6 +119,10 @@ export function AdminBroadcastPanel() {
       created_at: new Date().toISOString(),
     };
     await notifyBroadcast(testBroadcast);
+    toast("🚨 СПЕШНО: Училищно съобщение (Тест)", {
+      description: testBroadcast.message,
+      duration: 6000,
+    });
     toast.success("Тестовото известие е изпратено на това устройство!");
   };
 

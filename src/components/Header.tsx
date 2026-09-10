@@ -143,9 +143,9 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
 
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <MobileInstallButton />
-            <NotificationHeaderButton />
             {isAdmin && (
               <>
+                <NotificationHeaderButton />
                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">
                   <Shield className="w-4 h-4" />
                   <span className="text-sm font-medium">
