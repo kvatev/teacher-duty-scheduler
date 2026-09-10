@@ -402,6 +402,11 @@ export const localDB = {
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, assignments);
   },
 
+  clearAssignmentsForPeriod(periodId: string): void {
+    const assignments = this.getAssignments().filter((a) => a.periodId !== periodId);
+    setToStorage(STORAGE_KEYS.ASSIGNMENTS, assignments);
+  },
+
   moveTeacher(
     periodId: string,
     teacherId: string,

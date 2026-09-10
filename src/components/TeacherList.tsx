@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Users, Shuffle, Search, CalendarOff } from "lucide-react";
+import { Plus, Users, Shuffle, Search, CalendarOff, RotateCcw } from "lucide-react";
 import { Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface TeacherListProps {
   teachers: Teacher[];
@@ -25,6 +36,7 @@ interface TeacherListProps {
   onAddTeacher: (name: string) => boolean | Promise<boolean>;
   onRemoveTeacher: (id: string) => void | Promise<void>;
   onAutoArrange?: () => void | Promise<void>;
+  onClearSchedule?: () => Promise<boolean>;
 }
 
 export function TeacherList({
@@ -33,6 +45,7 @@ export function TeacherList({
   onAddTeacher,
   onRemoveTeacher,
   onAutoArrange,
+  onClearSchedule,
 }: TeacherListProps) {
   const { isAdmin } = useAuth();
   const isMobile = useIsMobile();
@@ -191,6 +204,48 @@ export function TeacherList({
             <Shuffle className="w-4 h-4" />
             Автоматично разпределение
           </Button>
+
+          {onClearSchedule && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/50 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-xs sm:text-sm font-medium"
+                  title="Бързо изчистване на всички дежурства от графика"
+                >
+                  <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  Изчисти дежурствата
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+                    <RotateCcw className="w-5 h-5 text-amber-600" />
+                    Изчистване на графика
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Сигурни ли сте, че искате бързо да изчистите всички поставени дежурства от графика?
+                    <br /><br />
+                    <span className="text-muted-foreground">
+                      ℹ️ <strong>Учителите в списъка ще се запазят непокътнати.</strong> Изчистват се само попълнените дежурства в таблицата, за да можете бързо да поправите грешка.
+                    </span>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                  <AlertDialogCancel className="w-full sm:w-auto mt-0">Отказ</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      await onClearSchedule();
+                    }}
+                    className="bg-amber-600 text-white hover:bg-amber-700 w-full sm:w-auto"
+                  >
+                    Изчисти дежурствата
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full gap-2">

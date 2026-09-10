@@ -60,6 +60,30 @@ describe("localDB - In-browser Database", () => {
     expect(retrieved[1].shiftNumber).toBe(2);
   });
 
+  it("clears all assignments for a given period without removing teachers", () => {
+    const periods = localDB.getPeriods();
+    const periodId = periods[0].id;
+    const teachers = localDB.getTeachers(periodId);
+    expect(teachers.length).toBeGreaterThan(0);
+
+    // Assign some teachers
+    localDB.assignTeacher(periodId, teachers[0].id, "Понеделник", "1 етаж", 1);
+    if (teachers[1]) {
+      localDB.assignTeacher(periodId, teachers[1].id, "Вторник", "2 етаж", null);
+    }
+    expect(localDB.getAssignments(periodId).length).toBeGreaterThan(0);
+
+    // Clear schedule for this period
+    localDB.clearAssignmentsForPeriod(periodId);
+
+    // Assignments should be empty
+    expect(localDB.getAssignments(periodId).length).toBe(0);
+
+    // Teachers must remain completely intact
+    const teachersAfter = localDB.getTeachers(periodId);
+    expect(teachersAfter.length).toBe(teachers.length);
+  });
+
   it("manages unavailability notes correctly", () => {
     const teachers = localDB.getTeachers();
 

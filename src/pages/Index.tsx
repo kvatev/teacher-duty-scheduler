@@ -36,6 +36,7 @@ const Index = () => {
     deletePeriod,
     copyTeachersFromPeriod,
     updateShiftNumber,
+    clearSchedule,
   } = useScheduleDB();
 
   const { isAdmin } = useAuth();
@@ -104,6 +105,7 @@ const Index = () => {
             onAddPeriod={addPeriod}
             onDeletePeriod={deletePeriod}
             onCopyTeachers={copyTeachersFromPeriod}
+            onClearSchedule={clearSchedule}
           />
           <Legend onExportPDF={handleExportPDF} />
         </div>
@@ -156,6 +158,7 @@ const Index = () => {
                 onAddTeacher={addTeacher}
                 onRemoveTeacher={removeTeacher}
                 onAutoArrange={autoArrangeTeachers}
+                onClearSchedule={clearSchedule}
               />
             </aside>
           )}
@@ -176,6 +179,7 @@ const Index = () => {
               currentPeriod={currentPeriod}
               onExportReady={handleExportReady}
               onUpdateShiftNumber={updateShiftNumber}
+              onClearSchedule={clearSchedule}
               settings={settings}
               teachers={teachers}
             />

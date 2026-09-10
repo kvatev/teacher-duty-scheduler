@@ -468,6 +468,14 @@ export function useScheduleDB() {
     [periodId, availablePeriods, teachers, assignments]
   );
 
+  const clearSchedule = useCallback(async (): Promise<boolean> => {
+    if (!periodId) return false;
+    localDB.clearAssignmentsForPeriod(periodId);
+    setAssignments([]);
+    toast.success("Всички дежурства от графика бяха изчистени!");
+    return true;
+  }, [periodId]);
+
   return {
     teachers,
     assignments,
@@ -486,6 +494,7 @@ export function useScheduleDB() {
     getAssignmentsForCell,
     updateShiftNumber,
     autoArrangeTeachers,
+    clearSchedule,
     addPeriod,
     deletePeriod,
     copyTeachersFromPeriod,
