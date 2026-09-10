@@ -99,7 +99,7 @@ export function TeacherUnavailabilityDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100%-1.5rem)] sm:w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Достъпност: {teacherName}</DialogTitle>
         </DialogHeader>

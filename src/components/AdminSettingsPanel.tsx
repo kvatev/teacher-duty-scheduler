@@ -200,260 +200,290 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
           <span className="hidden sm:inline">Настройки</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full h-full rounded-none overflow-y-auto p-4 sm:p-6 max-w-none sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-90 data-[state=open]:zoom-in-90 data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:slide-in-from-bottom-4">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Settings className="w-5 h-5 shrink-0" />
-            Настройки на приложението
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] sm:w-[92vw] md:w-full md:max-w-2xl lg:max-w-3xl max-h-[90dvh] sm:max-h-[85vh] p-0 gap-0 flex flex-col rounded-2xl sm:rounded-xl overflow-hidden shadow-2xl border bg-background duration-200">
+        <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b bg-muted/30 shrink-0 pr-12">
+          <DialogHeader className="space-y-0 text-left">
+            <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-bold text-foreground">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <Settings className="w-4 h-4" />
+              </div>
+              <span>Настройки на приложението</span>
+            </DialogTitle>
+          </DialogHeader>
+        </div>
 
-        <Tabs defaultValue={defaultTab} className="mt-3 sm:mt-4">
-          {/* Scrollable tabs on mobile */}
-          <div className="overflow-x-auto -mx-4 px-4 sm:-mx-2 sm:px-2 pb-1">
-            <TabsList className="inline-flex w-max min-w-full h-auto flex-wrap gap-1 p-1">
+        <Tabs defaultValue={defaultTab} className="flex flex-col flex-1 min-h-0">
+          <div className="px-3 sm:px-6 py-2.5 border-b bg-muted/15 shrink-0">
+            <TabsList className="flex flex-wrap items-center justify-start gap-1 sm:gap-1.5 p-1 bg-muted/60 rounded-xl h-auto w-full">
               {canSettings && (
                 <>
-                  <TabsTrigger value="general" className="text-xs px-2.5 py-1.5 h-auto">Общи</TabsTrigger>
-                  <TabsTrigger value="logo" className="text-xs px-2.5 py-1.5 h-auto">Лого</TabsTrigger>
-                  <TabsTrigger value="locations" className="text-xs px-2.5 py-1.5 h-auto">Локации</TabsTrigger>
-                  <TabsTrigger value="pdf" className="text-xs px-2.5 py-1.5 h-auto">PDF</TabsTrigger>
-                  <TabsTrigger value="contact" className="text-xs px-2.5 py-1.5 h-auto">Контакти</TabsTrigger>
-                  <TabsTrigger value="backup" className="text-xs px-2.5 py-1.5 h-auto gap-1">
-                    <Database className="w-3 h-3" />
+                  <TabsTrigger value="general" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-xs">Общи</TabsTrigger>
+                  <TabsTrigger value="logo" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-xs">Лого</TabsTrigger>
+                  <TabsTrigger value="locations" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-xs">Локации</TabsTrigger>
+                  <TabsTrigger value="pdf" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-xs">PDF</TabsTrigger>
+                  <TabsTrigger value="contact" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-xs">Контакти</TabsTrigger>
+                  <TabsTrigger value="backup" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg gap-1.5 data-[state=active]:bg-background data-[state=active]:shadow-xs">
+                    <Database className="w-3.5 h-3.5" />
                     Архив
                   </TabsTrigger>
                 </>
               )}
               {canBroadcast && (
-                <TabsTrigger value="broadcast" className="text-xs px-2.5 py-1.5 h-auto gap-1">
-                  <Megaphone className="w-3 h-3" />
+                <TabsTrigger value="broadcast" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg gap-1.5 data-[state=active]:bg-background data-[state=active]:shadow-xs">
+                  <Megaphone className="w-3.5 h-3.5" />
                   Съобщения
                 </TabsTrigger>
               )}
               {isSuperAdmin && (
-                <TabsTrigger value="users" className="text-xs px-2.5 py-1.5 h-auto gap-1">
-                  <Users className="w-3 h-3" />
+                <TabsTrigger value="users" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg gap-1.5 data-[state=active]:bg-background data-[state=active]:shadow-xs">
+                  <Users className="w-3.5 h-3.5" />
                   Админи
                 </TabsTrigger>
               )}
-              <TabsTrigger value="security" className="text-xs px-2.5 py-1.5 h-auto">Парола</TabsTrigger>
+              <TabsTrigger value="security" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg gap-1.5 data-[state=active]:bg-background data-[state=active]:shadow-xs">
+                <KeyRound className="w-3.5 h-3.5" />
+                Парола
+              </TabsTrigger>
             </TabsList>
           </div>
 
-          {canSettings && (
-            <>
-              <TabsContent value="general" className="space-y-4 mt-4">
-                <SettingInput id="header_title" label="Заглавие в хедъра" value={draft.header_title} onChange={(v) => updateDraft("header_title", v)} />
-                <SettingInput id="header_subtitle" label="Подзаглавие в хедъра" value={draft.header_subtitle} onChange={(v) => updateDraft("header_subtitle", v)} />
-                <SettingTextarea id="footer_note" label="Бележка във футъра" value={draft.footer_note} onChange={(v) => updateDraft("footer_note", v)} />
-                <SettingInput id="day_column_header" label="Заглавие на колоната за дни" value={draft.day_column_header} onChange={(v) => updateDraft("day_column_header", v)} />
-                <SettingTextarea id="tip_text" label="Съвет за администратора (показва се под графика)" value={draft.tip_text} onChange={(v) => updateDraft("tip_text", v)} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <SettingInput id="term_1_label" label="Етикет за I-ви срок" value={draft.term_1_label} onChange={(v) => updateDraft("term_1_label", v)} />
-                  <SettingInput id="term_2_label" label="Етикет за II-ри срок" value={draft.term_2_label} onChange={(v) => updateDraft("term_2_label", v)} />
-                </div>
-              </TabsContent>
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 overscroll-contain">
+            {canSettings && (
+              <>
+                <TabsContent value="general" className="space-y-4 mt-0">
+                  <SettingInput id="header_title" label="Заглавие в хедъра" value={draft.header_title} onChange={(v) => updateDraft("header_title", v)} />
+                  <SettingInput id="header_subtitle" label="Подзаглавие в хедъра" value={draft.header_subtitle} onChange={(v) => updateDraft("header_subtitle", v)} />
+                  <SettingTextarea id="footer_note" label="Бележка във футъра" value={draft.footer_note} onChange={(v) => updateDraft("footer_note", v)} />
+                  <SettingInput id="day_column_header" label="Заглавие на колоната за дни" value={draft.day_column_header} onChange={(v) => updateDraft("day_column_header", v)} />
+                  <SettingTextarea id="tip_text" label="Съвет за администратора (показва се под графика)" value={draft.tip_text} onChange={(v) => updateDraft("tip_text", v)} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <SettingInput id="term_1_label" label="Етикет за I-ви срок" value={draft.term_1_label} onChange={(v) => updateDraft("term_1_label", v)} />
+                    <SettingInput id="term_2_label" label="Етикет за II-ри срок" value={draft.term_2_label} onChange={(v) => updateDraft("term_2_label", v)} />
+                  </div>
+                </TabsContent>
 
-              <TabsContent value="logo" className="space-y-4 mt-4">
-                <p className="text-sm text-muted-foreground">Качете ново лого на училището. То ще се показва в хедъра и в PDF документа.</p>
-                
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  {logoPreview ? (
-                    <img src={logoPreview} alt="Преглед на лого" className="w-20 h-20 object-contain border rounded-md p-1 bg-white shrink-0" />
-                  ) : (
-                    <div className="w-20 h-20 border-2 border-dashed rounded-md flex items-center justify-center bg-muted shrink-0">
-                      <Image className="w-8 h-8 text-muted-foreground" />
+                <TabsContent value="logo" className="space-y-4 mt-0">
+                  <p className="text-sm text-muted-foreground">Качете ново лого на училището. То ще се показва в хедъра и в PDF документа.</p>
+                  
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Преглед на лого" className="w-20 h-20 object-contain border rounded-md p-1 bg-white shrink-0" />
+                    ) : (
+                      <div className="w-20 h-20 border-2 border-dashed rounded-md flex items-center justify-center bg-muted shrink-0">
+                        <Image className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="space-y-2 w-full sm:flex-1">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleLogoUpload}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="gap-2 w-full sm:w-auto"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {isUploading ? "Качване..." : "Качи ново лого"}
+                      </Button>
+                      {logoPreview && (
+                        <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive w-full sm:w-auto">
+                          Премахни логото
+                        </Button>
+                      )}
                     </div>
-                  )}
-                  <div className="space-y-2 w-full sm:flex-1">
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="locations" className="space-y-4 mt-0">
+                  <p className="text-sm text-muted-foreground">Редактирайте имената на колоните в графика за дежурства.</p>
+                  <SettingInput id="location_1" label="Локация 1" value={draft.location_1} onChange={(v) => updateDraft("location_1", v)} />
+                  <SettingInput id="location_2" label="Локация 2" value={draft.location_2} onChange={(v) => updateDraft("location_2", v)} />
+                  <SettingInput id="location_3" label="Локация 3" value={draft.location_3} onChange={(v) => updateDraft("location_3", v)} />
+                  <SettingInput id="location_4" label="Локация 4 (дежурен с номерация)" value={draft.location_4} onChange={(v) => updateDraft("location_4", v)} />
+                </TabsContent>
+
+                <TabsContent value="pdf" className="space-y-4 mt-0">
+                  <SettingInput id="pdf_school_name" label="Име на училището (PDF)" value={draft.pdf_school_name} onChange={(v) => updateDraft("pdf_school_name", v)} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <SettingInput id="pdf_school_info1" label="Адрес и телефони (ред 1)" value={draft.pdf_school_info1} onChange={(v) => updateDraft("pdf_school_info1", v)} />
+                    <SettingInput id="pdf_school_info2" label="Адрес и имейл (ред 2)" value={draft.pdf_school_info2} onChange={(v) => updateDraft("pdf_school_info2", v)} />
+                  </div>
+                  <SettingInput id="pdf_director_name" label="Име на директора" value={draft.pdf_director_name} onChange={(v) => updateDraft("pdf_director_name", v)} />
+                  <SettingTextarea id="pdf_schedule_description" label="Описание на графика (PDF)" value={draft.pdf_schedule_description} onChange={(v) => updateDraft("pdf_schedule_description", v)} />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <SettingInput id="schedule_title" label="Заглавие на графика" value={draft.schedule_title} onChange={(v) => updateDraft("schedule_title", v)} />
+                    <SettingInput id="approval_text" label="Текст за утвърждаване" value={draft.approval_text} onChange={(v) => updateDraft("approval_text", v)} />
+                    <SettingInput id="approval_role" label="Длъжност" value={draft.approval_role} onChange={(v) => updateDraft("approval_role", v)} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="contact" className="space-y-4 mt-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <SettingInput id="admin_name" label="Име на администратора" value={draft.admin_name} onChange={(v) => updateDraft("admin_name", v)} />
+                    <SettingInput id="admin_email" label="Имейл за връзка" value={draft.admin_email} onChange={(v) => updateDraft("admin_email", v)} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="backup" className="space-y-6 mt-0">
+                  <div>
+                    <h4 className="text-sm font-semibold">Сваляне на резервно копие (Експорт)</h4>
+                    <p className="text-xs text-muted-foreground mt-1 mb-3">
+                      Запазете пълен архив на всички графици, списъци с учители, отсъствия и настройки в един JSON файл на вашия компютър.
+                    </p>
+                    <Button variant="outline" size="sm" onClick={handleExportBackup} className="gap-2 w-full sm:w-auto">
+                      <Download className="w-4 h-4" />
+                      Свали пълен архив (JSON)
+                    </Button>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold">Възстановяване от резервно копие (Импорт)</h4>
+                    <p className="text-xs text-muted-foreground mt-1 mb-3">
+                      Възстановете данните от предварително изтеглен JSON файл. Всички текущи данни ще бъдат заменени!
+                    </p>
                     <input
-                      ref={fileInputRef}
+                      ref={backupInputRef}
                       type="file"
-                      accept="image/*"
+                      accept=".json"
                       className="hidden"
-                      onChange={handleLogoUpload}
+                      onChange={handleImportBackup}
                     />
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
+                      onClick={() => backupInputRef.current?.click()}
+                      disabled={isImporting}
                       className="gap-2 w-full sm:w-auto"
                     >
                       <Upload className="w-4 h-4" />
-                      {isUploading ? "Качване..." : "Качи ново лого"}
+                      {isImporting ? "Възстановяване..." : "Избери файл за възстановяване"}
                     </Button>
-                    {logoPreview && (
-                      <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive w-full sm:w-auto">
-                        Премахни логото
-                      </Button>
-                    )}
                   </div>
-                </div>
-              </TabsContent>
 
-              <TabsContent value="locations" className="space-y-4 mt-4">
-                <p className="text-sm text-muted-foreground">Редактирайте имената на колоните в графика за дежурства.</p>
-                <SettingInput id="location_1" label="Локация 1" value={draft.location_1} onChange={(v) => updateDraft("location_1", v)} />
-                <SettingInput id="location_2" label="Локация 2" value={draft.location_2} onChange={(v) => updateDraft("location_2", v)} />
-                <SettingInput id="location_3" label="Локация 3" value={draft.location_3} onChange={(v) => updateDraft("location_3", v)} />
-                <SettingInput id="location_4" label="Локация 4 (дежурен с номерация)" value={draft.location_4} onChange={(v) => updateDraft("location_4", v)} />
-              </TabsContent>
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold text-destructive">Възстановяване на начални настройки</h4>
+                    <p className="text-xs text-muted-foreground mt-1 mb-3">
+                      Изтрива всички текущи данни и възстановява първоначалните настройки и учители по подразбиране.
+                    </p>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm" className="gap-2 w-full sm:w-auto">
+                          <RefreshCw className="w-4 h-4" />
+                          Възстанови по подразбиране
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-md">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Сигурни ли сте?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Това действие ще изтрие всички промени, графици и въведени учители и ще възстанови началните примерни данни. Препоръчваме първо да свалите архив!
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                          <AlertDialogCancel className="w-full sm:w-auto mt-0">Отказ</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleResetDefaults} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto">
+                            Възстанови
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </TabsContent>
+              </>
+            )}
 
-              <TabsContent value="pdf" className="space-y-4 mt-4">
-                <SettingInput id="pdf_school_name" label="Име на училището (PDF)" value={draft.pdf_school_name} onChange={(v) => updateDraft("pdf_school_name", v)} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <SettingInput id="pdf_school_info1" label="Адрес и телефони (ред 1)" value={draft.pdf_school_info1} onChange={(v) => updateDraft("pdf_school_info1", v)} />
-                  <SettingInput id="pdf_school_info2" label="Адрес и имейл (ред 2)" value={draft.pdf_school_info2} onChange={(v) => updateDraft("pdf_school_info2", v)} />
-                </div>
-                <SettingInput id="pdf_director_name" label="Ime на директора" value={draft.pdf_director_name} onChange={(v) => updateDraft("pdf_director_name", v)} />
-                <SettingTextarea id="pdf_schedule_description" label="Описание на графика (PDF)" value={draft.pdf_schedule_description} onChange={(v) => updateDraft("pdf_schedule_description", v)} />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <SettingInput id="schedule_title" label="Заглавие на графика" value={draft.schedule_title} onChange={(v) => updateDraft("schedule_title", v)} />
-                  <SettingInput id="approval_text" label="Текст за утвърждаване" value={draft.approval_text} onChange={(v) => updateDraft("approval_text", v)} />
-                  <SettingInput id="approval_role" label="Длъжност" value={draft.approval_role} onChange={(v) => updateDraft("approval_role", v)} />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="contact" className="space-y-4 mt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <SettingInput id="admin_name" label="Ime на администратора" value={draft.admin_name} onChange={(v) => updateDraft("admin_name", v)} />
-                  <SettingInput id="admin_email" label="Имейл за връзка" value={draft.admin_email} onChange={(v) => updateDraft("admin_email", v)} />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="backup" className="space-y-6 mt-4">
-                <div>
-                  <h4 className="text-sm font-semibold">Сваляне на резервно копие (Експорт)</h4>
-                  <p className="text-xs text-muted-foreground mt-1 mb-3">
-                    Запазете пълен архив на всички графици, списъци с учители, отсъствия и настройки в един JSON файл на вашия компютър.
-                  </p>
-                  <Button variant="outline" size="sm" onClick={handleExportBackup} className="gap-2 w-full sm:w-auto">
-                    <Download className="w-4 h-4" />
-                    Свали пълен архив (JSON)
-                  </Button>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h4 className="text-sm font-semibold">Възстановяване от резервно копие (Импорт)</h4>
-                  <p className="text-xs text-muted-foreground mt-1 mb-3">
-                    Заредете запазен JSON архив, за да прехвърлите данните си на друго устройство или браузър.
-                  </p>
-                  <input
-                    ref={backupInputRef}
-                    type="file"
-                    accept=".json"
-                    className="hidden"
-                    onChange={handleImportBackup}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => backupInputRef.current?.click()}
-                    className="gap-2 w-full sm:w-auto"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Избери файл с архив (.json)
-                  </Button>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h4 className="text-sm font-semibold text-destructive">Възстановяване на първоначални данни</h4>
-                  <p className="text-xs text-muted-foreground mt-1 mb-3">
-                    Възстановява списъка с учители и стандартните настройки на училището.
-                  </p>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm" className="gap-2 w-full sm:w-auto">
-                        <RefreshCw className="w-4 h-4" />
-                        Начални настройки
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-md">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Възстановяване на първоначалните данни?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Това ще върне учителите и настройките към началните училищни шаблони. Препоръчително е първо да свалите резервно копие (JSON).
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
-                        <AlertDialogCancel className="w-full sm:w-auto mt-0">Отказ</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleResetDefaults} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto">
-                          Възстанови
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </TabsContent>
-            </>
-          )}
-
-          <TabsContent value="security" className="space-y-4 mt-4">
-            <p className="text-sm text-muted-foreground">Сменете паролата си за достъп до системата.</p>
-            <div className="space-y-2">
-              <Label htmlFor="new_pass">Нова парола</Label>
-              <PasswordInput id="new_pass" value={newPass} onChange={(e) => setNewPass(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm_pass">Потвърдете новата парола</Label>
-              <PasswordInput id="confirm_pass" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} />
-            </div>
-            <Button
-              disabled={isChangingPass || !newPass || !confirmPass}
-              onClick={async () => {
-                if (newPass !== confirmPass) {
-                  toast.error("Новата парола и потвърждението не съвпадат");
-                  return;
-                }
-                if (newPass.length < 6) {
-                  toast.error("Паролата трябва да е поне 6 символа");
-                  return;
-                }
-                setIsChangingPass(true);
-                const result = await updateAdminPassword(newPass);
-                setIsChangingPass(false);
-                if (!result.error) {
-                  toast.success("Паролата е сменена успешно");
-                  setNewPass("");
-                  setConfirmPass("");
-                } else {
-                  toast.error(result.error || "Грешка при смяна на паролата");
-                }
-              }}
-              className="gap-2 w-full sm:w-auto"
-            >
-              <KeyRound className="w-4 h-4" />
-              {isChangingPass ? "Смяна..." : "Смени паролата"}
-            </Button>
-          </TabsContent>
-
-          {canBroadcast && (
-            <TabsContent value="broadcast" className="mt-4">
-              <AdminBroadcastPanel />
+            <TabsContent value="security" className="space-y-4 mt-0">
+              <div className="bg-primary/5 border border-primary/15 rounded-lg p-3 text-xs sm:text-sm text-foreground/80 flex items-start gap-2.5">
+                <KeyRound className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <span>Сменете паролата си за достъп до системата. Новата парола трябва да е поне 6 символа.</span>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new_pass" className="text-xs sm:text-sm font-medium">Нова парола</Label>
+                <PasswordInput id="new_pass" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Въведете нова парола" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm_pass" className="text-xs sm:text-sm font-medium">Потвърдете новата парола</Label>
+                <PasswordInput id="confirm_pass" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Повторете новата парола" />
+              </div>
+              <div className="pt-1">
+                <Button
+                  disabled={isChangingPass || !newPass || !confirmPass}
+                  onClick={async () => {
+                    if (newPass !== confirmPass) {
+                      toast.error("Новата парола и потвърждението не съвпадат");
+                      return;
+                    }
+                    if (newPass.length < 6) {
+                      toast.error("Паролата трябва да е поне 6 символа");
+                      return;
+                    }
+                    setIsChangingPass(true);
+                    const result = await updateAdminPassword(newPass);
+                    setIsChangingPass(false);
+                    if (!result.error) {
+                      toast.success("Паролата е сменена успешно");
+                      setNewPass("");
+                      setConfirmPass("");
+                    } else {
+                      toast.error(result.error || "Грешка при смяна на паролата");
+                    }
+                  }}
+                  className="gap-2 w-full sm:w-auto"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  {isChangingPass ? "Смяна..." : "Смени паролата"}
+                </Button>
+              </div>
             </TabsContent>
-          )}
 
-          {isSuperAdmin && (
-            <TabsContent value="users" className="mt-4">
-              <AdminUsersPanel />
-            </TabsContent>
-          )}
+            {canBroadcast && (
+              <TabsContent value="broadcast" className="mt-0">
+                <AdminBroadcastPanel />
+              </TabsContent>
+            )}
+
+            {isSuperAdmin && (
+              <TabsContent value="users" className="mt-0">
+                <AdminUsersPanel />
+              </TabsContent>
+            )}
+          </div>
+
+          <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-t bg-muted/20 shrink-0 flex items-center justify-between gap-3">
+            <div className="text-xs text-muted-foreground hidden sm:block">
+              {canSettings ? "💡 Промените влизат в сила веднага след запазване" : ""}
+            </div>
+            <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsOpen(false)}
+                disabled={isSaving}
+                className="flex-1 sm:flex-initial h-9 text-xs sm:text-sm"
+              >
+                <X className="w-4 h-4 mr-1.5" />
+                {canSettings ? "Отказ" : "Затвори"}
+              </Button>
+              {canSettings && (
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex-1 sm:flex-initial h-9 text-xs sm:text-sm"
+                >
+                  <Save className="w-4 h-4 mr-1.5" />
+                  {isSaving ? "Запазване..." : "Запази"}
+                </Button>
+              )}
+            </div>
+          </div>
         </Tabs>
-
-        <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
-          <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isSaving}>
-            <X className="w-4 h-4 mr-1" />
-            {canSettings ? "Отказ" : "Затвори"}
-          </Button>
-          {canSettings && (
-            <Button onClick={handleSave} disabled={isSaving}>
-              <Save className="w-4 h-4 mr-1" />
-              {isSaving ? "Запазване..." : "Запази"}
-            </Button>
-          )}
-        </div>
       </DialogContent>
     </Dialog>
   );
