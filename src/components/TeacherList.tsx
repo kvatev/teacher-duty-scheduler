@@ -214,7 +214,7 @@ export function TeacherList({
                   title="Бързо изчистване на всички дежурства от графика"
                 >
                   <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  Изчисти дежурствата
+                  Изчисти графика
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
@@ -239,7 +239,7 @@ export function TeacherList({
                     }}
                     className="bg-amber-600 text-white hover:bg-amber-700 w-full sm:w-auto"
                   >
-                    Изчисти дежурствата
+                    Изчисти графика
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

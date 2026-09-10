@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, Plus, Trash2, Copy, RotateCcw } from "lucide-react";
+import { Calendar, Plus, Trash2, Copy } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -48,7 +48,6 @@ interface PeriodSelectorProps {
   onAddPeriod: (year: string, term: 1 | 2) => Promise<boolean>;
   onDeletePeriod: (year: string, term: number) => Promise<boolean>;
   onCopyTeachers: (sourceYear: string, sourceTerm: number, includeAssignments: boolean) => Promise<boolean>;
-  onClearSchedule?: () => Promise<boolean>;
 }
 
 export function PeriodSelector({
@@ -60,7 +59,6 @@ export function PeriodSelector({
   onAddPeriod,
   onDeletePeriod,
   onCopyTeachers,
-  onClearSchedule,
 }: PeriodSelectorProps) {
   const { isAdmin } = useAuth();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -331,49 +329,6 @@ export function PeriodSelector({
                 </div>
               </DialogContent>
             </Dialog>
-
-            {/* Quick Clear Schedule */}
-            {onClearSchedule && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 border-amber-300 dark:border-amber-700/50"
-                    title="Бързо изчистване на всички дежурства от графика (ако направите грешка)"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2 text-foreground">
-                      <RotateCcw className="w-5 h-5 text-amber-600" />
-                      Изчистване на дежурствата
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Искате ли да изчистите всички поставени дежурства за периода{" "}
-                      <strong>{currentPeriod.year}, {currentPeriod.term === 1 ? "I" : "II"} срок</strong>?
-                      <br /><br />
-                      <span className="text-muted-foreground">
-                        ℹ️ <strong>Учителите в списъка остават запазени.</strong> Изчистват се само клетките в графика, за да можете бързо да поправите грешката си или да разпределите наново.
-                      </span>
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
-                    <AlertDialogCancel className="w-full sm:w-auto mt-0">Отказ</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={async () => {
-                        await onClearSchedule();
-                      }}
-                      className="bg-amber-600 text-white hover:bg-amber-700 w-full sm:w-auto"
-                    >
-                      Изчисти дежурствата
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
 
             {/* Delete period */}
             <AlertDialog>

@@ -5,20 +5,8 @@ import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
 import { useUnavailability } from "@/hooks/useUnavailability";
-import { Calendar, CalendarDays, LayoutGrid, Table as TableIcon, RotateCcw } from "lucide-react";
+import { Calendar, CalendarDays, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -49,7 +37,6 @@ interface ScheduleTableProps {
     toLocation: string
   ) => void | Promise<void>;
   onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
-  onClearSchedule?: () => Promise<boolean>;
   currentPeriod: SchoolPeriod;
   onExportReady?: (exportFn: () => Promise<void>) => void;
   settings?: AppSettings;
@@ -63,13 +50,11 @@ export function ScheduleTable({
   onUnassign,
   onMove,
   onUpdateShiftNumber,
-  onClearSchedule,
   currentPeriod,
   onExportReady,
   settings,
   teachers = [],
 }: ScheduleTableProps) {
-  const { isAdmin } = useAuth();
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
   const { isUnavailable } = useUnavailability();
@@ -167,51 +152,7 @@ export function ScheduleTable({
             <span className="text-sm font-semibold">Изглед на графика:</span>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {isAdmin && onClearSchedule && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 px-2.5 text-xs gap-1.5 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/50 hover:bg-amber-50 dark:hover:bg-amber-950/30 font-medium"
-                    title="Бързо изчистване на всички дежурства от графика"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                    <span>Изчисти графика</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2 text-foreground">
-                      <RotateCcw className="w-5 h-5 text-amber-600" />
-                      Изчистване на графика
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Искате ли бързо да изчистите всички поставени дежурства за периода{" "}
-                      <strong>{currentPeriod.year}, {currentPeriod.term === 1 ? "I" : "II"} срок</strong>?
-                      <br /><br />
-                      <span className="text-muted-foreground">
-                        ℹ️ <strong>Учителите в списъка остават запазени.</strong> Изчистват се само дежурствата в таблицата, за да можете бързо да поправите грешка или да започнете на чисто.
-                      </span>
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
-                    <AlertDialogCancel className="w-full sm:w-auto mt-0">Отказ</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={async () => {
-                        await onClearSchedule();
-                      }}
-                      className="bg-amber-600 text-white hover:bg-amber-700 w-full sm:w-auto"
-                    >
-                      Изчисти графика
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-
-            <div className="flex items-center gap-1 bg-muted/70 p-1 rounded-lg">
+          <div className="flex items-center gap-1 bg-muted/70 p-1 rounded-lg">
             <Button
               variant={viewMode === "day" ? "default" : "ghost"}
               size="sm"
@@ -232,7 +173,6 @@ export function ScheduleTable({
             </Button>
           </div>
         </div>
-      </div>
 
         {/* Day selection pills when in "day" view mode */}
         {viewMode === "day" && (

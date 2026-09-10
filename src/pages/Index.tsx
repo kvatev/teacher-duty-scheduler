@@ -105,7 +105,6 @@ const Index = () => {
             onAddPeriod={addPeriod}
             onDeletePeriod={deletePeriod}
             onCopyTeachers={copyTeachersFromPeriod}
-            onClearSchedule={clearSchedule}
           />
           <Legend onExportPDF={handleExportPDF} />
         </div>
@@ -179,7 +178,6 @@ const Index = () => {
               currentPeriod={currentPeriod}
               onExportReady={handleExportReady}
               onUpdateShiftNumber={updateShiftNumber}
-              onClearSchedule={clearSchedule}
               settings={settings}
               teachers={teachers}
             />
