@@ -1,15 +1,28 @@
-import React, { useRef, useEffect, useMemo, useCallback } from "react";
+import React, { useRef, useEffect, useMemo, useCallback, useState } from "react";
 import { AppSettings } from "@/hooks/useAppSettings";
 import { DAYS, CellTeacher, SchoolPeriod, Teacher } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
 import { useUnavailability } from "@/hooks/useUnavailability";
+import { Calendar, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-
 const DEFAULT_SHIFT_LOCATION = "Главен дежурен – западен вход 07:30-08:40 ч.";
+
+function getTodayBgDay(): string {
+  const dayIndex = new Date().getDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+  const map: Record<number, string> = {
+    1: "Понеделник",
+    2: "Вторник",
+    3: "Сряда",
+    4: "Четвъртък",
+    5: "Петък",
+  };
+  return map[dayIndex] || "Понеделник";
+}
 
 interface ScheduleTableProps {
   getAssignmentsForCell: (day: string, location: string) => CellTeacher[];
@@ -30,7 +43,6 @@ interface ScheduleTableProps {
   teachers?: Teacher[];
 }
 
-
 export function ScheduleTable({
   getAssignmentsForCell,
   counts,
@@ -47,8 +59,12 @@ export function ScheduleTable({
   const printableRef = useRef<HTMLDivElement>(null);
   const { isUnavailable } = useUnavailability();
 
-  const getTeacherName = (id: string) => teachers.find((t) => t.id === id)?.name;
+  const [selectedDay, setSelectedDay] = useState<string>(getTodayBgDay);
+  const [viewMode, setViewMode] = useState<"day" | "table">(() =>
+    typeof window !== "undefined" && window.innerWidth < 768 ? "day" : "table"
+  );
 
+  const getTeacherName = (id: string) => teachers.find((t) => t.id === id)?.name;
 
   const locations = useMemo(() => {
     if (settings) {
@@ -70,7 +86,6 @@ export function ScheduleTable({
 
       const printableElement = printableRef.current;
       
-      // Temporarily make visible for capture
       const originalStyle = printableElement.parentElement?.getAttribute('style') || '';
       if (printableElement.parentElement) {
         printableElement.parentElement.style.cssText = 'position: absolute; left: 0; top: 0; z-index: -1;';
@@ -85,7 +100,6 @@ export function ScheduleTable({
         foreignObjectRendering: false,
       });
       
-      // Restore hidden style
       if (printableElement.parentElement) {
         printableElement.parentElement.style.cssText = originalStyle;
       }
@@ -130,57 +144,168 @@ export function ScheduleTable({
 
   return (
     <div className="space-y-4">
-      <div ref={tableRef} className="bg-card rounded-lg border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full schedule-table border-collapse">
-            <thead>
-              <tr>
-                <th className="p-3 text-left font-semibold border-r border-primary/20 min-w-[120px]">
-                  {settings?.day_column_header || "Ден от седмицата"}
-                </th>
-                {locations.map((location) => (
-                  <th
-                    key={location}
-                    className="p-3 text-center font-semibold border-r border-primary/20 last:border-r-0 min-w-[180px]"
-                  >
-                    <div className="text-sm leading-tight">{location}</div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {DAYS.map((day) => (
-                <tr key={day} className="border-t border-table-border">
-                  <td className="p-3 font-medium border-r border-table-border bg-secondary/50">
-                    {day}
-                  </td>
-                  {locations.map((location) => (
-                    <td
-                      key={`${day}-${location}`}
-                      className="p-2 border-r border-table-border last:border-r-0 align-top"
-                    >
-                      <ScheduleCell
-                        day={day}
-                        location={location}
-                        teachers={getAssignmentsForCell(day, location)}
-                        counts={counts}
-                        onAssign={onAssign}
-                        onUnassign={onUnassign}
-                        onMove={onMove}
-                        onUpdateShiftNumber={onUpdateShiftNumber}
-                        isShiftLocation={location === shiftLocation}
-                        getTeacherName={getTeacherName}
-                        isTeacherUnavailable={isUnavailable}
-                      />
+      {/* Mobile View Toggle & Day Pills */}
+      <div className="bg-card rounded-lg border shadow-xs p-3 space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold">Изглед на графика:</span>
+          </div>
 
-                    </td>
+          <div className="flex items-center gap-1 bg-muted/70 p-1 rounded-lg">
+            <Button
+              variant={viewMode === "day" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("day")}
+              className="h-7 px-2.5 text-xs gap-1.5"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>По дни (Карти)</span>
+            </Button>
+            <Button
+              variant={viewMode === "table" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("table")}
+              className="h-7 px-2.5 text-xs gap-1.5"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>Пълна таблица</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Day selection pills when in "day" view mode */}
+        {viewMode === "day" && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-none">
+            {DAYS.map((day) => (
+              <Button
+                key={day}
+                variant={selectedDay === day ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedDay(day)}
+                className="h-8 text-xs shrink-0 rounded-full px-3.5"
+              >
+                {day}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Day Cards View (Mobile Optimized) */}
+      {viewMode === "day" && (
+        <div className="space-y-3 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-base font-bold text-primary flex items-center gap-2">
+              <span>📅 {selectedDay}</span>
+            </h3>
+            <span className="text-xs text-muted-foreground">
+              {locations.length} дежурни поста
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {locations.map((location, idx) => (
+              <div
+                key={`${selectedDay}-${location}`}
+                className="bg-card rounded-lg border shadow-xs p-3.5 transition-all hover:border-primary/40 space-y-2.5"
+              >
+                <div className="flex items-start gap-2.5 pb-2 border-b">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    {idx + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-semibold leading-snug">
+                      {location}
+                    </h4>
+                    {location === shiftLocation && (
+                      <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium">
+                        Смени 1 / 2
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <ScheduleCell
+                    day={selectedDay}
+                    location={location}
+                    teachers={getAssignmentsForCell(selectedDay, location)}
+                    counts={counts}
+                    onAssign={onAssign}
+                    onUnassign={onUnassign}
+                    onMove={onMove}
+                    onUpdateShiftNumber={onUpdateShiftNumber}
+                    isShiftLocation={location === shiftLocation}
+                    getTeacherName={getTeacherName}
+                    isTeacherUnavailable={isUnavailable}
+                    allTeachers={teachers}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Full Table View */}
+      {viewMode === "table" && (
+        <div ref={tableRef} className="bg-card rounded-lg border shadow-sm overflow-hidden animate-in fade-in duration-200">
+          <div className="block sm:hidden px-3 py-2 bg-muted/40 border-b text-xs text-muted-foreground flex items-center justify-between">
+            <span>↔️ Плъзнете таблицата настрани</span>
+            <span>5 дни • 4 локации</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full schedule-table border-collapse">
+              <thead>
+                <tr>
+                  <th className="sticky left-0 bg-table-header text-table-header-foreground z-20 p-3 text-left font-semibold border-r border-primary/20 min-w-[110px] sm:min-w-[130px] shadow-[2px_0_4px_-1px_rgba(0,0,0,0.15)]">
+                    {settings?.day_column_header || "Ден от седмицата"}
+                  </th>
+                  {locations.map((location) => (
+                    <th
+                      key={location}
+                      className="p-3 text-center font-semibold border-r border-primary/20 last:border-r-0 min-w-[180px]"
+                    >
+                      <div className="text-sm leading-tight">{location}</div>
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {DAYS.map((day) => (
+                  <tr key={day} className="border-t border-table-border">
+                    <td className="sticky left-0 z-10 p-2.5 sm:p-3 font-medium border-r border-table-border bg-card/95 backdrop-blur-sm shadow-[2px_0_4px_-1px_rgba(0,0,0,0.08)]">
+                      {day}
+                    </td>
+                    {locations.map((location) => (
+                      <td
+                        key={`${day}-${location}`}
+                        className="p-2 border-r border-table-border last:border-r-0 align-top"
+                      >
+                        <ScheduleCell
+                          day={day}
+                          location={location}
+                          teachers={getAssignmentsForCell(day, location)}
+                          counts={counts}
+                          onAssign={onAssign}
+                          onUnassign={onUnassign}
+                          onMove={onMove}
+                          onUpdateShiftNumber={onUpdateShiftNumber}
+                          isShiftLocation={location === shiftLocation}
+                          getTeacherName={getTeacherName}
+                          isTeacherUnavailable={isUnavailable}
+                          allTeachers={teachers}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Hidden printable version for PDF export */}
       <div 

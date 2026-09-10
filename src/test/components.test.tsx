@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { TeacherBadge } from "@/components/TeacherBadge";
 import { AppSettings } from "@/hooks/useAppSettings";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { MobileInstallButton } from "@/components/PWAInstallPrompt";
 
 const mockSettings: AppSettings = {
   header_title: "График за дежурства",
@@ -98,5 +99,12 @@ describe("TeacherBadge Component", () => {
 
     expect(screen.getByText("Мария Петрова")).toBeInTheDocument();
     expect(screen.getByLabelText(/Не е свободен/i)).toBeInTheDocument();
+  });
+});
+
+describe("PWA Components", () => {
+  it("renders mobile install button without throwing", () => {
+    const { container } = render(<MobileInstallButton />);
+    expect(container).toBeDefined();
   });
 });

@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SchoolPeriod, TERMS } from "@/types/schedule";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface DBPeriod {
   id: string;

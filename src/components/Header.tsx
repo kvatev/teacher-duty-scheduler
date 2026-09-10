@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { AdminSettingsPanel } from "@/components/AdminSettingsPanel";
 import { AppSettings } from "@/hooks/useAppSettings";
+import { MobileInstallButton } from "@/components/PWAInstallPrompt";
 
 import defaultLogo from "@/assets/su-konstantin-petkanов-logo.png";
 
@@ -57,31 +58,32 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
 
   return (
     <header className="bg-table-header text-table-header-foreground shadow-lg">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <img
               src={logoSrc}
               alt="Лого на училището"
-              className="w-12 h-12 md:w-14 md:h-14 object-contain"
+              className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain shrink-0"
               loading="eager"
             />
             <div className="min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold truncate">
+              <h1 className="text-base sm:text-xl md:text-2xl font-bold truncate leading-tight">
                 {settings.header_title}
               </h1>
-              <p className="text-sm opacity-90 truncate">
+              <p className="text-xs sm:text-sm opacity-90 truncate">
                 {settings.header_subtitle}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            <MobileInstallButton />
             {isAdmin && (
               <>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">
                   <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium hidden sm:inline">
+                  <span className="text-sm font-medium">
                     {isSuperAdmin ? "Главен админ" : "Администратор"}
                   </span>
                 </div>

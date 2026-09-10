@@ -29,7 +29,12 @@ export default defineConfig(({ mode }) => ({
         theme_color: "#1e3a8a",
         background_color: "#f5f7fa",
         display: "standalone",
+        orientation: "any",
         start_url: "/",
+        scope: "/",
+        id: "/",
+        lang: "bg",
+        categories: ["education", "productivity"],
         icons: [
           {
             src: "/pwa-icon-192.png",
