@@ -460,8 +460,13 @@ export const localDB = {
 
   addWeekdayUnavailability(teacherId: string, weekday: Weekday, note?: string): DBUnavailability {
     const items = this.getUnavailabilities();
-    const existing = items.find((u) => u.teacher_id === teacherId && u.weekday === weekday);
-    if (existing) return existing;
+    const existingIndex = items.findIndex((u) => u.teacher_id === teacherId && u.weekday === weekday);
+    if (existingIndex >= 0) {
+      const updated = { ...items[existingIndex], note: note !== undefined ? (note || null) : items[existingIndex].note };
+      items[existingIndex] = updated;
+      setToStorage(STORAGE_KEYS.UNAVAILABILITY, [...items]);
+      return updated;
+    }
 
     const entry: DBUnavailability = {
       id: generateId(),
@@ -476,6 +481,14 @@ export const localDB = {
 
   addDateUnavailability(teacherId: string, dateStr: string, note?: string): DBUnavailability {
     const items = this.getUnavailabilities();
+    const existingIndex = items.findIndex((u) => u.teacher_id === teacherId && u.specific_date === dateStr);
+    if (existingIndex >= 0) {
+      const updated = { ...items[existingIndex], note: note !== undefined ? (note || null) : items[existingIndex].note };
+      items[existingIndex] = updated;
+      setToStorage(STORAGE_KEYS.UNAVAILABILITY, [...items]);
+      return updated;
+    }
+
     const entry: DBUnavailability = {
       id: generateId(),
       teacher_id: teacherId,

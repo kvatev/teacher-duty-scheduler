@@ -394,7 +394,18 @@ export function useScheduleDB() {
       const newlyInserted: Teacher[] = [];
       newTeachers.forEach((t) => {
         const created = localDB.addTeacher(periodId, t.name);
-        if (created) newlyInserted.push({ id: created.id, name: created.name });
+        if (created) {
+          newlyInserted.push({ id: created.id, name: created.name });
+          // Preserve unavailability settings for this teacher
+          const sourceUnavail = localDB.getUnavailabilities(t.id);
+          sourceUnavail.forEach((u) => {
+            if (u.weekday) {
+              localDB.addWeekdayUnavailability(created.id, u.weekday, u.note || undefined);
+            } else if (u.specific_date) {
+              localDB.addDateUnavailability(created.id, u.specific_date, u.note || undefined);
+            }
+          });
+        }
       });
 
       if (newlyInserted.length > 0) {

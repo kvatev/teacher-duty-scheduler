@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useUnavailability, WEEKDAY_TO_BG } from "@/hooks/useUnavailability";
 import { TeacherUnavailabilityDialog } from "./TeacherUnavailabilityDialog";
+import { cn } from "@/lib/utils";
 
 import {
   Dialog,
@@ -131,8 +132,17 @@ export function TeacherList({
                     <Button
                       size="icon"
                       variant="outline"
-                      className="h-8 w-8 shrink-0 relative z-50 text-muted-foreground hover:text-primary hover:bg-primary/10 bg-background/80 backdrop-blur-sm"
-                      title="Задай дни на недостъпност"
+                      className={cn(
+                        "h-8 w-8 shrink-0 relative z-50 transition-all",
+                        teacherUnavail.length > 0
+                          ? "bg-destructive/15 text-destructive border-destructive/40 hover:bg-destructive hover:text-destructive-foreground"
+                          : "text-muted-foreground hover:text-primary hover:bg-primary/10 bg-background/80 backdrop-blur-sm"
+                      )}
+                      title={
+                        teacherUnavail.length > 0
+                          ? `Конфигурирана достъпност (${teacherUnavail.length} записа). Натиснете за редакция.`
+                          : "Задай дни на достъпност/недостъпност"
+                      }
                       onClick={() => setUnavailTeacher(teacher)}
                     >
                       <CalendarOff className="w-4 h-4" />
