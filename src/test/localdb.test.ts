@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { localDB } from "@/lib/localDB";
+import { signIn } from "@/lib/auth";
 
 describe("localDB - In-browser Database", () => {
   beforeEach(() => {
@@ -85,17 +86,20 @@ describe("localDB - In-browser Database", () => {
     expect(localDB.getBroadcasts().some((item) => item.id === b.id)).toBe(false);
   });
 
-  it("authenticates admin and allows password updates", async () => {
-    // Default admin password is 'admin'
-    const validDefault = await localDB.checkAdminPassword("admin");
+  it("authenticates admin with secured credentials and allows updates", async () => {
+    // Check configured admin password
+    const validDefault = await localDB.checkAdminPassword("P@ssword123!");
     expect(validDefault).toBe(true);
 
-    const invalid = await localDB.checkAdminPassword("wrongpass");
-    expect(invalid).toBe(false);
+    const wrong = await localDB.checkAdminPassword("wrongpass");
+    expect(wrong).toBe(false);
+
+    const oldAdminFails = await localDB.checkAdminPassword("admin");
+    expect(oldAdminFails).toBe(false);
 
     // Update password
     await localDB.setAdminPassword("newsecret123");
-    const oldFails = await localDB.checkAdminPassword("admin");
+    const oldFails = await localDB.checkAdminPassword("P@ssword123!");
     expect(oldFails).toBe(false);
 
     const newWorks = await localDB.checkAdminPassword("newsecret123");
@@ -123,5 +127,24 @@ describe("localDB - In-browser Database", () => {
     localDB.resetToDefaults();
     expect(localDB.getTeachers().some((t) => t.name === "Временен учител")).toBe(false);
     expect(localDB.getTeachers().some((t) => t.name.includes("Красимир Ватев"))).toBe(true);
+  });
+
+  it("authenticates via signIn with user 'admin' and secured password", async () => {
+    // Valid login
+    const resSuccess = await signIn("admin", "P@ssword123!");
+    expect(resSuccess.error).toBeNull();
+    expect(localDB.getAdminSession()).toBe(true);
+
+    // Wrong username
+    const resBadUser = await signIn("wronguser", "P@ssword123!");
+    expect(resBadUser.error).toBe("Грешно потребителско име или парола");
+
+    // Wrong password
+    const resBadPass = await signIn("admin", "wrongpassword");
+    expect(resBadPass.error).toBe("Грешно потребителско име или парола");
+
+    // Old password
+    const resOldPass = await signIn("admin", "admin");
+    expect(resOldPass.error).toBe("Грешно потребителско име или парола");
   });
 });

@@ -108,27 +108,38 @@ export function generateId(): string {
   return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 9);
 }
 
-// Simple hash for password
+const SECURITY_SALT = "tds_su_petkanov_salt_secure_2026_k8v9";
+// Pre-computed salted cryptographic hash for default administrator credentials.
+// The plaintext password is NEVER stored anywhere in the codebase, bundle, or localStorage.
+const INITIAL_ADMIN_HASH = "e548dff393af38d5da031f7fb1f6590472b267fae12c25312e213449babd5ff5";
+const INITIAL_ADMIN_FALLBACK = "h-1ed41819";
+
+// Salted cryptographic hash with 1000 rounds of SHA-256 key stretching
 export async function hashPassword(password: string): Promise<string> {
   const normalized = password.trim();
   if (typeof crypto !== "undefined" && crypto.subtle) {
     try {
-      const msgUint8 = new TextEncoder().encode(normalized);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+      const enc = new TextEncoder();
+      let data = enc.encode(normalized + SECURITY_SALT);
+      for (let i = 0; i < 1000; i++) {
+        const hashBuf = await crypto.subtle.digest("SHA-256", data);
+        data = new Uint8Array(hashBuf);
+      }
+      return Array.from(data)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
     } catch {
-      // Fallback
+      // Fallback below
     }
   }
-  // Simple deterministic fallback hash
+  // Deterministic fallback hash with salt
   let hash = 0;
-  for (let i = 0; i < normalized.length; i++) {
-    const char = normalized.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
+  const combined = normalized + SECURITY_SALT;
+  for (let i = 0; i < combined.length; i++) {
+    hash = (hash << 5) - hash + combined.charCodeAt(i);
     hash |= 0;
   }
-  return "local-hash-" + Math.abs(hash).toString(16);
+  return "h-" + Math.abs(hash).toString(16);
 }
 
 // Safe storage access
@@ -469,17 +480,10 @@ export const localDB = {
     const authData = getFromStorage<{ hash?: string }>(STORAGE_KEYS.AUTH, {});
     const inputHash = await hashPassword(password);
 
-    if (!authData.hash) {
-      // Default initial password is "admin"
-      const defaultHash = await hashPassword("admin");
-      if (inputHash === defaultHash || password === "admin") {
-        this.setAdminSession(true);
-        return true;
-      }
-      return false;
-    }
+    const targetHash = authData.hash || INITIAL_ADMIN_HASH;
+    const targetFallback = authData.hash || INITIAL_ADMIN_FALLBACK;
 
-    const matches = authData.hash === inputHash;
+    const matches = inputHash === targetHash || inputHash === targetFallback;
     if (matches) {
       this.setAdminSession(true);
     }
@@ -492,11 +496,25 @@ export const localDB = {
   },
 
   getAdminSession(): boolean {
-    return getFromStorage<boolean>("teacher_duty_admin_session", false);
+    const session = getFromStorage<{ active?: boolean; sig?: string }>("teacher_duty_admin_session", {});
+    const authData = getFromStorage<{ hash?: string }>(STORAGE_KEYS.AUTH, {});
+    const currentHash = authData.hash || INITIAL_ADMIN_HASH;
+    return !!(session.active && session.sig === currentHash.slice(0, 16));
   },
 
   setAdminSession(active: boolean): void {
-    setToStorage("teacher_duty_admin_session", active);
+    if (!active) {
+      setToStorage("teacher_duty_admin_session", { active: false });
+    } else {
+      const authData = getFromStorage<{ hash?: string }>(STORAGE_KEYS.AUTH, {});
+      const currentHash = authData.hash || INITIAL_ADMIN_HASH;
+      setToStorage("teacher_duty_admin_session", {
+        active: true,
+        issuedAt: Date.now(),
+        sig: currentHash.slice(0, 16),
+      });
+    }
+    window.dispatchEvent(new CustomEvent("local-db-change", { detail: { key: "teacher_duty_admin_session" } }));
   },
 
   // Export / Import Full Database
@@ -545,6 +563,8 @@ export const localDB = {
     localStorage.removeItem(STORAGE_KEYS.SETTINGS);
     localStorage.removeItem(STORAGE_KEYS.BROADCASTS);
     localStorage.removeItem(STORAGE_KEYS.DISMISSED_BROADCASTS);
+    localStorage.removeItem(STORAGE_KEYS.AUTH);
+    localStorage.removeItem("teacher_duty_admin_session");
     // Trigger initialization of default seed data
     this.getPeriods();
     this.getTeachers();

@@ -55,11 +55,15 @@ export function getPermissions(profile: UserProfile | null): UserPermissions {
   };
 }
 
-export async function signIn(email: string, password: string): Promise<{ error: string | null }> {
-  // Allow login by checking password in local database
+export async function signIn(username: string, password: string): Promise<{ error: string | null }> {
+  const normalized = username.trim().toLowerCase();
+  if (normalized !== "admin" && normalized !== "admin@school.local" && normalized !== "admin@school.bg") {
+    return { error: "Грешно потребителско име или парола" };
+  }
+
   const isValid = await localDB.checkAdminPassword(password);
   if (!isValid) {
-    return { error: "Грешна парола за администратор (по подразбиране: admin)" };
+    return { error: "Грешно потребителско име или парола" };
   }
   localDB.setAdminSession(true);
   return { error: null };
