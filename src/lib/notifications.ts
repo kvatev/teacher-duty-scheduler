@@ -63,57 +63,94 @@ export async function sendSystemNotification(
     data?: Record<string, unknown>;
   } = {}
 ): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+
   if (!isNotificationSupported() || Notification.permission !== "granted") {
+    console.warn("sendSystemNotification skipped: notifications not supported or permission not granted. Status:", typeof Notification !== "undefined" ? Notification.permission : "unsupported");
     return false;
   }
 
-  const notificationOptions: NotificationOptions & { renotify?: boolean } = {
+  const notificationOptions = {
     body: options.body || "",
     icon: options.icon || "/pwa-calendar-192.png",
     badge: options.badge || "/pwa-calendar-192.png",
-    tag: options.tag || "teacher-duty-notification",
+    tag: options.tag || `duty-${Date.now()}`,
     renotify: true,
+    requireInteraction: true,
     data: options.data || { url: "/" },
   };
 
-  // 1. Try via Service Worker (crucial for mobile/PWA and background)
-  if ("serviceWorker" in navigator) {
+  // Trigger device haptic vibration if supported
+  if ("vibrate" in navigator) {
     try {
-      const registration = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000)),
-      ]);
-      if (registration && "showNotification" in registration) {
-        await registration.showNotification(title, {
-          ...notificationOptions,
-          // vibrate is supported on Android / Mobile
-          ...(options.vibrate ? { vibrate: options.vibrate } : { vibrate: [200, 100, 200] }),
-        } as NotificationOptions);
-        return true;
-      }
-    } catch (swError) {
-      console.warn("ServiceWorker notification failed, falling back to Notification constructor:", swError);
+      navigator.vibrate(options.vibrate || [300, 100, 300]);
+    } catch {
+      // Ignore vibration errors
     }
   }
 
-  // 2. Fallback to standard Window Notification (Desktop browsers)
-  try {
-    const n = new Notification(title, notificationOptions);
-    n.onclick = () => {
-      window.focus();
-      n.close();
-    };
-    return true;
-  } catch (e) {
-    console.error("Window notification failed:", e);
-    return false;
+  // 1. Try via Service Worker (MANDATORY on Android Chrome, iOS 16.4+ PWA)
+  if ("serviceWorker" in navigator) {
+    try {
+      // Step A: Check if there is already an active registration (instant, 0ms)
+      let reg = await navigator.serviceWorker.getRegistration();
+
+      // Step B: If not active yet, await ready with 4000ms timeout
+      if (!reg) {
+        reg = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
+        ]);
+      }
+
+      // Step C: If still no registration, attempt to register directly
+      if (!reg && "register" in navigator.serviceWorker) {
+        try {
+          reg = await navigator.serviceWorker.register("/sw.js");
+          if (reg.installing || reg.waiting) {
+            await new Promise((r) => setTimeout(r, 600));
+          }
+        } catch (regError) {
+          console.warn("Direct SW register attempt failed:", regError);
+        }
+      }
+
+      if (reg && typeof reg.showNotification === "function") {
+        await reg.showNotification(title, {
+          ...notificationOptions,
+          vibrate: options.vibrate || [300, 100, 300, 100, 300],
+        } as NotificationOptions);
+        console.log("System notification displayed via ServiceWorker successfully!");
+        return true;
+      }
+    } catch (swError) {
+      console.warn("ServiceWorker notification failed:", swError);
+    }
   }
+
+  // 2. Desktop Browser fallback (only when Notification constructor is legal and not on Android)
+  try {
+    const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (!isMobile && typeof Notification !== "undefined") {
+      const n = new Notification(title, notificationOptions as NotificationOptions);
+      n.onclick = () => {
+        window.focus();
+        n.close();
+      };
+      console.log("Desktop window notification displayed successfully!");
+      return true;
+    }
+  } catch (e) {
+    console.warn("Window notification constructor failed:", e);
+  }
+
+  return false;
 }
 
 /**
  * Formats and triggers a system notification for a school broadcast message
  */
-export async function notifyBroadcast(broadcast: DBBroadcast): Promise<void> {
+export async function notifyBroadcast(broadcast: DBBroadcast): Promise<boolean> {
   let title = "📢 Съобщение за дежурства";
   let vibratePattern = [200, 100, 200];
 
@@ -126,8 +163,9 @@ export async function notifyBroadcast(broadcast: DBBroadcast): Promise<void> {
   }
 
   // 1. Send native system notification (for mobile/desktop OS notification)
+  let systemSent = false;
   try {
-    await sendSystemNotification(title, {
+    systemSent = await sendSystemNotification(title, {
       body: broadcast.message,
       tag: `broadcast-${broadcast.id}`,
       vibrate: vibratePattern,
@@ -158,6 +196,8 @@ export async function notifyBroadcast(broadcast: DBBroadcast): Promise<void> {
   } catch {
     // Ignore channel errors
   }
+
+  return systemSent;
 }
 
 /**

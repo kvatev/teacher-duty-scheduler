@@ -103,10 +103,14 @@ export function AdminBroadcastPanel() {
   };
 
   const handleSendTestNotification = async () => {
-    if (permission !== "granted") {
+    const currentPerm = getNotificationPermission();
+    if (currentPerm !== "granted") {
       const granted = await requestNotificationPermission();
       if (!granted) {
-        toast.error("Моля, разрешете известията в браузъра");
+        toast.error("Известията не са разрешени в браузъра/телефона!", {
+          description: "Моля, проверете настройките за разрешения на браузъра (катинарчето до адреса) и разрешете известията.",
+          duration: 7000,
+        });
         return;
       }
       setPermission("granted");
@@ -118,12 +122,16 @@ export function AdminBroadcastPanel() {
       priority: "urgent",
       created_at: new Date().toISOString(),
     };
-    await notifyBroadcast(testBroadcast);
+    const sent = await notifyBroadcast(testBroadcast);
     toast("🚨 СПЕШНО: Училищно съобщение (Тест)", {
       description: testBroadcast.message,
       duration: 6000,
     });
-    toast.success("Тестовото известие е изпратено на това устройство!");
+    if (sent) {
+      toast.success("Системното известие е изпратено на това устройство!");
+    } else {
+      toast.info("Съобщението се появи на екрана. За известия в лентата на телефона проверете дали сайтът е инсталиран или дали разрешенията за известия са включени.");
+    }
   };
 
   const handleDelete = (id: string) => {
