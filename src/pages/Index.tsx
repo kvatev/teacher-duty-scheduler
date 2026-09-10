@@ -61,6 +61,12 @@ const Index = () => {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (!isAdmin) {
+      setMobileSection("schedule");
+    }
+  }, [isAdmin]);
+
   const handleExportReady = useCallback((fn: () => Promise<void>) => {
     setExportPDFFn(() => fn);
   }, []);
@@ -103,59 +109,63 @@ const Index = () => {
           <Legend />
         </div>
 
-        {/* Mobile Section Switcher */}
-        <div className="flex sm:hidden rounded-lg bg-muted p-1 gap-1">
-          <button
-            type="button"
-            onClick={() => setMobileSection("schedule")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all",
-              mobileSection === "schedule"
-                ? "bg-card text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>График</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileSection("teachers")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all",
-              mobileSection === "teachers"
-                ? "bg-card text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Учители ({teachers.length})</span>
-          </button>
-        </div>
+        {/* Mobile Section Switcher - only for admin */}
+        {isAdmin && (
+          <div className="flex sm:hidden rounded-lg bg-muted p-1 gap-1">
+            <button
+              type="button"
+              onClick={() => setMobileSection("schedule")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all",
+                mobileSection === "schedule"
+                  ? "bg-card text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>График</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileSection("teachers")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all",
+                mobileSection === "teachers"
+                  ? "bg-card text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Учители ({teachers.length})</span>
+            </button>
+          </div>
+        )}
 
         {/* Main content */}
         <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-          {/* Teacher list sidebar */}
-          <aside
-            className={cn(
-              "w-full lg:w-[22%] lg:min-w-[250px] lg:max-w-[320px] flex-shrink-0 animate-in fade-in duration-200",
-              mobileSection !== "teachers" && "hidden lg:block"
-            )}
-          >
-            <TeacherList
-              teachers={teachers}
-              counts={teacherAssignmentCounts}
-              onAddTeacher={addTeacher}
-              onRemoveTeacher={removeTeacher}
-              onAutoArrange={autoArrangeTeachers}
-            />
-          </aside>
+          {/* Teacher list sidebar - only visible for administrators */}
+          {isAdmin && (
+            <aside
+              className={cn(
+                "w-full lg:w-[22%] lg:min-w-[250px] lg:max-w-[320px] flex-shrink-0 animate-in fade-in duration-200",
+                mobileSection !== "teachers" && "hidden lg:block"
+              )}
+            >
+              <TeacherList
+                teachers={teachers}
+                counts={teacherAssignmentCounts}
+                onAddTeacher={addTeacher}
+                onRemoveTeacher={removeTeacher}
+                onAutoArrange={autoArrangeTeachers}
+              />
+            </aside>
+          )}
 
           {/* Schedule table */}
           <section
             className={cn(
               "flex-1 min-w-0 animate-in fade-in duration-200",
-              mobileSection !== "schedule" && "hidden lg:block"
+              isAdmin && mobileSection !== "schedule" && "hidden lg:block"
             )}
           >
             <ScheduleTable
