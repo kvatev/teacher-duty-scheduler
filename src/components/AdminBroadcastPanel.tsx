@@ -4,18 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { supabase } from "@/integrations/supabase/client";
+import { localDB, DBBroadcast } from "@/lib/localDB";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type Priority = "info" | "warning" | "urgent";
-
-interface Broadcast {
-  id: string;
-  message: string;
-  priority: Priority;
-  created_at: string;
-}
 
 const priorityConfig: Record<Priority, { label: string; description: string; color: string }> = {
   info: { label: "Информация", description: "Обикновено съобщение", color: "text-primary" },
@@ -38,48 +31,48 @@ export function AdminBroadcastPanel() {
   const [message, setMessage] = useState("");
   const [priority, setPriority] = useState<Priority>("info");
   const [isSending, setIsSending] = useState(false);
-  const [history, setHistory] = useState<Broadcast[]>([]);
+  const [history, setHistory] = useState<DBBroadcast[]>([]);
+
+  const loadBroadcasts = () => {
+    setHistory(localDB.getBroadcasts().slice(0, 10));
+  };
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("broadcasts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (data) setHistory(data as Broadcast[]);
+    loadBroadcasts();
+    const handleDbChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key?: string }>;
+      if (!customEvent.detail?.key || customEvent.detail.key === "broadcasts") {
+        loadBroadcasts();
+      }
     };
-    fetch();
+    window.addEventListener("local-db-change", handleDbChange);
+    return () => window.removeEventListener("local-db-change", handleDbChange);
   }, []);
 
   const handleSend = async () => {
     if (!message.trim()) return;
     setIsSending(true);
-    const { data, error } = await supabase
-      .from("broadcasts")
-      .insert({ message: message.trim(), priority })
-      .select()
-      .single();
-    setIsSending(false);
-
-    if (error) {
-      toast.error("Грешка при изпращане на съобщението");
-      return;
+    try {
+      const created = localDB.addBroadcast(message.trim(), priority);
+      toast.success("Съобщението е изпратено до всички потребители");
+      setMessage("");
+      setPriority("info");
+      setHistory((prev) => [created, ...prev.filter((b) => b.id !== created.id)].slice(0, 10));
+    } catch {
+      toast.error("Грешка при запис на съобщението");
+    } finally {
+      setIsSending(false);
     }
-    toast.success("Съобщението е изпратено до всички потребители");
-    setMessage("");
-    setPriority("info");
-    if (data) setHistory((prev) => [data as Broadcast, ...prev].slice(0, 10));
   };
 
-  const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("broadcasts").delete().eq("id", id);
-    if (error) {
+  const handleDelete = (id: string) => {
+    try {
+      localDB.deleteBroadcast(id);
+      setHistory((prev) => prev.filter((b) => b.id !== id));
+      toast.success("Съобщението е изтрито");
+    } catch {
       toast.error("Грешка при изтриване");
-      return;
     }
-    setHistory((prev) => prev.filter((b) => b.id !== id));
-    toast.success("Съобщението е изтрито");
   };
 
   return (

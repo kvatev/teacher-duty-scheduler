@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   UserProfile, 
   UserPermissions, 
@@ -15,7 +14,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isSuperAdmin: boolean;
-  isAdmin: boolean; // Backward compatible: true if user is logged in with any admin role
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -33,33 +32,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Listen for auth state changes
-    // Check initial session first
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log("[AuthContext] getSession result:", session ? "has session" : "no session");
-      if (session) {
-        await refreshUser();
-      }
-      setIsLoading(false);
-    });
+    refreshUser().finally(() => setIsLoading(false));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("[AuthContext] onAuthStateChange:", event);
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        // Use setTimeout to avoid deadlock with Supabase internal state
-        setTimeout(async () => {
-          await refreshUser();
-        }, 0);
-      } else if (event === "SIGNED_OUT") {
-        setUser(null);
+    const handleDbChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key?: string }>;
+      if (customEvent.detail?.key === "all" || customEvent.detail?.key === "teacher_duty_admin_session") {
+        refreshUser();
       }
-      if (event === "INITIAL_SESSION") return; // Already handled by getSession
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
     };
+
+    window.addEventListener("local-db-change", handleDbChange);
+    return () => window.removeEventListener("local-db-change", handleDbChange);
   }, [refreshUser]);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -77,8 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const permissions = getPermissions(user);
   const isAuthenticated = user !== null;
-  const isSuperAdmin = user?.role === "super_admin";
-  const isAdmin = isAuthenticated; // Any logged in user is considered admin
+  const isSuperAdmin = isAuthenticated;
+  const isAdmin = isAuthenticated;
 
   return (
     <AuthContext.Provider 
@@ -87,8 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         permissions, 
         isLoading, 
         isAuthenticated, 
-        isSuperAdmin,
-        isAdmin,
+        isSuperAdmin, 
+        isAdmin, 
         login, 
         logout, 
         refreshUser 
@@ -99,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

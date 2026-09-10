@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { localDB, DEFAULT_APP_SETTINGS } from "@/lib/localDB";
 import { toast } from "sonner";
 
 export interface AppSettings {
@@ -27,101 +27,41 @@ export interface AppSettings {
   term_2_label: string;
 }
 
-const DEFAULTS: AppSettings = {
-  header_title: "График за дежурства",
-  header_subtitle: 'СУ "Константин Петканов", град Бургас',
-  footer_note: "*Забележка: 1 - дежури от 07:30-08:00 ч.; 2 - дежури от 08:00 до 08:40",
-  admin_name: "Красимир Ватев",
-  admin_email: "kvatev@outlook.com",
-  pdf_school_name: 'СУ „КОНСТАНТИН ПЕТКАНОВ" – БУРГАС',
-  pdf_school_info1: "гр. Бургас тел: 0876335444; тел:852-709; 854-704",
-  pdf_school_info2: 'ж.к. „Меден рудник" e-mail: info-200232@edu.mon.bg',
-  pdf_director_name: "ИВАЙЛО МАРКОВ",
-  pdf_schedule_description: "за дежурство на учителите от прогимназиален и гимназиален етап",
-  location_1: "Дежурни на III-ти етаж",
-  location_2: "Дежурни на IV-ти етаж",
-  location_3: "Училищен стол и пред кабинет по музика",
-  location_4: "Главен дежурен – западен вход 07:30-08:40 ч.",
-  logo_url: "",
-  schedule_title: "ГРАФИК",
-  approval_text: "УТВЪРЖДАВАМ:",
-  approval_role: "ДИРЕКТОР",
-  day_column_header: "Ден от седмицата",
-  tip_text: "💡 Съвет: Провлачете учител от списъка вляво в желаната клетка, или преместете между клетки",
-  term_1_label: "I учебен срок",
-  term_2_label: "II учебен срок",
-};
-
 export function useAppSettings() {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULTS);
-  const [isLoading, setIsLoading] = useState(true);
+  const [settings, setSettings] = useState<AppSettings>(() => localDB.getSettings());
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchSettings = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("key, value");
-
-      if (error) {
-        console.error("Error fetching settings:", error);
-        return;
-      }
-
-      if (data) {
-        const merged: AppSettings = { ...DEFAULTS };
-        data.forEach((row) => {
-          const key = row.key as keyof AppSettings;
-          if (key in merged) {
-            merged[key] = row.value;
-          }
-        });
-        setSettings(merged);
-      }
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchSettings = useCallback(() => {
+    const loaded = localDB.getSettings();
+    setSettings(loaded);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     fetchSettings();
+    const handleDbChange = () => fetchSettings();
+    window.addEventListener("local-db-change", handleDbChange);
+    return () => window.removeEventListener("local-db-change", handleDbChange);
   }, [fetchSettings]);
 
   const updateSetting = useCallback(async (key: keyof AppSettings, value: string) => {
-    const { error } = await supabase
-      .from("app_settings")
-      .update({ value, updated_at: new Date().toISOString() })
-      .eq("key", key);
-
-    if (error) {
-      console.error("Error updating setting:", error);
-      toast.error("Грешка при запазване на настройката");
-      return false;
-    }
-
-    setSettings((prev) => ({ ...prev, [key]: value }));
+    const updated = localDB.saveSettings({ [key]: value });
+    setSettings(updated);
     return true;
   }, []);
 
   const updateMultipleSettings = useCallback(async (updates: Partial<AppSettings>) => {
-    const promises = Object.entries(updates).map(([key, value]) =>
-      supabase
-        .from("app_settings")
-        .update({ value, updated_at: new Date().toISOString() })
-        .eq("key", key)
-    );
-
-    const results = await Promise.all(promises);
-    const hasError = results.some((r) => r.error);
-
-    if (hasError) {
-      toast.error("Грешка при запазване на някои настройки");
-      return false;
-    }
-
-    setSettings((prev) => ({ ...prev, ...updates }));
+    const updated = localDB.saveSettings(updates);
+    setSettings(updated);
     toast.success("Настройките са запазени успешно");
     return true;
   }, []);
 
-  return { settings, isLoading, updateSetting, updateMultipleSettings, refetch: fetchSettings };
+  return {
+    settings,
+    isLoading,
+    updateSetting,
+    updateMultipleSettings,
+    refetch: fetchSettings,
+  };
 }

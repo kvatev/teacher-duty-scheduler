@@ -5,39 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { updateAdminPassword } from "@/lib/auth";
+import { localDB } from "@/lib/localDB";
 import { PasswordInput } from "@/components/PasswordInput";
 import { toast } from "sonner";
 
 export default function SetupPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("admin@school.bg");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Check if super admin already exists
-    const checkExisting = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("role", "super_admin")
-        .limit(1);
-
-      if (data && data.length > 0) {
-        // Super admin exists, redirect to home
-        navigate("/", { replace: true });
-      }
-      setIsChecking(false);
-    };
-    checkExisting();
+    // If admin is already logged in or session is active, go home
+    if (localDB.getAdminSession()) {
+      navigate("/", { replace: true });
+    }
+    setIsChecking(false);
   }, [navigate]);
 
   const handleSetup = async () => {
-    if (!email || !password) {
-      toast.error("Моля, въведете имейл и парола");
+    if (!password) {
+      toast.error("Моля, въведете парола");
       return;
     }
     if (password !== confirmPassword) {
@@ -50,17 +41,16 @@ export default function SetupPage() {
     }
 
     setIsLoading(true);
-    const { data, error } = await supabase.functions.invoke("setup-super-admin", {
-      body: { email, password },
-    });
+    const result = await updateAdminPassword(password);
     setIsLoading(false);
 
-    if (error || data?.error) {
-      toast.error(data?.error || error?.message || "Грешка при създаване на администратор");
+    if (result.error) {
+      toast.error(result.error);
       return;
     }
 
-    toast.success("Главният администратор е създаден успешно! Вече можете да влезете.");
+    localDB.setAdminSession(true);
+    toast.success("Главният администратор е конфигуриран успешно!");
     navigate("/", { replace: true });
   };
 

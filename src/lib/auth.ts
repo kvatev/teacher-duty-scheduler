@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { localDB } from "./localDB";
 
 export type AdminRole = "super_admin" | "admin";
 
@@ -17,31 +17,24 @@ export interface UserPermissions {
   canManageSchedule: boolean;
   canManageSettings: boolean;
   canSendBroadcasts: boolean;
-  canManageUsers: boolean; // Only super_admin
+  canManageUsers: boolean;
 }
 
+const DEFAULT_ADMIN_PROFILE: UserProfile = {
+  id: "local-admin",
+  email: "admin@school.local",
+  display_name: "Администратор",
+  role: "super_admin",
+  can_manage_schedule: true,
+  can_manage_settings: true,
+  can_send_broadcasts: true,
+  created_at: new Date().toISOString(),
+};
+
 export async function getCurrentUser(): Promise<UserProfile | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) return null;
-
-  return {
-    id: profile.id,
-    email: profile.email,
-    display_name: profile.display_name,
-    role: profile.role as AdminRole,
-    can_manage_schedule: profile.can_manage_schedule,
-    can_manage_settings: profile.can_manage_settings,
-    can_send_broadcasts: profile.can_send_broadcasts,
-    created_at: profile.created_at,
-  };
+  const isLogged = localDB.getAdminSession();
+  if (!isLogged) return null;
+  return DEFAULT_ADMIN_PROFILE;
 }
 
 export function getPermissions(profile: UserProfile | null): UserPermissions {
@@ -54,122 +47,50 @@ export function getPermissions(profile: UserProfile | null): UserPermissions {
     };
   }
 
-  const isSuperAdmin = profile.role === "super_admin";
-
   return {
-    canManageSchedule: isSuperAdmin || profile.can_manage_schedule,
-    canManageSettings: isSuperAdmin || profile.can_manage_settings,
-    canSendBroadcasts: isSuperAdmin || profile.can_send_broadcasts,
-    canManageUsers: isSuperAdmin,
+    canManageSchedule: true,
+    canManageSettings: true,
+    canSendBroadcasts: true,
+    canManageUsers: true,
   };
 }
 
 export async function signIn(email: string, password: string): Promise<{ error: string | null }> {
-  // Позволяваме вход само с потребителско име (напр. "admin")
-  const identifier = email.trim();
-  const loginEmail = identifier.includes("@") ? identifier : `${identifier}@admin.com`;
-
-  const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
-  if (error) {
-    if (error.message.includes("Invalid login credentials")) {
-      return { error: "Грешно потребителско име или парола" };
-    }
-    return { error: error.message };
+  // Allow login by checking password in local database
+  const isValid = await localDB.checkAdminPassword(password);
+  if (!isValid) {
+    return { error: "Грешна парола за администратор (по подразбиране: admin)" };
   }
+  localDB.setAdminSession(true);
   return { error: null };
 }
 
 export async function signOut(): Promise<void> {
-  await supabase.auth.signOut();
+  localDB.setAdminSession(false);
 }
 
-export async function createAdminUser(
-  email: string,
-  password: string,
-  displayName: string,
-  permissions: {
-    canManageSchedule: boolean;
-    canManageSettings: boolean;
-    canSendBroadcasts: boolean;
+export async function updateAdminPassword(newPass: string): Promise<{ error: string | null }> {
+  try {
+    await localDB.setAdminPassword(newPass);
+    return { error: null };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : "Грешка при смяна на паролата" };
   }
-): Promise<{ error: string | null }> {
-  // Allow plain usernames (e.g. "admin") — map them to a valid email
-  const identifier = email.trim().toLowerCase();
-  const loginEmail = identifier.includes("@") ? identifier : `${identifier}@admin.com`;
-
-  // This requires the service role key, so we'll use an edge function
-  const { data, error } = await supabase.functions.invoke("create-admin", {
-    body: { email: loginEmail, password, displayName, permissions },
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  if (data?.error) {
-    return { error: data.error };
-  }
-
-  return { error: null };
 }
 
-export async function updateAdminPermissions(
-  userId: string,
-  permissions: {
-    canManageSchedule: boolean;
-    canManageSettings: boolean;
-    canSendBroadcasts: boolean;
-  }
-): Promise<{ error: string | null }> {
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      can_manage_schedule: permissions.canManageSchedule,
-      can_manage_settings: permissions.canManageSettings,
-      can_send_broadcasts: permissions.canSendBroadcasts,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", userId);
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  return { error: null };
-}
-
-export async function deleteAdmin(userId: string): Promise<{ error: string | null }> {
-  const { data, error } = await supabase.functions.invoke("delete-admin", {
-    body: { userId },
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  if (data?.error) {
-    return { error: data.error };
-  }
-
-  return { error: null };
-}
-
+// Fallback compatibility functions
 export async function getAllAdmins(): Promise<UserProfile[]> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("*")
-    .order("created_at", { ascending: true });
+  return [DEFAULT_ADMIN_PROFILE];
+}
 
-  if (!data) return [];
+export async function createAdminUser(): Promise<{ error: string | null }> {
+  return { error: null };
+}
 
-  return data.map((p) => ({
-    id: p.id,
-    email: p.email,
-    display_name: p.display_name,
-    role: p.role as AdminRole,
-    can_manage_schedule: p.can_manage_schedule,
-    can_manage_settings: p.can_manage_settings,
-    can_send_broadcasts: p.can_send_broadcasts,
-    created_at: p.created_at,
-  }));
+export async function updateAdminPermissions(): Promise<{ error: string | null }> {
+  return { error: null };
+}
+
+export async function deleteAdmin(): Promise<{ error: string | null }> {
+  return { error: null };
 }

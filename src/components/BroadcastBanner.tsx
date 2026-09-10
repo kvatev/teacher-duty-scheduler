@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { X, Megaphone, AlertTriangle, AlertCircle, Info } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect, useCallback } from "react";
+import { X, AlertTriangle, AlertCircle, Info } from "lucide-react";
+import { localDB, DBBroadcast } from "@/lib/localDB";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type Priority = "info" | "warning" | "urgent";
-
-interface Broadcast {
-  id: string;
-  message: string;
-  priority: Priority;
-  created_at: string;
-}
 
 const priorityStyles: Record<Priority, { bg: string; border: string; icon: string }> = {
   info: {
@@ -44,7 +37,7 @@ const PriorityIcon = ({ priority }: { priority: Priority }) => {
 };
 
 export function BroadcastBanner() {
-  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
+  const [broadcasts, setBroadcasts] = useState<DBBroadcast[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -58,32 +51,17 @@ export function BroadcastBanner() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("broadcasts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(5);
-      if (data) setBroadcasts(data as Broadcast[]);
-    };
-    fetch();
-
-    const channel = supabase
-      .channel("broadcasts-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "broadcasts" }, (payload) => {
-        setBroadcasts((prev) => [payload.new as Broadcast, ...prev].slice(0, 5));
-      })
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "broadcasts" }, (payload) => {
-        const deletedId = (payload.old as { id?: string })?.id;
-        if (deletedId) {
-          setBroadcasts((prev) => prev.filter((b) => b.id !== deletedId));
-        }
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+  const fetchBroadcasts = useCallback(() => {
+    const list = localDB.getBroadcasts();
+    setBroadcasts(list.slice(0, 5));
   }, []);
+
+  useEffect(() => {
+    fetchBroadcasts();
+    const handleDbChange = () => fetchBroadcasts();
+    window.addEventListener("local-db-change", handleDbChange);
+    return () => window.removeEventListener("local-db-change", handleDbChange);
+  }, [fetchBroadcasts]);
 
   const dismiss = (id: string) => {
     const next = new Set(dismissed);

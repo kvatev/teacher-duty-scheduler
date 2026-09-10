@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { localDB } from "@/lib/localDB";
 
 export type Weekday =
   | "monday"
@@ -40,20 +40,19 @@ export const WEEKDAY_TO_BG: Record<Weekday, string> = {
 
 export function useUnavailability() {
   const [entries, setEntries] = useState<UnavailabilityEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const fetchAll = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("teacher_unavailability")
-      .select("*");
-    if (!error && data) {
-      setEntries(data as UnavailabilityEntry[]);
-    }
+  const fetchAll = useCallback(() => {
+    const items = localDB.getUnavailabilities();
+    setEntries(items);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchAll();
+    const handleDbChange = () => fetchAll();
+    window.addEventListener("local-db-change", handleDbChange);
+    return () => window.removeEventListener("local-db-change", handleDbChange);
   }, [fetchAll]);
 
   const isUnavailable = useCallback(
@@ -74,28 +73,21 @@ export function useUnavailability() {
   );
 
   const addWeekday = async (teacherId: string, weekday: Weekday, note?: string) => {
-    const { error } = await supabase
-      .from("teacher_unavailability")
-      .insert({ teacher_id: teacherId, weekday, note: note || null });
-    if (!error) await fetchAll();
-    return !error;
+    localDB.addWeekdayUnavailability(teacherId, weekday, note);
+    fetchAll();
+    return true;
   };
 
   const addDate = async (teacherId: string, date: string, note?: string) => {
-    const { error } = await supabase
-      .from("teacher_unavailability")
-      .insert({ teacher_id: teacherId, specific_date: date, note: note || null });
-    if (!error) await fetchAll();
-    return !error;
+    localDB.addDateUnavailability(teacherId, date, note);
+    fetchAll();
+    return true;
   };
 
   const remove = async (id: string) => {
-    const { error } = await supabase
-      .from("teacher_unavailability")
-      .delete()
-      .eq("id", id);
-    if (!error) await fetchAll();
-    return !error;
+    localDB.removeUnavailability(id);
+    fetchAll();
+    return true;
   };
 
   return {
