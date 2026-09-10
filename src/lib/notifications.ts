@@ -69,8 +69,8 @@ export async function sendSystemNotification(
 
   const notificationOptions: NotificationOptions & { renotify?: boolean } = {
     body: options.body || "",
-    icon: options.icon || "/pwa-icon-192.png",
-    badge: options.badge || "/pwa-icon-192.png",
+    icon: options.icon || "/pwa-calendar-192.png",
+    badge: options.badge || "/pwa-calendar-192.png",
     tag: options.tag || "teacher-duty-notification",
     renotify: true,
     data: options.data || { url: "/" },

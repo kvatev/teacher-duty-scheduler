@@ -1,3 +1,12 @@
+// Immediate activation on update
+self.addEventListener('install', () => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 // Custom Service Worker handler for school duty notifications
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
@@ -22,8 +31,8 @@ self.addEventListener('push', (event) => {
   let title = 'Ново училищно съобщение';
   let options = {
     body: 'Имате ново съобщение в График за дежурства.',
-    icon: '/pwa-icon-192.png',
-    badge: '/pwa-icon-192.png',
+    icon: '/pwa-calendar-192.png',
+    badge: '/pwa-calendar-192.png',
     vibrate: [200, 100, 200],
     tag: 'school-duty-broadcast',
     renotify: true,
