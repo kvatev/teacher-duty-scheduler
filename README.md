@@ -1,73 +1,46 @@
-# Welcome to your Lovable project
+# График за дежурства на учители – СУ „Константин Петканов“, Бургас
 
-## Project info
+Модерно уеб и Progressive Web App (PWA) приложение за организиране, управление и визуализация на седмичния график за дежурства на учителите в СУ „Константин Петканов“, гр. Бургас.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Основни функционалности
 
-## How can I edit this code?
+- **Интерактивен седмичен график**:
+  - Изглед по дни (Карти) за удобен мобилен преглед.
+  - Пълен табличен изглед за десктоп и принтиране.
+  - Drag-and-drop или бързо разпределение на учители по постове и етажи.
+- **Автоматично разпределение**: Интелигентен алгоритъм за автоматично попълване на свободните дежурства с едно кликване.
+- **Бързо изчистване на графика**: Бутон за бързо нулиране на поставените дежурства при грешка (без изтриване на учителите).
+- **Управление на периоди**: Поддръжка на учебни години и срокове, превключване и копиране на учители от предходни срокове.
+- **Индивидуална недостъпност**: Задаване на свободни дни от седмицата или конкретни дати с бележки за всеки учител.
+- **Административен панел и сигурност**: Вход с администраторска парола за редактиране, настройки на училището и постовете, защита на личните данни.
+- **Спешни съобщения и известия (PWA Push / Background)**: Изпращане на съобщения от администратора към телефони и настолни компютри.
+- **PDF експорт**: Генериране на официален готов за разпечатване документ в пейзажен A4 формат.
+- **Офлайн режим (PWA)**: Инсталиране директно на телефон (Android / iOS) и компютър, работа без прекъсване благодарение на локална база данни (`localDB`).
 
-There are several ways of editing your application.
+## 🛠️ Технологичен стек
 
-**Use Lovable**
+- **React 18** + **TypeScript**
+- **Vite** + **Vite PWA (Workbox Service Worker)**
+- **Tailwind CSS** + **shadcn/ui**
+- **Lucide React** (икони)
+- **jsPDF** + **html2canvas** (експорт на график)
+- **Vitest** + **React Testing Library** (автоматизирани тестове)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 💻 Локално стартиране и разработка
 
-Changes made via Lovable will be committed automatically to this repo.
+```bash
+# Инсталиране на зависимости
+npm install
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Стартиране на локален dev сървър
 npm run dev
+
+# Проверка на TypeScript типове
+npx tsc --noEmit -p tsconfig.app.json
+
+# Стартиране на тестовете
+npm test
+
+# Изграждане за продукция
+npm run build
 ```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
