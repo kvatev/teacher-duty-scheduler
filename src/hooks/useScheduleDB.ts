@@ -39,6 +39,7 @@ export function useScheduleDB() {
         location: a.location,
         shiftNumber: a.shiftNumber ?? null,
         stage: a.stage,
+        note: a.note ?? null,
       }))
     );
 
@@ -123,9 +124,16 @@ export function useScheduleDB() {
   );
 
   const assignTeacher = useCallback(
-    async (teacherId: string, day: string, location: string): Promise<boolean> => {
+    async (
+      teacherId: string,
+      day: string,
+      location: string,
+      shiftNumber: number | null = null,
+      note: string | null = null
+    ): Promise<boolean> => {
       if (!periodId) return false;
-      const success = localDB.assignTeacher(periodId, teacherId, day, location, null, currentStage);
+      const cleanNote = note && note.trim() ? note.trim() : null;
+      const success = localDB.assignTeacher(periodId, teacherId, day, location, shiftNumber, currentStage, cleanNote);
       if (!success) return false;
 
       // Deduplicate state in case loadData already updated or runs concurrently
@@ -133,7 +141,7 @@ export function useScheduleDB() {
         if (prev.some((a) => a.teacherId === teacherId && a.day === day && a.location === location)) {
           return prev;
         }
-        return [...prev, { teacherId, day, location, shiftNumber: null, stage: currentStage }];
+        return [...prev, { teacherId, day, location, shiftNumber, stage: currentStage, note: cleanNote }];
       });
       return true;
     },
@@ -169,6 +177,7 @@ export function useScheduleDB() {
         (a) => a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation
       );
       const shiftNumber = currentAssignment?.shiftNumber ?? null;
+      const note = currentAssignment?.note ?? null;
 
       localDB.moveTeacher(periodId, teacherId, fromDay, fromLocation, toDay, toLocation);
 
@@ -179,7 +188,7 @@ export function useScheduleDB() {
         if (filtered.some((a) => a.teacherId === teacherId && a.day === toDay && a.location === toLocation)) {
           return filtered;
         }
-        return [...filtered, { teacherId, day: toDay, location: toLocation, shiftNumber }];
+        return [...filtered, { teacherId, day: toDay, location: toLocation, shiftNumber, note }];
       });
     },
     [periodId, assignments]
@@ -196,7 +205,7 @@ export function useScheduleDB() {
         seenTeacherIds.add(a.teacherId);
         const teacher = teachers.find((t) => t.id === a.teacherId);
         if (teacher) {
-          result.push({ ...teacher, shiftNumber: a.shiftNumber });
+          result.push({ ...teacher, shiftNumber: a.shiftNumber, note: a.note ?? null });
         }
       }
       return result;
@@ -212,6 +221,22 @@ export function useScheduleDB() {
         prev.map((a) =>
           a.teacherId === teacherId && a.day === day && a.location === location
             ? { ...a, shiftNumber }
+            : a
+        )
+      );
+    },
+    [periodId]
+  );
+
+  const updateAssignmentNote = useCallback(
+    async (teacherId: string, day: string, location: string, note: string | null) => {
+      if (!periodId) return;
+      const cleanNote = note && note.trim() ? note.trim() : null;
+      localDB.updateAssignmentNote(periodId, teacherId, day, location, cleanNote);
+      setAssignments((prev) =>
+        prev.map((a) =>
+          a.teacherId === teacherId && a.day === day && a.location === location
+            ? { ...a, note: cleanNote }
             : a
         )
       );
@@ -518,6 +543,7 @@ export function useScheduleDB() {
     moveTeacher,
     getAssignmentsForCell,
     updateShiftNumber,
+    updateAssignmentNote,
     autoArrangeTeachers,
     clearSchedule,
     addPeriod,

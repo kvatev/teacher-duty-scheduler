@@ -27,7 +27,13 @@ function getTodayBgDay(): string {
 interface ScheduleTableProps {
   getAssignmentsForCell: (day: string, location: string) => CellTeacher[];
   counts: Record<string, number>;
-  onAssign: (teacherId: string, day: string, location: string) => boolean | Promise<boolean>;
+  onAssign: (
+    teacherId: string,
+    day: string,
+    location: string,
+    shiftNumber?: number | null,
+    note?: string | null
+  ) => boolean | Promise<boolean>;
   onUnassign: (teacherId: string, day: string, location: string) => void | Promise<void>;
   onMove: (
     teacherId: string,
@@ -37,6 +43,7 @@ interface ScheduleTableProps {
     toLocation: string
   ) => void | Promise<void>;
   onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
+  onUpdateNote?: (teacherId: string, day: string, location: string, note: string | null) => void;
   currentPeriod: SchoolPeriod;
   onExportReady?: (exportFn: () => Promise<void>) => void;
   settings?: AppSettings;
@@ -51,6 +58,7 @@ export function ScheduleTable({
   onUnassign,
   onMove,
   onUpdateShiftNumber,
+  onUpdateNote,
   currentPeriod,
   onExportReady,
   settings,
@@ -267,6 +275,7 @@ export function ScheduleTable({
                     onUnassign={onUnassign}
                     onMove={onMove}
                     onUpdateShiftNumber={onUpdateShiftNumber}
+                    onUpdateNote={onUpdateNote}
                     isShiftLocation={location === shiftLocation}
                     getTeacherName={getTeacherName}
                     isTeacherUnavailable={isUnavailable}
@@ -323,6 +332,7 @@ export function ScheduleTable({
                           onUnassign={onUnassign}
                           onMove={onMove}
                           onUpdateShiftNumber={onUpdateShiftNumber}
+                          onUpdateNote={onUpdateNote}
                           isShiftLocation={location === shiftLocation}
                           getTeacherName={getTeacherName}
                           isTeacherUnavailable={isUnavailable}

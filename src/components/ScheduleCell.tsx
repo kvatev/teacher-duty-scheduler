@@ -20,7 +20,13 @@ interface ScheduleCellProps {
   location: string;
   teachers: CellTeacher[];
   counts: Record<string, number>;
-  onAssign: (teacherId: string, day: string, location: string) => boolean | Promise<boolean>;
+  onAssign: (
+    teacherId: string,
+    day: string,
+    location: string,
+    shiftNumber?: number | null,
+    note?: string | null
+  ) => boolean | Promise<boolean>;
   onUnassign: (teacherId: string, day: string, location: string) => void | Promise<void>;
   onMove: (
     teacherId: string,
@@ -30,6 +36,7 @@ interface ScheduleCellProps {
     toLocation: string
   ) => void | Promise<void>;
   onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
+  onUpdateNote?: (teacherId: string, day: string, location: string, note: string | null) => void;
   isShiftLocation?: boolean;
   getTeacherName?: (teacherId: string) => string | undefined;
   isTeacherUnavailable?: (teacherId: string, day: string) => { note?: string | null } | null;
@@ -45,6 +52,7 @@ export function ScheduleCell({
   onUnassign,
   onMove,
   onUpdateShiftNumber,
+  onUpdateNote,
   isShiftLocation = false,
   getTeacherName,
   isTeacherUnavailable,
@@ -54,7 +62,10 @@ export function ScheduleCell({
   const [isDragOver, setIsDragOver] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [searchTeacher, setSearchTeacher] = useState("");
+  const [selectedNote, setSelectedNote] = useState("");
   const isDroppingRef = useRef(false);
+
+  const isNoteLocation = location.toLowerCase().includes("стол") || location.toLowerCase().includes("музика");
 
   const notifyIfUnavailable = (teacherId: string) => {
     if (!isTeacherUnavailable) return;
@@ -154,11 +165,13 @@ export function ScheduleCell({
       toast.error("Този учител вече е в тази клетка!");
       return;
     }
-    const success = await onAssign(teacherId, day, location);
+    const noteToAssign = isNoteLocation && selectedNote.trim() ? selectedNote.trim() : null;
+    const success = await onAssign(teacherId, day, location, null, noteToAssign);
     if (success) {
       notifyIfUnavailable(teacherId);
       setIsPickerOpen(false);
       setSearchTeacher("");
+      setSelectedNote("");
     } else {
       toast.error("Грешка при назначаване на дежурен");
     }
@@ -212,6 +225,13 @@ export function ScheduleCell({
                       ? (sn) => onUpdateShiftNumber(teacher.id, day, location, sn)
                       : undefined
                   }
+                  note={teacher.note}
+                  allowNote={isNoteLocation}
+                  onNoteChange={
+                    isNoteLocation && isAdmin && onUpdateNote
+                      ? (newNote) => onUpdateNote(teacher.id, day, location, newNote)
+                      : undefined
+                  }
                 />
               </div>
             );
@@ -258,6 +278,52 @@ export function ScheduleCell({
                 {day} • {location}
               </DialogDescription>
             </DialogHeader>
+
+            {isNoteLocation && (
+              <div className="bg-muted/40 p-2.5 rounded-md border space-y-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <span>Разпределение / Пост:</span>
+                    {selectedNote && (
+                      <span className="text-[11px] font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-800">
+                        {selectedNote}
+                      </span>
+                    )}
+                  </label>
+                  {selectedNote && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedNote("")}
+                      className="text-[11px] text-muted-foreground hover:text-foreground underline cursor-pointer"
+                    >
+                      Изчисти
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {["фоайе", "стол", "пред кабинет по музика"].map((preset) => (
+                    <Button
+                      key={preset}
+                      type="button"
+                      size="sm"
+                      variant={selectedNote.toLowerCase() === preset ? "default" : "outline"}
+                      className="h-7 text-xs px-2.5 py-0"
+                      onClick={() => setSelectedNote(selectedNote.toLowerCase() === preset ? "" : preset)}
+                    >
+                      {preset}
+                    </Button>
+                  ))}
+                </div>
+
+                <Input
+                  placeholder="Или въведете пост (напр. фоайе)..."
+                  value={selectedNote}
+                  onChange={(e) => setSelectedNote(e.target.value)}
+                  className="h-8 text-xs bg-background"
+                />
+              </div>
+            )}
 
             <div className="relative mt-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

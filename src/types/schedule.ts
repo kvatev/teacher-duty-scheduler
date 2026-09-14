@@ -12,10 +12,12 @@ export interface DutyAssignment {
   location: string;
   shiftNumber?: number | null;
   stage?: SchoolStage;
+  note?: string | null;
 }
 
 export interface CellTeacher extends Teacher {
   shiftNumber?: number | null;
+  note?: string | null;
 }
 
 export interface ScheduleState {

@@ -39,6 +39,7 @@ const Index = () => {
     deletePeriod,
     copyTeachersFromPeriod,
     updateShiftNumber,
+    updateAssignmentNote,
     clearSchedule,
   } = useScheduleDB();
 
@@ -191,6 +192,7 @@ const Index = () => {
               currentPeriod={currentPeriod}
               onExportReady={handleExportReady}
               onUpdateShiftNumber={updateShiftNumber}
+              onUpdateNote={updateAssignmentNote}
               settings={settings}
               teachers={teachers}
               currentStage={currentStage}

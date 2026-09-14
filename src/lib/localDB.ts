@@ -23,6 +23,7 @@ export interface DBAssignment {
   shiftNumber: number | null;
   periodId: string;
   stage?: SchoolStage;
+  note?: string | null;
 }
 
 export interface DBUnavailability {
@@ -447,7 +448,8 @@ export const localDB = {
     day: string,
     location: string,
     shiftNumber: number | null = null,
-    stage: SchoolStage = "secondary"
+    stage: SchoolStage = "secondary",
+    note: string | null = null
   ): boolean {
     const assignments = this.getAssignments();
     const exists = assignments.some(
@@ -463,6 +465,7 @@ export const localDB = {
       shiftNumber,
       periodId,
       stage,
+      note: note && note.trim() ? note.trim() : null,
     };
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, [...assignments, newAssignment]);
     return true;
@@ -498,6 +501,7 @@ export const localDB = {
     );
     const shiftNumber = oldAssignment?.shiftNumber ?? null;
     const stage = oldAssignment?.stage || "secondary";
+    const note = oldAssignment?.note ?? null;
 
     const filtered = assignments.filter(
       (a) => !(a.periodId === periodId && a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation)
@@ -511,6 +515,7 @@ export const localDB = {
       location: toLocation,
       shiftNumber,
       stage,
+      note,
     });
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, filtered);
   },
@@ -519,6 +524,16 @@ export const localDB = {
     const assignments = this.getAssignments().map((a) => {
       if (a.periodId === periodId && a.teacherId === teacherId && a.day === day && a.location === location) {
         return { ...a, shiftNumber };
+      }
+      return a;
+    });
+    setToStorage(STORAGE_KEYS.ASSIGNMENTS, assignments);
+  },
+
+  updateAssignmentNote(periodId: string, teacherId: string, day: string, location: string, note: string | null): void {
+    const assignments = this.getAssignments().map((a) => {
+      if (a.periodId === periodId && a.teacherId === teacherId && a.day === day && a.location === location) {
+        return { ...a, note: note && note.trim() ? note.trim() : null };
       }
       return a;
     });

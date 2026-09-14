@@ -1,9 +1,15 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Ban, GripVertical, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface TeacherBadgeProps {
   id: string;
@@ -19,7 +25,9 @@ interface TeacherBadgeProps {
   size?: "xs" | "sm" | "md";
   shiftNumber?: number | null;
   onShiftNumberChange?: (shiftNumber: number | null) => void;
-
+  note?: string | null;
+  allowNote?: boolean;
+  onNoteChange?: (note: string | null) => void;
 }
 
 function getCountClass(count: number): string {
@@ -44,9 +52,21 @@ export function TeacherBadge({
   unavailableNote,
   shiftNumber,
   onShiftNumberChange,
+  note,
+  allowNote = false,
+  onNoteChange,
 }: TeacherBadgeProps) {
   const { isAdmin } = useAuth();
-  const canDrag = draggable && isAdmin;
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [tempNote, setTempNote] = useState(note || "");
+
+  useEffect(() => {
+    if (isPopoverOpen) {
+      setTempNote(note || "");
+    }
+  }, [isPopoverOpen, note]);
+
+  const canDrag = draggable && isAdmin && !isPopoverOpen;
   const isXs = size === "xs";
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
@@ -58,6 +78,8 @@ export function TeacherBadge({
     e.dataTransfer.setData("text/plain", id);
     onDragStart?.(e);
   };
+
+  const canEditNote = allowNote && isAdmin && !!onNoteChange;
 
   return (
     <div
@@ -101,7 +123,130 @@ export function TeacherBadge({
           {shiftNumber || "–"}
         </button>
       )}
-      <span className={cn("truncate", isXs ? "max-w-[92px]" : "max-w-[150px]")}>{name}</span>
+      <span className={cn("truncate", isXs ? "max-w-[85px]" : "max-w-[140px]")}>{name}</span>
+
+      {/* Note / Sub-allocation (e.g. фоайе) */}
+      {canEditNote ? (
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              className={cn(
+                "rounded font-medium transition-all shrink-0 cursor-pointer border",
+                note
+                  ? "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-700/60 hover:bg-amber-200 dark:hover:bg-amber-900/80"
+                  : "bg-white/30 hover:bg-white/50 text-muted-foreground hover:text-foreground border-dashed border-white/50",
+                isXs ? "text-[9px] px-1 py-0" : "text-[10px] px-1.5 py-0.5"
+              )}
+              title={note ? `Пост: ${note} (кликнете за редакция)` : "Задай разпределение (напр. фоайе)"}
+            >
+              {note || "+ пост"}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-72 p-3 space-y-2.5 z-50 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-foreground truncate">
+                Разпределение: {name}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Посочете разпределение / пост (напр. фоайе):
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-1">
+              {["фоайе", "стол", "пред кабинет по музика"].map((preset) => (
+                <Button
+                  key={preset}
+                  type="button"
+                  size="sm"
+                  variant={tempNote.toLowerCase() === preset ? "default" : "outline"}
+                  className="h-6 text-[11px] px-2 py-0"
+                  onClick={() => {
+                    setTempNote(preset);
+                  }}
+                >
+                  {preset}
+                </Button>
+              ))}
+            </div>
+
+            <Input
+              value={tempNote}
+              onChange={(e) => setTempNote(e.target.value)}
+              placeholder="напр. фоайе"
+              className="h-8 text-xs"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onNoteChange(tempNote.trim() || null);
+                  setIsPopoverOpen(false);
+                }
+              }}
+            />
+
+            <div className="flex items-center justify-between pt-1 border-t">
+              {note ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs text-destructive hover:bg-destructive/10 px-2"
+                  onClick={() => {
+                    onNoteChange(null);
+                    setIsPopoverOpen(false);
+                  }}
+                >
+                  Премахни
+                </Button>
+              ) : (
+                <span />
+              )}
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs px-2.5"
+                  onClick={() => setIsPopoverOpen(false)}
+                >
+                  Отказ
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-7 text-xs px-2.5"
+                  onClick={() => {
+                    onNoteChange(tempNote.trim() || null);
+                    setIsPopoverOpen(false);
+                  }}
+                >
+                  Запази
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      ) : (
+        note && (
+          <span
+            className={cn(
+              "font-medium rounded border shrink-0 bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-700/60",
+              isXs ? "text-[9px] px-1 py-0 leading-tight" : "text-[10px] px-1.5 py-0.5"
+            )}
+          >
+            {note}
+          </span>
+        )
+      )}
+
       {unavailable && (
         <span className="relative inline-flex items-center justify-center shrink-0">
           <Ban className={cn("flex-shrink-0", isXs ? "w-2 h-2 sm:w-2.5 sm:h-2.5" : "w-2.5 h-2.5 sm:w-3 sm:h-3")} />

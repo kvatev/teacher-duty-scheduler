@@ -11,6 +11,7 @@ import { AdminSettingsPanel } from "@/components/AdminSettingsPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StageSelector } from "@/components/StageSelector";
 import { ScheduleTable } from "@/components/ScheduleTable";
+import { PrintableSchedule } from "@/components/PrintableSchedule";
 
 const mockSettings: AppSettings = {
   header_title: "График за дежурства",
@@ -120,6 +121,23 @@ describe("TeacherBadge Component", () => {
 
     expect(screen.getByText("Мария Петрова")).toBeInTheDocument();
     expect(screen.getByLabelText(/Не е свободен/i)).toBeInTheDocument();
+  });
+
+  it("renders allocation note when provided (e.g. фоайе)", () => {
+    render(
+      <AuthProvider>
+        <TeacherBadge
+          id="1"
+          name="Красимир Ватев"
+          count={1}
+          note="фоайе"
+          allowNote={true}
+        />
+      </AuthProvider>
+    );
+
+    expect(screen.getByText("Красимир Ватев")).toBeInTheDocument();
+    expect(screen.getByText("фоайе")).toBeInTheDocument();
   });
 });
 
@@ -250,5 +268,28 @@ describe("ScheduleTable Component with Stages", () => {
     expect(screen.queryAllByText("Дежурен на I етаж - 07:30 ч.").length).toBe(0);
   });
 });
+
+describe("PrintableSchedule Component with Allocation Notes", () => {
+  const dummyPeriod = { year: "2025/2026", term: 1 as const };
+
+  it("renders teacher with duty allocation note in parentheses (e.g. фоайе)", () => {
+    render(
+      <PrintableSchedule
+        currentPeriod={dummyPeriod}
+        settings={mockSettings}
+        currentStage="secondary"
+        getAssignmentsForCell={(day, loc) => {
+          if (day === "Понеделник" && loc === mockSettings.location_3) {
+            return [{ id: "1", name: "Красимир Ватев", shiftNumber: null, note: "фоайе" }];
+          }
+          return [];
+        }}
+      />
+    );
+
+    expect(screen.getByText(/Красимир Ватев \(фоайе\)/i)).toBeInTheDocument();
+  });
+});
+
 
 

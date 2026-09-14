@@ -254,5 +254,35 @@ describe("localDB - In-browser Database", () => {
     expect(settings.location_5).toBe("Дежурен на 0 етаж");
     expect(settings.pdf_schedule_description_primary).toContain("начален етап");
   });
+
+  it("supports assigning and updating duty allocation notes (e.g. фоайе)", () => {
+    const periods = localDB.getPeriods();
+    const periodId = periods[0].id;
+    const teachers = localDB.getTeachers(periodId, "secondary");
+    const teacher = teachers[0];
+
+    const location = "Училищен стол и пред кабинет по музика";
+    const day = "Сряда";
+
+    // Assign teacher with note 'фоайе'
+    const assigned = localDB.assignTeacher(periodId, teacher.id, day, location, null, "secondary", "фоайе");
+    expect(assigned).toBe(true);
+
+    const assignments = localDB.getAssignments(periodId, "secondary");
+    const found = assignments.find((a) => a.teacherId === teacher.id && a.day === day && a.location === location);
+    expect(found).toBeDefined();
+    expect(found?.note).toBe("фоайе");
+
+    // Update note to 'стол'
+    localDB.updateAssignmentNote(periodId, teacher.id, day, location, "стол");
+    const updated = localDB.getAssignments(periodId, "secondary").find((a) => a.teacherId === teacher.id && a.day === day && a.location === location);
+    expect(updated?.note).toBe("стол");
+
+    // Move teacher to another day and ensure note is preserved
+    localDB.moveTeacher(periodId, teacher.id, day, location, "Четвъртък", location);
+    const moved = localDB.getAssignments(periodId, "secondary").find((a) => a.teacherId === teacher.id && a.day === "Четвъртък" && a.location === location);
+    expect(moved?.note).toBe("стол");
+  });
 });
+
 

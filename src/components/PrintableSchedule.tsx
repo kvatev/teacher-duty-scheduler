@@ -93,7 +93,7 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
                         <div className="space-y-1">
                           {teachers.map((teacher) => (
                             <div key={teacher.id}>
-                              {teacher.shiftNumber ? `${teacher.shiftNumber}. ` : ""}{teacher.name}
+                              {teacher.shiftNumber ? `${teacher.shiftNumber}. ` : ""}{teacher.name}{teacher.note ? ` (${teacher.note})` : ""}
                             </div>
                           ))}
                         </div>
