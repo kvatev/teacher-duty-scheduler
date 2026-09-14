@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-09-14T12:23:46.946Z",
+  "exportedAt": "2026-09-14T13:15:00.000Z",
   "periods": [
     {
       "id": "period-current",
@@ -477,7 +477,7 @@
     },
     {
       "id": "as-21",
-      "teacherId": "43",
+      "teacherId": "10",
       "day": "Вторник",
       "location": "Дежурни на III-ти етаж",
       "shiftNumber": null,
@@ -647,7 +647,7 @@
     },
     {
       "id": "as-38",
-      "teacherId": "10",
+      "teacherId": "43",
       "day": "Сряда",
       "location": "Дежурни на IV-ти етаж",
       "shiftNumber": null,
