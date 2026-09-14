@@ -314,11 +314,33 @@ export const localDB = {
     }
     let filtered = teachers;
     if (periodId) {
-      filtered = filtered.filter((t) => t.periodId === periodId);
+      filtered = filtered.filter((t) => !t.periodId || t.periodId === periodId);
     }
     if (stage) {
       filtered = filtered.filter((t) => (t.stage || "secondary") === stage);
     }
+
+    // If a period has no teachers yet for secondary stage, inherit unique teachers from previous periods
+    if (periodId && (stage === undefined || stage === "secondary") && filtered.length === 0 && teachers.length > 0) {
+      const existingSecondary = teachers.filter((t) => (t.stage || "secondary") === "secondary");
+      if (existingSecondary.length > 0) {
+        const uniqueByName = new Map<string, DBTeacher>();
+        existingSecondary.forEach((t) => {
+          if (!uniqueByName.has(t.name.toLowerCase())) {
+            uniqueByName.set(t.name.toLowerCase(), t);
+          }
+        });
+        const clonedTeachers: DBTeacher[] = Array.from(uniqueByName.values()).map((t) => ({
+          id: generateId(),
+          name: t.name,
+          periodId,
+          stage: "secondary",
+        }));
+        setToStorage(STORAGE_KEYS.TEACHERS, [...teachers, ...clonedTeachers]);
+        return clonedTeachers;
+      }
+    }
+
     return filtered;
   },
 
