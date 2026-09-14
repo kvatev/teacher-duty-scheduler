@@ -93,22 +93,45 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   pdf_schedule_description_primary: "за дежурство на учителите от начален етап (I - IV клас)",
 };
 
-const INITIAL_TEACHER_NAMES = [
-  "Десислава Димитрова",
-  "Илияна Филипова",
-  "Красимир Ватев",
+export const INITIAL_TEACHER_NAMES = [
   "Албена Гарабедян",
-  "Станимир Христов",
-  "Надя Калъбалъкова",
+  "Валерия Стоева",
+  "Георги Бараклийски",
+  "Гергана Георгиева",
+  "Гюлсюм Мустафа",
+  "Даниела Василева",
   "Даниела Кирякова",
-  "Станка Андонова",
-  "Силвия Инджова",
-  "Нина Николова",
-  "Павлина Стоянова",
-  "Ивелин Тонев",
+  "Десислава Димитрова",
+  "Димитър Батилов",
+  "Елена Боева",
   "Жулиета Дросева",
-  "Нина Василева",
+  "Ива Камбурова",
+  "Ивелин Тонев",
+  "Илияна Филипова",
+  "Ирина Димитрова",
+  "Калинка Милчева",
+  "Красимир Ватев",
+  "Мария Сеферова",
   "Мирослава Петрова",
+  "Моника Николова",
+  "Надя Калъбалкова",
+  "Николай Гочков",
+  "Нина Василева",
+  "Нина Николова",
+  "Павел Алексиев",
+  "Павлина Стоянова",
+  "Петя Иванова",
+  "Ресмие Шабан",
+  "Росица Гъчева",
+  "Росица Петкова",
+  "Светослава Николова",
+  "Силвия Инджова",
+  "Славка Терзиева",
+  "Станимир Христов",
+  "Станка Андонова",
+  "Стоян Василев",
+  "Янка Дренска",
+  "Янчо Желев",
 ];
 
 // Helper to generate simple unique IDs
@@ -232,23 +255,120 @@ function initializeSeedData(): { period: DBPeriod } {
     setToStorage(STORAGE_KEYS.TEACHERS, initialTeachers);
 
     const initialAssignments: DBAssignment[] = [
-      { id: generateId(), teacherId: "1", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
-      { id: generateId(), teacherId: "2", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
-      { id: generateId(), teacherId: "5", day: "Понеделник", location: "Дежурни на IV-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
-      { id: generateId(), teacherId: "9", day: "Понеделник", location: "Училищен стол и пред кабинет по музика", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
-      { id: generateId(), teacherId: "11", day: "Понеделник", location: "Главен дежурен – западен вход 07:30-08:40 ч.", shiftNumber: 1, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "8", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "14", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "34", day: "Понеделник", location: "Дежурни на IV-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "32", day: "Понеделник", location: "Училищен стол и пред кабинет по музика", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "26", day: "Понеделник", location: "Главен дежурен – западен вход 07:30-08:40 ч.", shiftNumber: 1, periodId: defaultPeriod.id, stage: "secondary" },
     ];
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, initialAssignments);
     return { period: defaultPeriod };
+  } else {
+    syncDefaultTeachers();
   }
 
   return { period: periods[0] };
+}
+
+// Synchronize and deduplicate default teachers for all existing periods
+export function syncDefaultTeachers(): void {
+  const periods = getFromStorage<DBPeriod[]>(STORAGE_KEYS.PERIODS, []);
+  if (periods.length === 0) return;
+
+  let allTeachers = getFromStorage<DBTeacher[]>(STORAGE_KEYS.TEACHERS, []);
+  let allAssignments = getFromStorage<DBAssignment[]>(STORAGE_KEYS.ASSIGNMENTS, []);
+  let allUnavailabilities = getFromStorage<DBUnavailability[]>(STORAGE_KEYS.UNAVAILABILITY, []);
+  let hasChanges = false;
+
+  for (const period of periods) {
+    // 1. Normalize typo "Надя Калъбалъкова" -> "Надя Калъбалкова" and ensure periodId
+    allTeachers = allTeachers.map((t) => {
+      const tPeriodId = t.periodId || period.id;
+      if (tPeriodId === period.id && (t.stage || "secondary") === "secondary") {
+        let name = t.name;
+        if (name.trim() === "Надя Калъбалъкова") {
+          name = "Надя Калъбалкова";
+          hasChanges = true;
+        }
+        if (!t.periodId) {
+          hasChanges = true;
+        }
+        return { ...t, name, periodId: tPeriodId };
+      }
+      return t;
+    });
+
+    // 2. Deduplicate secondary teachers with the same normalized name in this period
+    const secondaryTeachers = allTeachers.filter(
+      (t) => (t.periodId || period.id) === period.id && (t.stage || "secondary") === "secondary"
+    );
+    const seenMap = new Map<string, DBTeacher>();
+    const toRemoveIds = new Set<string>();
+    const idRemap = new Map<string, string>(); // duplicateId -> keepId
+
+    for (const teacher of secondaryTeachers) {
+      const normalized = teacher.name.trim().toLowerCase();
+      if (seenMap.has(normalized)) {
+        const keep = seenMap.get(normalized)!;
+        toRemoveIds.add(teacher.id);
+        idRemap.set(teacher.id, keep.id);
+        hasChanges = true;
+      } else {
+        seenMap.set(normalized, teacher);
+      }
+    }
+
+    if (toRemoveIds.size > 0) {
+      allTeachers = allTeachers.filter((t) => !toRemoveIds.has(t.id));
+      allAssignments = allAssignments.map((a) => {
+        if (idRemap.has(a.teacherId)) {
+          return { ...a, teacherId: idRemap.get(a.teacherId)! };
+        }
+        return a;
+      });
+      allUnavailabilities = allUnavailabilities.map((u) => {
+        if (idRemap.has(u.teacher_id)) {
+          return { ...u, teacher_id: idRemap.get(u.teacher_id)! };
+        }
+        return u;
+      });
+    }
+
+    // 3. Add any missing teachers from INITIAL_TEACHER_NAMES
+    const currentNames = new Set(
+      allTeachers
+        .filter((t) => (t.periodId || period.id) === period.id && (t.stage || "secondary") === "secondary")
+        .map((t) => t.name.trim().toLowerCase())
+    );
+
+    for (const name of INITIAL_TEACHER_NAMES) {
+      const normalized = name.trim().toLowerCase();
+      if (!currentNames.has(normalized)) {
+        const newTeacher: DBTeacher = {
+          id: generateId(),
+          name: name.trim(),
+          periodId: period.id,
+          stage: "secondary",
+        };
+        allTeachers.push(newTeacher);
+        currentNames.add(normalized);
+        hasChanges = true;
+      }
+    }
+  }
+
+  if (hasChanges) {
+    setToStorage(STORAGE_KEYS.TEACHERS, allTeachers);
+    setToStorage(STORAGE_KEYS.ASSIGNMENTS, allAssignments);
+    setToStorage(STORAGE_KEYS.UNAVAILABILITY, allUnavailabilities);
+  }
 }
 
 // Check initial seed and clean legacy auth data on module load
 if (typeof window !== "undefined") {
   getSanitizedAuthData();
   initializeSeedData();
+  syncDefaultTeachers();
 }
 
 /* ============================================================
@@ -747,5 +867,9 @@ export const localDB = {
     this.getTeachers();
     this.getSettings();
     window.dispatchEvent(new CustomEvent("local-db-change", { detail: { key: "all" } }));
+  },
+
+  syncDefaultTeachers(): void {
+    syncDefaultTeachers();
   },
 };

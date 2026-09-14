@@ -5,29 +5,52 @@ const STORAGE_PREFIX = "teacher-schedule-";
 const CURRENT_PERIOD_KEY = "teacher-schedule-current-period";
 
 const initialTeachers: Teacher[] = [
-  { id: "1", name: "Десислава Димитрова" },
-  { id: "2", name: "Илияна Филипова" },
-  { id: "3", name: "Красимир Ватев" },
-  { id: "4", name: "Албена Гарабедян" },
-  { id: "5", name: "Станимир Христов" },
-  { id: "6", name: "Надя Калъбалъкова" },
-  { id: "7", name: "Даниела Кирякова" },
-  { id: "8", name: "Станка Андонова" },
-  { id: "9", name: "Силвия Инджова" },
-  { id: "10", name: "Нина Николова" },
-  { id: "11", name: "Павлина Стоянова" },
-  { id: "12", name: "Ивелин Тонев" },
-  { id: "13", name: "Жулиета Дросева" },
-  { id: "14", name: "Нина Василева" },
-  { id: "15", name: "Мирослава Петрова" },
+  { id: "1", name: "Албена Гарабедян", stage: "secondary" },
+  { id: "2", name: "Валерия Стоева", stage: "secondary" },
+  { id: "3", name: "Георги Бараклийски", stage: "secondary" },
+  { id: "4", name: "Гергана Георгиева", stage: "secondary" },
+  { id: "5", name: "Гюлсюм Мустафа", stage: "secondary" },
+  { id: "6", name: "Даниела Василева", stage: "secondary" },
+  { id: "7", name: "Даниела Кирякова", stage: "secondary" },
+  { id: "8", name: "Десислава Димитрова", stage: "secondary" },
+  { id: "9", name: "Димитър Батилов", stage: "secondary" },
+  { id: "10", name: "Елена Боева", stage: "secondary" },
+  { id: "11", name: "Жулиета Дросева", stage: "secondary" },
+  { id: "12", name: "Ива Камбурова", stage: "secondary" },
+  { id: "13", name: "Ивелин Тонев", stage: "secondary" },
+  { id: "14", name: "Илияна Филипова", stage: "secondary" },
+  { id: "15", name: "Ирина Димитрова", stage: "secondary" },
+  { id: "16", name: "Калинка Милчева", stage: "secondary" },
+  { id: "17", name: "Красимир Ватев", stage: "secondary" },
+  { id: "18", name: "Мария Сеферова", stage: "secondary" },
+  { id: "19", name: "Мирослава Петрова", stage: "secondary" },
+  { id: "20", name: "Моника Николова", stage: "secondary" },
+  { id: "21", name: "Надя Калъбалкова", stage: "secondary" },
+  { id: "22", name: "Николай Гочков", stage: "secondary" },
+  { id: "23", name: "Нина Василева", stage: "secondary" },
+  { id: "24", name: "Нина Николова", stage: "secondary" },
+  { id: "25", name: "Павел Алексиев", stage: "secondary" },
+  { id: "26", name: "Павлина Стоянова", stage: "secondary" },
+  { id: "27", name: "Петя Иванова", stage: "secondary" },
+  { id: "28", name: "Ресмие Шабан", stage: "secondary" },
+  { id: "29", name: "Росица Гъчева", stage: "secondary" },
+  { id: "30", name: "Росица Петкова", stage: "secondary" },
+  { id: "31", name: "Светослава Николова", stage: "secondary" },
+  { id: "32", name: "Силвия Инджова", stage: "secondary" },
+  { id: "33", name: "Славка Терзиева", stage: "secondary" },
+  { id: "34", name: "Станимир Христов", stage: "secondary" },
+  { id: "35", name: "Станка Андонова", stage: "secondary" },
+  { id: "36", name: "Стоян Василев", stage: "secondary" },
+  { id: "37", name: "Янка Дренска", stage: "secondary" },
+  { id: "38", name: "Янчо Желев", stage: "secondary" },
 ];
 
 const initialAssignments: DutyAssignment[] = [
-  { teacherId: "1", day: "Понеделник", location: "Дежурни на III-ти етаж" },
-  { teacherId: "2", day: "Понеделник", location: "Дежурни на III-ти етаж" },
-  { teacherId: "5", day: "Понеделник", location: "Дежурни на IV-ти етаж" },
-  { teacherId: "9", day: "Понеделник", location: "Училищен стол и пред кабинет по музика" },
-  { teacherId: "11", day: "Понеделник", location: "Главен дежурен – западен вход 07:30-08:40 ч." },
+  { teacherId: "8", day: "Понеделник", location: "Дежурни на III-ти етаж", stage: "secondary" },
+  { teacherId: "14", day: "Понеделник", location: "Дежурни на III-ти етаж", stage: "secondary" },
+  { teacherId: "34", day: "Понеделник", location: "Дежурни на IV-ти етаж", stage: "secondary" },
+  { teacherId: "32", day: "Понеделник", location: "Училищен стол и пред кабинет по музика", stage: "secondary" },
+  { teacherId: "26", day: "Понеделник", location: "Главен дежурен – западен вход 07:30-08:40 ч.", shiftNumber: 1, stage: "secondary" },
 ];
 
 function loadPeriodFromStorage(period: SchoolPeriod): { teachers: Teacher[]; assignments: DutyAssignment[] } {
@@ -35,7 +58,28 @@ function loadPeriodFromStorage(period: SchoolPeriod): { teachers: Teacher[]; ass
     const key = STORAGE_PREFIX + getPeriodKey(period);
     const stored = localStorage.getItem(key);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed.teachers)) {
+        const seenNames = new Set<string>();
+        const updatedTeachers: Teacher[] = [];
+        parsed.teachers.forEach((t: Teacher) => {
+          const normName = t.name.trim() === "Надя Калъбалъкова" ? "Надя Калъбалкова" : t.name.trim();
+          const lower = normName.toLowerCase();
+          if (!seenNames.has(lower)) {
+            seenNames.add(lower);
+            updatedTeachers.push({ ...t, name: normName });
+          }
+        });
+        initialTeachers.forEach((initT) => {
+          const lower = initT.name.trim().toLowerCase();
+          if (!seenNames.has(lower)) {
+            seenNames.add(lower);
+            updatedTeachers.push({ ...initT, id: "t-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 7) });
+          }
+        });
+        parsed.teachers = updatedTeachers;
+      }
+      return parsed;
     }
     
     // Check for legacy data (old single-period storage)

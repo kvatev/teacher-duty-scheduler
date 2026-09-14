@@ -308,6 +308,107 @@ describe("localDB - In-browser Database", () => {
     const updated1 = localDB.getAssignments(periodId, "secondary").find((a) => a.teacherId === teacher.id && a.day === day && a.location === shiftLocation);
     expect(updated1?.shiftNumber).toBe("1");
   });
+
+  it("initializes with all 38 default teachers for secondary stage with zero duplicates", () => {
+    const teachers = localDB.getTeachers(undefined, "secondary");
+    expect(teachers.length).toBe(38);
+
+    // Verify all names are unique
+    const names = teachers.map((t) => t.name.trim().toLowerCase());
+    const uniqueNames = new Set(names);
+    expect(uniqueNames.size).toBe(38);
+
+    // Check specific teachers from user request
+    expect(teachers.some((t) => t.name === "Албена Гарабедян")).toBe(true);
+    expect(teachers.some((t) => t.name === "Янчо Желев")).toBe(true);
+    expect(teachers.some((t) => t.name === "Надя Калъбалкова")).toBe(true);
+    // Ensure old typo is not present
+    expect(teachers.some((t) => t.name === "Надя Калъбалъкова")).toBe(false);
+  });
+
+  it("syncDefaultTeachers() migrates old spelling and expands existing storage to 38 without duplicates", () => {
+    // Simulate an existing database that had only 3 old teachers including the typo
+    const periods = localDB.getPeriods();
+    const periodId = periods[0].id;
+
+    const oldTeachers = [
+      { id: "old-1", name: "Красимир Ватев", periodId, stage: "secondary" },
+      { id: "old-2", name: "Надя Калъбалъкова", periodId, stage: "secondary" },
+      { id: "old-3", name: "Десислава Димитрова", periodId, stage: "secondary" },
+    ];
+    localStorage.setItem("teacher_scheduler_teachers", JSON.stringify(oldTeachers));
+
+    // Also add an assignment pointing to the old typo teacher
+    const oldAssignment = {
+      id: "a-1",
+      teacherId: "old-2",
+      day: "Понеделник",
+      location: "Дежурни на III-ти етаж",
+      periodId,
+      stage: "secondary",
+    };
+    localStorage.setItem("teacher_scheduler_assignments", JSON.stringify([oldAssignment]));
+
+    // Run sync
+    localDB.syncDefaultTeachers();
+
+    const syncedTeachers = localDB.getTeachers(periodId, "secondary");
+    expect(syncedTeachers.length).toBe(38);
+
+    // Name must be normalized to 'Надя Калъбалкова'
+    const nadia = syncedTeachers.find((t) => t.name === "Надя Калъбалкова");
+    expect(nadia).toBeDefined();
+    expect(nadia?.id).toBe("old-2");
+
+    // Old typo must be gone
+    expect(syncedTeachers.some((t) => t.name === "Надя Калъбалъкова")).toBe(false);
+
+    // Assignment must still exist for Nadia
+    const assignments = localDB.getAssignments(periodId, "secondary");
+    expect(assignments.some((a) => a.teacherId === "old-2")).toBe(true);
+
+    // Running sync again must be idempotent and not create duplicate teachers
+    localDB.syncDefaultTeachers();
+    expect(localDB.getTeachers(periodId, "secondary").length).toBe(38);
+  });
+
+  it("syncDefaultTeachers() deduplicates teachers if any duplicates exist in storage and retains assignments", () => {
+    const periods = localDB.getPeriods();
+    const periodId = periods[0].id;
+
+    // Simulate duplicate entries for 'Красимир Ватев'
+    const duplicateTeachers = [
+      { id: "kv-1", name: "Красимир Ватев", periodId, stage: "secondary" },
+      { id: "kv-2", name: "красимир ватев ", periodId, stage: "secondary" },
+      { id: "ab-1", name: "Албена Гарабедян", periodId, stage: "secondary" },
+    ];
+    localStorage.setItem("teacher_scheduler_teachers", JSON.stringify(duplicateTeachers));
+
+    // Assignment pointing to duplicate 'kv-2'
+    const assignment = {
+      id: "as-dup",
+      teacherId: "kv-2",
+      day: "Вторник",
+      location: "Дежурни на IV-ти етаж",
+      periodId,
+      stage: "secondary",
+    };
+    localStorage.setItem("teacher_scheduler_assignments", JSON.stringify([assignment]));
+
+    localDB.syncDefaultTeachers();
+
+    const teachers = localDB.getTeachers(periodId, "secondary");
+    expect(teachers.length).toBe(38);
+
+    // Must have only 1 'Красимир Ватев'
+    const kvMatches = teachers.filter((t) => t.name.trim().toLowerCase() === "красимир ватев");
+    expect(kvMatches.length).toBe(1);
+    expect(kvMatches[0].id).toBe("kv-1");
+
+    // Assignment remapped to surviving ID 'kv-1'
+    const remappedAssignment = localDB.getAssignments(periodId, "secondary").find((a) => a.id === "as-dup");
+    expect(remappedAssignment?.teacherId).toBe("kv-1");
+  });
 });
 
 
