@@ -316,10 +316,11 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                       <GraduationCap className="w-4 h-4 text-primary" />
                       <span>Прогимназиален и гимназиален етап (V – XII клас)</span>
                     </div>
-                    <SettingInput id="location_1" label="Локация 1" value={draft.location_1} onChange={(v) => updateDraft("location_1", v)} />
-                    <SettingInput id="location_2" label="Локация 2" value={draft.location_2} onChange={(v) => updateDraft("location_2", v)} />
-                    <SettingInput id="location_3" label="Локация 3" value={draft.location_3} onChange={(v) => updateDraft("location_3", v)} />
-                    <SettingInput id="location_4" label="Локация 4 (дежурен с номерация)" value={draft.location_4} onChange={(v) => updateDraft("location_4", v)} />
+                    <SettingInput id="location_5" label="Локация 1 (Етаж 0)" value={draft.location_5} onChange={(v) => updateDraft("location_5", v)} />
+                    <SettingInput id="location_1" label="Локация 2 (III-ти етаж)" value={draft.location_1} onChange={(v) => updateDraft("location_1", v)} />
+                    <SettingInput id="location_2" label="Локация 3 (IV-ти етаж)" value={draft.location_2} onChange={(v) => updateDraft("location_2", v)} />
+                    <SettingInput id="location_3" label="Локация 4 (Училищен стол)" value={draft.location_3} onChange={(v) => updateDraft("location_3", v)} />
+                    <SettingInput id="location_4" label="Локация 5 (Главен дежурен – западен вход)" value={draft.location_4} onChange={(v) => updateDraft("location_4", v)} />
                   </div>
 
                   <div className="space-y-3 p-3.5 rounded-lg border bg-muted/20">

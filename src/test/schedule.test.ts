@@ -98,12 +98,13 @@ describe("Schedule Constants & Days", () => {
     ]);
   });
 
-  it("should have 4 predefined locations for secondary stage", () => {
-    expect(LOCATIONS).toHaveLength(4);
-    expect(LOCATIONS[0]).toContain("III-ти етаж");
-    expect(LOCATIONS[1]).toContain("IV-ти етаж");
-    expect(LOCATIONS[2]).toContain("Училищен стол");
-    expect(LOCATIONS[3]).toContain("Главен дежурен");
+  it("should have 5 predefined locations for secondary stage", () => {
+    expect(LOCATIONS).toHaveLength(5);
+    expect(LOCATIONS[0]).toContain("0 етаж");
+    expect(LOCATIONS[1]).toContain("III-ти етаж");
+    expect(LOCATIONS[2]).toContain("IV-ти етаж");
+    expect(LOCATIONS[3]).toContain("Училищен стол");
+    expect(LOCATIONS[4]).toContain("Главен дежурен");
   });
 
   it("should have 3 predefined locations for primary stage (I - IV grade)", () => {

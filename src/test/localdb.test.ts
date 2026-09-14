@@ -251,6 +251,7 @@ describe("localDB - In-browser Database", () => {
     expect(settings.primary_location_1).toBe("Главен дежурен параден вход - 07:00 ч.");
     expect(settings.primary_location_2).toBe("Дежурен на I етаж - 07:30 ч.");
     expect(settings.primary_location_3).toBe("Дежурен на II етаж - 07:30 ч.");
+    expect(settings.location_5).toBe("Дежурен на 0 етаж");
     expect(settings.pdf_schedule_description_primary).toContain("начален етап");
   });
 });

@@ -84,9 +84,21 @@ export function ScheduleTable({
       ];
     }
     if (settings) {
-      return [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
+      return [
+        settings.location_5 || "Дежурен на 0 етаж",
+        settings.location_1,
+        settings.location_2,
+        settings.location_3,
+        settings.location_4,
+      ];
     }
-    return ["Дежурни на III-ти етаж", "Дежурни на IV-ти етаж", "Училищен стол и пред кабинет по музика", DEFAULT_SHIFT_LOCATION];
+    return [
+      "Дежурен на 0 етаж",
+      "Дежурни на III-ти етаж",
+      "Дежурни на IV-ти етаж",
+      "Училищен стол и пред кабинет по музика",
+      DEFAULT_SHIFT_LOCATION,
+    ];
   }, [settings, currentStage]);
 
   const shiftLocation = currentStage === "primary"
@@ -272,7 +284,7 @@ export function ScheduleTable({
         <div ref={tableRef} className="bg-card rounded-lg border shadow-sm overflow-hidden animate-in fade-in duration-200">
           <div className="block sm:hidden px-3 py-2 bg-muted/40 border-b text-xs text-muted-foreground flex items-center justify-between">
             <span>↔️ Плъзнете таблицата настрани</span>
-            <span>5 дни • 4 локации</span>
+            <span>5 дни • {locations.length} локации</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full schedule-table border-collapse">

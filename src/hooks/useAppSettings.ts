@@ -17,6 +17,7 @@ export interface AppSettings {
   location_2: string;
   location_3: string;
   location_4: string;
+  location_5: string;
   primary_location_1: string;
   primary_location_2: string;
   primary_location_3: string;

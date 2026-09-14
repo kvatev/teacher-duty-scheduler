@@ -77,6 +77,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   location_2: "Дежурни на IV-ти етаж",
   location_3: "Училищен стол и пред кабинет по музика",
   location_4: "Главен дежурен – западен вход 07:30-08:40 ч.",
+  location_5: "Дежурен на 0 етаж",
   primary_location_1: "Главен дежурен параден вход - 07:00 ч.",
   primary_location_2: "Дежурен на I етаж - 07:30 ч.",
   primary_location_3: "Дежурен на II етаж - 07:30 ч.",
@@ -572,7 +573,8 @@ export const localDB = {
 
   // App Settings
   getSettings(): AppSettings {
-    return getFromStorage<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_APP_SETTINGS);
+    const saved = getFromStorage<Partial<AppSettings>>(STORAGE_KEYS.SETTINGS, {});
+    return { ...DEFAULT_APP_SETTINGS, ...saved };
   },
 
   saveSettings(updates: Partial<AppSettings>): AppSettings {

@@ -27,6 +27,7 @@ const mockSettings: AppSettings = {
   location_2: "Дежурни на IV-ти етаж",
   location_3: "Училищен стол",
   location_4: "Главен дежурен",
+  location_5: "Дежурен на 0 етаж",
   logo_url: "",
   schedule_title: "ГРАФИК",
   approval_text: "УТВЪРЖДАВАМ:",
@@ -223,7 +224,7 @@ describe("ScheduleTable Component with Stages", () => {
     expect(screen.queryAllByText("Дежурни на III-ти етаж").length).toBe(0);
   });
 
-  it("renders 4 secondary stage location columns when currentStage='secondary'", () => {
+  it("renders 5 secondary stage location columns when currentStage='secondary'", () => {
     render(
       <AuthProvider>
         <ScheduleTable
@@ -240,6 +241,7 @@ describe("ScheduleTable Component with Stages", () => {
       </AuthProvider>
     );
 
+    expect(screen.getAllByText("Дежурен на 0 етаж").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Дежурни на III-ти етаж").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Дежурни на IV-ти етаж").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Училищен стол").length).toBeGreaterThan(0);

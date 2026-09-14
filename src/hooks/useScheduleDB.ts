@@ -224,22 +224,26 @@ export function useScheduleDB() {
 
     const dynamicLocations = currentStage === "primary"
       ? [
-          settings.primary_location_1,
-          settings.primary_location_2,
-          settings.primary_location_3,
+          settings.primary_location_1 || "Главен дежурен параден вход - 07:00 ч.",
+          settings.primary_location_2 || "Дежурен на I етаж - 07:30 ч.",
+          settings.primary_location_3 || "Дежурен на II етаж - 07:30 ч.",
         ]
       : [
+          settings.location_5 || "Дежурен на 0 етаж",
           settings.location_1,
           settings.location_2,
           settings.location_3,
           settings.location_4,
         ];
 
-    const getTeachersPerLocation = (location: string, index: number): number => {
+    const getTeachersPerLocation = (location: string, _index: number): number => {
       if (currentStage === "primary") {
         return 1;
       }
-      if (index === 0 || index === 1 || location.includes("III-ти") || location.includes("IV-ти")) {
+      if (location.includes("0") || location.toLowerCase().includes("етаж 0")) {
+        return 2;
+      }
+      if (location.includes("III-ти") || location.includes("IV-ти")) {
         return 4;
       }
       return 3;
