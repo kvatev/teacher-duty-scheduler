@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 const Index = () => {
   const {
     teachers,
+    assignments,
     teacherAssignmentCounts,
     currentPeriod,
     currentStage,
