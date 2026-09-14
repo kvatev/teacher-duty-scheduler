@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { localDB, DBPeriod, STORAGE_KEYS } from "@/lib/localDB";
-import { Teacher, DutyAssignment, SchoolPeriod, getCurrentPeriod, DAYS, CellTeacher } from "@/types/schedule";
+import { Teacher, DutyAssignment, SchoolPeriod, SchoolStage, getCurrentPeriod, DAYS, CellTeacher } from "@/types/schedule";
 import { DAY_NAME_TO_WEEKDAY } from "@/hooks/useUnavailability";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 export function useScheduleDB() {
   const { settings } = useAppSettings();
   const [currentPeriod, setCurrentPeriod] = useState<SchoolPeriod>(getCurrentPeriod);
+  const [currentStage, setCurrentStage] = useState<SchoolStage>("secondary");
   const [periodId, setPeriodId] = useState<string | null>(null);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [assignments, setAssignments] = useState<DutyAssignment[]>([]);
@@ -27,21 +28,22 @@ export function useScheduleDB() {
     setPeriodId(pId);
     loadAvailablePeriods();
 
-    const dbTeachers = localDB.getTeachers(pId);
-    setTeachers(dbTeachers.map((t) => ({ id: t.id, name: t.name })));
+    const dbTeachers = localDB.getTeachers(pId, currentStage);
+    setTeachers(dbTeachers.map((t) => ({ id: t.id, name: t.name, stage: t.stage })));
 
-    const dbAssignments = localDB.getAssignments(pId);
+    const dbAssignments = localDB.getAssignments(pId, currentStage);
     setAssignments(
       dbAssignments.map((a) => ({
         teacherId: a.teacherId,
         day: a.day,
         location: a.location,
         shiftNumber: a.shiftNumber ?? null,
+        stage: a.stage,
       }))
     );
 
     setIsLoading(false);
-  }, [currentPeriod, loadAvailablePeriods]);
+  }, [currentPeriod, currentStage, loadAvailablePeriods]);
 
   // Load on mount and period change
   useEffect(() => {
@@ -73,6 +75,10 @@ export function useScheduleDB() {
     setCurrentPeriod(newPeriod);
   }, []);
 
+  const changeStage = useCallback((newStage: SchoolStage) => {
+    setCurrentStage(newStage);
+  }, []);
+
   const teacherAssignmentCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     teachers.forEach((t) => {
@@ -94,17 +100,17 @@ export function useScheduleDB() {
   const addTeacher = useCallback(
     async (name: string): Promise<boolean> => {
       if (!periodId) return false;
-      const created = localDB.addTeacher(periodId, name);
+      const created = localDB.addTeacher(periodId, name, currentStage);
       if (!created) {
         return false;
       }
       setTeachers((prev) => {
         if (prev.some((t) => t.id === created.id)) return prev;
-        return [...prev, { id: created.id, name: created.name }];
+        return [...prev, { id: created.id, name: created.name, stage: created.stage }];
       });
       return true;
     },
-    [periodId]
+    [periodId, currentStage]
   );
 
   const removeTeacher = useCallback(
@@ -119,7 +125,7 @@ export function useScheduleDB() {
   const assignTeacher = useCallback(
     async (teacherId: string, day: string, location: string): Promise<boolean> => {
       if (!periodId) return false;
-      const success = localDB.assignTeacher(periodId, teacherId, day, location);
+      const success = localDB.assignTeacher(periodId, teacherId, day, location, null, currentStage);
       if (!success) return false;
 
       // Deduplicate state in case loadData already updated or runs concurrently
@@ -127,11 +133,11 @@ export function useScheduleDB() {
         if (prev.some((a) => a.teacherId === teacherId && a.day === day && a.location === location)) {
           return prev;
         }
-        return [...prev, { teacherId, day, location, shiftNumber: null }];
+        return [...prev, { teacherId, day, location, shiftNumber: null, stage: currentStage }];
       });
       return true;
     },
-    [periodId]
+    [periodId, currentStage]
   );
 
   const unassignTeacher = useCallback(
@@ -216,14 +222,23 @@ export function useScheduleDB() {
   const autoArrangeTeachers = useCallback(async () => {
     if (!periodId || teachers.length === 0) return;
 
-    const dynamicLocations = [
-      settings.location_1,
-      settings.location_2,
-      settings.location_3,
-      settings.location_4,
-    ];
+    const dynamicLocations = currentStage === "primary"
+      ? [
+          settings.primary_location_1,
+          settings.primary_location_2,
+          settings.primary_location_3,
+        ]
+      : [
+          settings.location_1,
+          settings.location_2,
+          settings.location_3,
+          settings.location_4,
+        ];
 
     const getTeachersPerLocation = (location: string, index: number): number => {
+      if (currentStage === "primary") {
+        return 1;
+      }
       if (index === 0 || index === 1 || location.includes("III-ти") || location.includes("IV-ти")) {
         return 4;
       }
@@ -250,7 +265,7 @@ export function useScheduleDB() {
     const shuffledSlots = [...allSlots].sort(() => Math.random() - 0.5);
     const shuffledTeachers = [...teachers].sort(() => Math.random() - 0.5);
 
-    const newAssignments: { periodId: string; teacherId: string; day: string; location: string; shiftNumber: number | null }[] = [];
+    const newAssignments: { periodId: string; teacherId: string; day: string; location: string; shiftNumber: number | null; stage: SchoolStage }[] = [];
     const assignedPairs = new Set<string>();
 
     shuffledSlots.forEach((slot, index) => {
@@ -292,20 +307,22 @@ export function useScheduleDB() {
           day: slot.day,
           location: slot.location,
           shiftNumber: null,
+          stage: currentStage,
         });
       }
     });
 
-    localDB.setAssignmentsForPeriod(periodId, newAssignments);
+    localDB.setAssignmentsForPeriod(periodId, newAssignments, currentStage);
     setAssignments(
       newAssignments.map((a) => ({
         teacherId: a.teacherId,
         day: a.day,
         location: a.location,
         shiftNumber: null,
+        stage: a.stage,
       }))
     );
-  }, [periodId, teachers, settings]);
+  }, [periodId, teachers, settings, currentStage]);
 
   const addPeriod = useCallback(
     async (year: string, term: 1 | 2): Promise<boolean> => {
@@ -381,9 +398,9 @@ export function useScheduleDB() {
         return false;
       }
 
-      const sourceTeachers = localDB.getTeachers(sourcePeriod.id);
+      const sourceTeachers = localDB.getTeachers(sourcePeriod.id, currentStage);
       if (sourceTeachers.length === 0) {
-        toast.error("Няма учители в избрания период");
+        toast.error("Няма учители за този етап в избрания период");
         return false;
       }
 
@@ -393,9 +410,9 @@ export function useScheduleDB() {
 
       const newlyInserted: Teacher[] = [];
       newTeachers.forEach((t) => {
-        const created = localDB.addTeacher(periodId, t.name);
+        const created = localDB.addTeacher(periodId, t.name, currentStage);
         if (created) {
-          newlyInserted.push({ id: created.id, name: created.name });
+          newlyInserted.push({ id: created.id, name: created.name, stage: created.stage });
           // Preserve unavailability settings for this teacher
           const sourceUnavail = localDB.getUnavailabilities(t.id);
           sourceUnavail.forEach((u) => {
@@ -413,9 +430,9 @@ export function useScheduleDB() {
       }
 
       if (includeAssignments) {
-        const sourceAssignments = localDB.getAssignments(sourcePeriod.id);
+        const sourceAssignments = localDB.getAssignments(sourcePeriod.id, currentStage);
         if (sourceAssignments.length > 0) {
-          const currentAllTeachers = localDB.getTeachers(periodId);
+          const currentAllTeachers = localDB.getTeachers(periodId, currentStage);
           const nameToNewId = new Map<string, string>();
           currentAllTeachers.forEach((t) => nameToNewId.set(t.name.toLowerCase(), t.id));
 
@@ -433,19 +450,20 @@ export function useScheduleDB() {
             const key = `${newTeacherId}-${sa.day}-${sa.location}`;
             if (existingKeys.has(key)) return;
 
-            localDB.assignTeacher(periodId, newTeacherId, sa.day, sa.location, sa.shiftNumber);
+            localDB.assignTeacher(periodId, newTeacherId, sa.day, sa.location, sa.shiftNumber, currentStage);
             existingKeys.add(key);
             copiedCount++;
           });
 
           if (copiedCount > 0) {
-            const updated = localDB.getAssignments(periodId);
+            const updated = localDB.getAssignments(periodId, currentStage);
             setAssignments(
               updated.map((a) => ({
                 teacherId: a.teacherId,
                 day: a.day,
                 location: a.location,
                 shiftNumber: a.shiftNumber,
+                stage: a.stage,
               }))
             );
             toast.success(
@@ -465,22 +483,25 @@ export function useScheduleDB() {
       }
       return true;
     },
-    [periodId, availablePeriods, teachers, assignments]
+    [periodId, availablePeriods, teachers, assignments, currentStage]
   );
 
   const clearSchedule = useCallback(async (): Promise<boolean> => {
     if (!periodId) return false;
-    localDB.clearAssignmentsForPeriod(periodId);
+    localDB.clearAssignmentsForPeriod(periodId, currentStage);
     setAssignments([]);
-    toast.success("Всички дежурства от графика бяха изчистени!");
+    const stageLabel = currentStage === "primary" ? "начален етап" : "прогимназиален/гимназиален етап";
+    toast.success(`Всички дежурства за ${stageLabel} бяха изчистени!`);
     return true;
-  }, [periodId]);
+  }, [periodId, currentStage]);
 
   return {
     teachers,
     assignments,
     teacherAssignmentCounts,
     currentPeriod,
+    currentStage,
+    changeStage,
     isLoading,
     availablePeriods,
     availableYears,

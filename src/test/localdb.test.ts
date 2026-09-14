@@ -196,5 +196,62 @@ describe("localDB - In-browser Database", () => {
     expect(loginRes.error).toBeNull();
     expect(localDB.getAdminSession()).toBe(true);
   });
+
+  it("separates primary stage teachers and assignments from secondary stage", () => {
+    const periods = localDB.getPeriods();
+    const periodId = periods[0].id;
+
+    // Secondary teachers exist by default
+    const secTeachers = localDB.getTeachers(periodId, "secondary");
+    expect(secTeachers.length).toBeGreaterThan(0);
+
+    // Primary teachers start empty
+    const initialPrimaryTeachers = localDB.getTeachers(periodId, "primary");
+    expect(initialPrimaryTeachers.length).toBe(0);
+
+    // Add primary teacher
+    const primaryTeacher = localDB.addTeacher("Мария Иванова - начален учител", periodId, "primary");
+    expect(primaryTeacher).not.toBeNull();
+    expect(primaryTeacher?.stage).toBe("primary");
+
+    // Primary list has 1, secondary list remains unchanged
+    const afterPrimaryTeachers = localDB.getTeachers(periodId, "primary");
+    expect(afterPrimaryTeachers.length).toBe(1);
+    expect(afterPrimaryTeachers[0].name).toBe("Мария Иванова - начален учител");
+
+    const afterSecTeachers = localDB.getTeachers(periodId, "secondary");
+    expect(afterSecTeachers.length).toBe(secTeachers.length);
+    expect(afterSecTeachers.some((t) => t.id === primaryTeacher?.id)).toBe(false);
+
+    const initialSecAssignmentsCount = localDB.getAssignments(periodId, "secondary").length;
+
+    // Assign primary teacher to a primary location
+    localDB.assignTeacher(periodId, primaryTeacher!.id, "Понеделник", "Главен дежурен параден вход - 07:00 ч.", null, "primary");
+    // Assign secondary teacher to secondary location
+    localDB.assignTeacher(periodId, secTeachers[0].id, "Вторник", "Дежурни на III-ти етаж", 1, "secondary");
+
+    const primaryAssignments = localDB.getAssignments(periodId, "primary");
+    const secAssignments = localDB.getAssignments(periodId, "secondary");
+
+    expect(primaryAssignments.length).toBe(1);
+    expect(primaryAssignments[0].teacherId).toBe(primaryTeacher!.id);
+    expect(primaryAssignments[0].location).toBe("Главен дежурен параден вход - 07:00 ч.");
+
+    expect(secAssignments.length).toBe(initialSecAssignmentsCount + 1);
+    expect(secAssignments.some((a) => a.teacherId === secTeachers[0].id)).toBe(true);
+
+    // Clearing primary assignments leaves secondary intact
+    localDB.clearAssignmentsForPeriod(periodId, "primary");
+    expect(localDB.getAssignments(periodId, "primary").length).toBe(0);
+    expect(localDB.getAssignments(periodId, "secondary").length).toBe(initialSecAssignmentsCount + 1);
+  });
+
+  it("provides primary stage default settings and locations", () => {
+    const settings = localDB.getSettings();
+    expect(settings.primary_location_1).toBe("Главен дежурен параден вход - 07:00 ч.");
+    expect(settings.primary_location_2).toBe("Дежурен на I етаж - 07:30 ч.");
+    expect(settings.primary_location_3).toBe("Дежурен на II етаж - 07:30 ч.");
+    expect(settings.pdf_schedule_description_primary).toContain("начален етап");
+  });
 });
 

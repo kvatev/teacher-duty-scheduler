@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react";
-import { DAYS, CellTeacher, SchoolPeriod } from "@/types/schedule";
+import { DAYS, CellTeacher, SchoolPeriod, SchoolStage } from "@/types/schedule";
 import { AppSettings } from "@/hooks/useAppSettings";
 import defaultLogo from "@/assets/su-konstantin-petkanов-logo.png";
 
@@ -7,16 +7,26 @@ interface PrintableScheduleProps {
   getAssignmentsForCell: (day: string, location: string) => CellTeacher[];
   currentPeriod: SchoolPeriod;
   settings: AppSettings;
+  currentStage?: SchoolStage;
 }
 
 export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableScheduleProps>(
-  ({ getAssignmentsForCell, currentPeriod, settings }, ref) => {
+  ({ getAssignmentsForCell, currentPeriod, settings, currentStage = "secondary" }, ref) => {
     if (!currentPeriod) return null;
 
-    const locations = [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
+    const locations = currentStage === "primary"
+      ? [
+          settings.primary_location_1 || "Главен дежурен параден вход - 07:00 ч.",
+          settings.primary_location_2 || "Дежурен на I етаж - 07:30 ч.",
+          settings.primary_location_3 || "Дежурен на II етаж - 07:30 ч.",
+        ]
+      : [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
     const logoSrc = settings.logo_url || defaultLogo;
     const termText = currentPeriod.term === 1 ? settings.term_1_label : settings.term_2_label;
     const yearText = `${currentPeriod.year} учебна година`;
+    const description = currentStage === "primary"
+      ? (settings.pdf_schedule_description_primary || "за дежурство на учителите от начален етап (I - IV клас)")
+      : settings.pdf_schedule_description;
 
     return (
       <div
@@ -47,7 +57,7 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
         <div className="text-center mb-4">
           <h2 className="text-lg font-bold">{settings.schedule_title}</h2>
           <p className="text-sm">
-            {settings.pdf_schedule_description} {termText}, {yearText}
+            {description} {termText}, {yearText}
           </p>
         </div>
 

@@ -4,6 +4,7 @@ import {
   getPeriodKey,
   DAYS,
   LOCATIONS,
+  PRIMARY_LOCATIONS,
   SchoolPeriod,
 } from "@/types/schedule";
 import {
@@ -97,12 +98,19 @@ describe("Schedule Constants & Days", () => {
     ]);
   });
 
-  it("should have 4 predefined locations", () => {
+  it("should have 4 predefined locations for secondary stage", () => {
     expect(LOCATIONS).toHaveLength(4);
     expect(LOCATIONS[0]).toContain("III-ти етаж");
     expect(LOCATIONS[1]).toContain("IV-ти етаж");
     expect(LOCATIONS[2]).toContain("Училищен стол");
     expect(LOCATIONS[3]).toContain("Главен дежурен");
+  });
+
+  it("should have 3 predefined locations for primary stage (I - IV grade)", () => {
+    expect(PRIMARY_LOCATIONS).toHaveLength(3);
+    expect(PRIMARY_LOCATIONS[0]).toBe("Главен дежурен параден вход - 07:00 ч.");
+    expect(PRIMARY_LOCATIONS[1]).toBe("Дежурен на I етаж - 07:30 ч.");
+    expect(PRIMARY_LOCATIONS[2]).toBe("Дежурен на II етаж - 07:30 ч.");
   });
 });
 

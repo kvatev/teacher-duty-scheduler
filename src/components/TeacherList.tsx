@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Plus, Users, Shuffle, Search, CalendarOff, RotateCcw } from "lucide-react";
-import { Teacher } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,6 +29,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+import { Teacher, SchoolStage } from "@/types/schedule";
+
 interface TeacherListProps {
   teachers: Teacher[];
   counts: Record<string, number>;
@@ -37,6 +38,7 @@ interface TeacherListProps {
   onRemoveTeacher: (id: string) => void | Promise<void>;
   onAutoArrange?: () => void | Promise<void>;
   onClearSchedule?: () => Promise<boolean>;
+  currentStage?: SchoolStage;
 }
 
 export function TeacherList({
@@ -46,6 +48,7 @@ export function TeacherList({
   onRemoveTeacher,
   onAutoArrange,
   onClearSchedule,
+  currentStage = "secondary",
 }: TeacherListProps) {
   const { isAdmin } = useAuth();
   const isMobile = useIsMobile();
@@ -107,8 +110,10 @@ export function TeacherList({
       <div className="p-4 border-b bg-table-header rounded-t-lg flex-shrink-0">
         <div className="flex items-center gap-2 text-table-header-foreground">
           <Users className="w-5 h-5" />
-          <h2 className="font-semibold">Учители</h2>
-          <span className="ml-auto text-sm opacity-80">
+          <h2 className="font-semibold text-sm sm:text-base">
+            {currentStage === "primary" ? "Учители I – IV клас" : "Учители V – XII клас"}
+          </h2>
+          <span className="ml-auto text-xs sm:text-sm opacity-85 font-mono">
             ({filteredTeachers.length}/{teachers.length})
           </span>
         </div>
@@ -221,13 +226,14 @@ export function TeacherList({
                 <AlertDialogHeader>
                   <AlertDialogTitle className="flex items-center gap-2 text-foreground">
                     <RotateCcw className="w-5 h-5 text-amber-600" />
-                    Изчистване на графика
+                    Изчистване на графика ({currentStage === "primary" ? "I – IV клас" : "V – XII клас"})
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    Сигурни ли сте, че искате бързо да изчистите всички поставени дежурства от графика?
+                    Сигурни ли сте, че искате бързо да изчистите всички поставени дежурства за{" "}
+                    <strong>{currentStage === "primary" ? "начален етап (I – IV клас)" : "прогимназиален/гимназиален етап (V – XII клас)"}</strong>?
                     <br /><br />
                     <span className="text-muted-foreground">
-                      ℹ️ <strong>Учителите в списъка ще се запазят непокътнати.</strong> Изчистват се само попълнените дежурства в таблицата, за да можете бързо да поправите грешка.
+                      ℹ️ <strong>Учителите в списъка ще се запазят непокътнати.</strong> Изчистват се само попълнените дежурства в таблицата за този етап.
                     </span>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -255,17 +261,28 @@ export function TeacherList({
             </DialogTrigger>
             <DialogContent className="mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full max-w-sm">
               <DialogHeader>
-                <DialogTitle>Добави нов учител</DialogTitle>
+                <DialogTitle>
+                  Добави учител ({currentStage === "primary" ? "Начален етап I – IV клас" : "V – XII клас"})
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
-                <Input
-                  placeholder="Име на учителя"
-                  value={newTeacherName}
-                  onChange={(e) => setNewTeacherName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAddTeacher();
-                  }}
-                />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Име на учителя</label>
+                  <Input
+                    placeholder={
+                      currentStage === "primary"
+                        ? "напр. Мария Иванова (начален учител)"
+                        : "напр. Иван Иванов"
+                    }
+                    value={newTeacherName}
+                    onChange={(e) => setNewTeacherName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleAddTeacher();
+                      }
+                    }}
+                  />
+                </div>
                 <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
                   <Button
                     variant="outline"

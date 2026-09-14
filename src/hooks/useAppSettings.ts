@@ -17,6 +17,9 @@ export interface AppSettings {
   location_2: string;
   location_3: string;
   location_4: string;
+  primary_location_1: string;
+  primary_location_2: string;
+  primary_location_3: string;
   logo_url: string;
   schedule_title: string;
   approval_text: string;
@@ -25,6 +28,7 @@ export interface AppSettings {
   tip_text: string;
   term_1_label: string;
   term_2_label: string;
+  pdf_schedule_description_primary: string;
 }
 
 export function useAppSettings() {

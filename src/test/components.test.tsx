@@ -9,6 +9,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { MobileInstallButton } from "@/components/PWAInstallPrompt";
 import { AdminSettingsPanel } from "@/components/AdminSettingsPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { StageSelector } from "@/components/StageSelector";
+import { ScheduleTable } from "@/components/ScheduleTable";
 
 const mockSettings: AppSettings = {
   header_title: "График за дежурства",
@@ -33,6 +35,10 @@ const mockSettings: AppSettings = {
   tip_text: "💡 Съвет",
   term_1_label: "I учебен срок",
   term_2_label: "II учебен срок",
+  primary_location_1: "Главен дежурен параден вход - 07:00 ч.",
+  primary_location_2: "Дежурен на I етаж - 07:30 ч.",
+  primary_location_3: "Дежурен на II етаж - 07:30 ч.",
+  pdf_schedule_description_primary: "за дежурство на учителите от начален етап (I - IV клас)",
 };
 
 describe("Legend Component", () => {
@@ -157,4 +163,90 @@ describe("ErrorBoundary Component", () => {
     consoleErrorSpy.mockRestore();
   });
 });
+
+describe("StageSelector Component", () => {
+  it("renders both educational stages with badges", () => {
+    const handleChange = vi.fn();
+    render(<StageSelector currentStage="secondary" onStageChange={handleChange} />);
+
+    expect(screen.getByText("Прогимназиален / Гимназиален")).toBeInTheDocument();
+    expect(screen.getByText("V – XII клас")).toBeInTheDocument();
+    expect(screen.getByText("Начален етап")).toBeInTheDocument();
+    expect(screen.getByText("I – IV клас")).toBeInTheDocument();
+  });
+
+  it("calls onStageChange with 'primary' when primary tab is clicked", () => {
+    const handleChange = vi.fn();
+    render(<StageSelector currentStage="secondary" onStageChange={handleChange} />);
+
+    const primaryButton = screen.getByRole("tab", { name: /Начален етап/i });
+    fireEvent.click(primaryButton);
+
+    expect(handleChange).toHaveBeenCalledWith("primary");
+  });
+
+  it("calls onStageChange with 'secondary' when secondary tab is clicked", () => {
+    const handleChange = vi.fn();
+    render(<StageSelector currentStage="primary" onStageChange={handleChange} />);
+
+    const secondaryButton = screen.getByRole("tab", { name: /Прогимназиален/i });
+    fireEvent.click(secondaryButton);
+
+    expect(handleChange).toHaveBeenCalledWith("secondary");
+  });
+});
+
+describe("ScheduleTable Component with Stages", () => {
+  const dummyPeriod = { year: "2025/2026", term: 1 as const };
+
+  it("renders 3 primary stage location columns when currentStage='primary'", () => {
+    render(
+      <AuthProvider>
+        <ScheduleTable
+          currentPeriod={dummyPeriod}
+          currentStage="primary"
+          getAssignmentsForCell={() => []}
+          counts={{}}
+          onAssign={vi.fn()}
+          onUnassign={vi.fn()}
+          onMove={vi.fn()}
+          settings={mockSettings}
+          teachers={[]}
+        />
+      </AuthProvider>
+    );
+
+    expect(screen.getAllByText("Главен дежурен параден вход - 07:00 ч.").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Дежурен на I етаж - 07:30 ч.").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Дежурен на II етаж - 07:30 ч.").length).toBeGreaterThan(0);
+    // Secondary location should NOT be present
+    expect(screen.queryAllByText("Дежурни на III-ти етаж").length).toBe(0);
+  });
+
+  it("renders 4 secondary stage location columns when currentStage='secondary'", () => {
+    render(
+      <AuthProvider>
+        <ScheduleTable
+          currentPeriod={dummyPeriod}
+          currentStage="secondary"
+          getAssignmentsForCell={() => []}
+          counts={{}}
+          onAssign={vi.fn()}
+          onUnassign={vi.fn()}
+          onMove={vi.fn()}
+          settings={mockSettings}
+          teachers={[]}
+        />
+      </AuthProvider>
+    );
+
+    expect(screen.getAllByText("Дежурни на III-ти етаж").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Дежурни на IV-ти етаж").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Училищен стол").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Главен дежурен").length).toBeGreaterThan(0);
+    // Primary location should NOT be present
+    expect(screen.queryAllByText("Дежурен на I етаж - 07:30 ч.").length).toBe(0);
+  });
+});
+
 

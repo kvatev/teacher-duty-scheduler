@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useMemo, useCallback, useState } from "react";
 import { AppSettings } from "@/hooks/useAppSettings";
-import { DAYS, CellTeacher, SchoolPeriod, Teacher } from "@/types/schedule";
+import { DAYS, CellTeacher, SchoolPeriod, Teacher, SchoolStage } from "@/types/schedule";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
@@ -41,6 +41,7 @@ interface ScheduleTableProps {
   onExportReady?: (exportFn: () => Promise<void>) => void;
   settings?: AppSettings;
   teachers?: Teacher[];
+  currentStage?: SchoolStage;
 }
 
 export function ScheduleTable({
@@ -54,6 +55,7 @@ export function ScheduleTable({
   onExportReady,
   settings,
   teachers = [],
+  currentStage = "secondary",
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
@@ -67,13 +69,29 @@ export function ScheduleTable({
   const getTeacherName = (id: string) => teachers.find((t) => t.id === id)?.name;
 
   const locations = useMemo(() => {
+    if (currentStage === "primary") {
+      if (settings) {
+        return [
+          settings.primary_location_1 || "Главен дежурен параден вход - 07:00 ч.",
+          settings.primary_location_2 || "Дежурен на I етаж - 07:30 ч.",
+          settings.primary_location_3 || "Дежурен на II етаж - 07:30 ч.",
+        ];
+      }
+      return [
+        "Главен дежурен параден вход - 07:00 ч.",
+        "Дежурен на I етаж - 07:30 ч.",
+        "Дежурен на II етаж - 07:30 ч.",
+      ];
+    }
     if (settings) {
       return [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
     }
     return ["Дежурни на III-ти етаж", "Дежурни на IV-ти етаж", "Училищен стол и пред кабинет по музика", DEFAULT_SHIFT_LOCATION];
-  }, [settings]);
+  }, [settings, currentStage]);
 
-  const shiftLocation = settings?.location_4 || DEFAULT_SHIFT_LOCATION;
+  const shiftLocation = currentStage === "primary"
+    ? (settings?.primary_location_1 || "Главен дежурен параден вход - 07:00 ч.")
+    : (settings?.location_4 || DEFAULT_SHIFT_LOCATION);
 
   const handleExportPDF = useCallback(async () => {
     if (!printableRef.current) {
@@ -126,14 +144,15 @@ export function ScheduleTable({
 
       pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
 
-      const fileName = `grafik-${currentPeriod.year.replace("/", "-")}-srok-${currentPeriod.term}.pdf`;
+      const stagePrefix = currentStage === "primary" ? "nachalen-etap" : "progimnazia";
+      const fileName = `grafik-${stagePrefix}-${currentPeriod.year.replace("/", "-")}-srok-${currentPeriod.term}.pdf`;
       pdf.save(fileName);
       toast.success("PDF файлът е изтеглен успешно!", { id: "pdf-export" });
     } catch (error) {
       console.error("Error exporting PDF:", error);
       toast.error("Грешка при генериране на PDF", { id: "pdf-export" });
     }
-  }, [currentPeriod]);
+  }, [currentPeriod, currentStage]);
 
   // Expose export function to parent
   useEffect(() => {
@@ -323,6 +342,7 @@ export function ScheduleTable({
           getAssignmentsForCell={getAssignmentsForCell}
           currentPeriod={currentPeriod}
           settings={settings!}
+          currentStage={currentStage}
         />
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users, Download, Database, RefreshCw } from "lucide-react";
+import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users, Download, Database, RefreshCw, GraduationCap, Backpack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -308,12 +308,29 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                   </div>
                 </TabsContent>
 
-                <TabsContent value="locations" className="space-y-4 mt-0">
-                  <p className="text-sm text-muted-foreground">Редактирайте имената на колоните в графика за дежурства.</p>
-                  <SettingInput id="location_1" label="Локация 1" value={draft.location_1} onChange={(v) => updateDraft("location_1", v)} />
-                  <SettingInput id="location_2" label="Локация 2" value={draft.location_2} onChange={(v) => updateDraft("location_2", v)} />
-                  <SettingInput id="location_3" label="Локация 3" value={draft.location_3} onChange={(v) => updateDraft("location_3", v)} />
-                  <SettingInput id="location_4" label="Локация 4 (дежурен с номерация)" value={draft.location_4} onChange={(v) => updateDraft("location_4", v)} />
+                <TabsContent value="locations" className="space-y-6 mt-0">
+                  <p className="text-sm text-muted-foreground">Редактирайте имената на колоните (локациите) в графика за дежурства според етапа.</p>
+
+                  <div className="space-y-3 p-3.5 rounded-lg border bg-muted/20">
+                    <div className="flex items-center gap-2 font-medium text-sm text-foreground">
+                      <GraduationCap className="w-4 h-4 text-primary" />
+                      <span>Прогимназиален и гимназиален етап (V – XII клас)</span>
+                    </div>
+                    <SettingInput id="location_1" label="Локация 1" value={draft.location_1} onChange={(v) => updateDraft("location_1", v)} />
+                    <SettingInput id="location_2" label="Локация 2" value={draft.location_2} onChange={(v) => updateDraft("location_2", v)} />
+                    <SettingInput id="location_3" label="Локация 3" value={draft.location_3} onChange={(v) => updateDraft("location_3", v)} />
+                    <SettingInput id="location_4" label="Локация 4 (дежурен с номерация)" value={draft.location_4} onChange={(v) => updateDraft("location_4", v)} />
+                  </div>
+
+                  <div className="space-y-3 p-3.5 rounded-lg border bg-muted/20">
+                    <div className="flex items-center gap-2 font-medium text-sm text-foreground">
+                      <Backpack className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span>Начален етап (I – IV клас)</span>
+                    </div>
+                    <SettingInput id="primary_location_1" label="Локация 1 (Параден вход)" value={draft.primary_location_1} onChange={(v) => updateDraft("primary_location_1", v)} />
+                    <SettingInput id="primary_location_2" label="Локация 2 (I етаж)" value={draft.primary_location_2} onChange={(v) => updateDraft("primary_location_2", v)} />
+                    <SettingInput id="primary_location_3" label="Локация 3 (II етаж)" value={draft.primary_location_3} onChange={(v) => updateDraft("primary_location_3", v)} />
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="pdf" className="space-y-4 mt-0">
@@ -323,7 +340,8 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                     <SettingInput id="pdf_school_info2" label="Адрес и имейл (ред 2)" value={draft.pdf_school_info2} onChange={(v) => updateDraft("pdf_school_info2", v)} />
                   </div>
                   <SettingInput id="pdf_director_name" label="Име на директора" value={draft.pdf_director_name} onChange={(v) => updateDraft("pdf_director_name", v)} />
-                  <SettingTextarea id="pdf_schedule_description" label="Описание на графика (PDF)" value={draft.pdf_schedule_description} onChange={(v) => updateDraft("pdf_schedule_description", v)} />
+                  <SettingTextarea id="pdf_schedule_description" label="Описание на графика за V – XII клас (PDF)" value={draft.pdf_schedule_description} onChange={(v) => updateDraft("pdf_schedule_description", v)} />
+                  <SettingTextarea id="pdf_schedule_description_primary" label="Описание на графика за I – IV клас (PDF)" value={draft.pdf_schedule_description_primary} onChange={(v) => updateDraft("pdf_schedule_description_primary", v)} />
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <SettingInput id="schedule_title" label="Заглавие на графика" value={draft.schedule_title} onChange={(v) => updateDraft("schedule_title", v)} />
                     <SettingInput id="approval_text" label="Текст за утвърждаване" value={draft.approval_text} onChange={(v) => updateDraft("approval_text", v)} />

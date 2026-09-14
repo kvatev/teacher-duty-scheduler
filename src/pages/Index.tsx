@@ -4,6 +4,7 @@ import { TeacherList } from "@/components/TeacherList";
 import { ScheduleTable } from "@/components/ScheduleTable";
 import { Legend } from "@/components/Legend";
 import { PeriodSelector } from "@/components/PeriodSelector";
+import { StageSelector } from "@/components/StageSelector";
 import { BroadcastBanner } from "@/components/BroadcastBanner";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { NotificationPrompt } from "@/components/NotificationPrompt";
@@ -20,6 +21,8 @@ const Index = () => {
     teachers,
     teacherAssignmentCounts,
     currentPeriod,
+    currentStage,
+    changeStage,
     isLoading,
     availablePeriods,
     availableYears,
@@ -95,17 +98,24 @@ const Index = () => {
         <BroadcastBanner />
 
         {/* Top Controls Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card rounded-lg border p-3 shadow-xs">
-          <PeriodSelector
-            currentPeriod={currentPeriod}
-            availablePeriods={availablePeriods}
-            availableYears={availableYears}
-            getTermsForYear={getTermsForYear}
-            onPeriodChange={changePeriod}
-            onAddPeriod={addPeriod}
-            onDeletePeriod={deletePeriod}
-            onCopyTeachers={copyTeachersFromPeriod}
-          />
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 bg-card rounded-lg border p-3 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <PeriodSelector
+              currentPeriod={currentPeriod}
+              availablePeriods={availablePeriods}
+              availableYears={availableYears}
+              getTermsForYear={getTermsForYear}
+              onPeriodChange={changePeriod}
+              onAddPeriod={addPeriod}
+              onDeletePeriod={deletePeriod}
+              onCopyTeachers={copyTeachersFromPeriod}
+            />
+            <div className="hidden sm:block w-px h-8 bg-border/60" />
+            <StageSelector
+              currentStage={currentStage}
+              onStageChange={changeStage}
+            />
+          </div>
           <Legend onExportPDF={handleExportPDF} />
         </div>
 
@@ -136,7 +146,9 @@ const Index = () => {
               )}
             >
               <Users className="w-3.5 h-3.5" />
-              <span>Учители ({teachers.length})</span>
+              <span>
+                {currentStage === "primary" ? "Учители I–IV" : "Учители V–XII"} ({teachers.length})
+              </span>
             </button>
           </div>
         )}
@@ -158,6 +170,7 @@ const Index = () => {
                 onRemoveTeacher={removeTeacher}
                 onAutoArrange={autoArrangeTeachers}
                 onClearSchedule={clearSchedule}
+                currentStage={currentStage}
               />
             </aside>
           )}
@@ -180,6 +193,7 @@ const Index = () => {
               onUpdateShiftNumber={updateShiftNumber}
               settings={settings}
               teachers={teachers}
+              currentStage={currentStage}
             />
 
             {isAdmin && settings.tip_text && (

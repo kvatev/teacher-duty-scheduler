@@ -1,5 +1,5 @@
 import { AppSettings } from "@/hooks/useAppSettings";
-import { SchoolPeriod, getCurrentPeriod } from "@/types/schedule";
+import { SchoolPeriod, SchoolStage, getCurrentPeriod } from "@/types/schedule";
 import { Weekday } from "@/hooks/useUnavailability";
 
 export interface DBPeriod {
@@ -12,6 +12,7 @@ export interface DBTeacher {
   id: string;
   name: string;
   periodId: string;
+  stage?: SchoolStage;
 }
 
 export interface DBAssignment {
@@ -21,6 +22,7 @@ export interface DBAssignment {
   location: string;
   shiftNumber: number | null;
   periodId: string;
+  stage?: SchoolStage;
 }
 
 export interface DBUnavailability {
@@ -75,6 +77,9 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   location_2: "Дежурни на IV-ти етаж",
   location_3: "Училищен стол и пред кабинет по музика",
   location_4: "Главен дежурен – западен вход 07:30-08:40 ч.",
+  primary_location_1: "Главен дежурен параден вход - 07:00 ч.",
+  primary_location_2: "Дежурен на I етаж - 07:30 ч.",
+  primary_location_3: "Дежурен на II етаж - 07:30 ч.",
   logo_url: "",
   schedule_title: "ГРАФИК",
   approval_text: "УТВЪРЖДАВАМ:",
@@ -83,6 +88,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   tip_text: "💡 Съвет: Провлачете учител от списъка вляво в желаната клетка, или преместете между клетки",
   term_1_label: "I учебен срок",
   term_2_label: "II учебен срок",
+  pdf_schedule_description_primary: "за дежурство на учителите от начален етап (I - IV клас)",
 };
 
 const INITIAL_TEACHER_NAMES = [
@@ -219,15 +225,16 @@ function initializeSeedData(): { period: DBPeriod } {
       id: String(i + 1),
       name,
       periodId: defaultPeriod.id,
+      stage: "secondary",
     }));
     setToStorage(STORAGE_KEYS.TEACHERS, initialTeachers);
 
     const initialAssignments: DBAssignment[] = [
-      { id: generateId(), teacherId: "1", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id },
-      { id: generateId(), teacherId: "2", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id },
-      { id: generateId(), teacherId: "5", day: "Понеделник", location: "Дежурни на IV-ти етаж", shiftNumber: null, periodId: defaultPeriod.id },
-      { id: generateId(), teacherId: "9", day: "Понеделник", location: "Училищен стол и пред кабинет по музика", shiftNumber: null, periodId: defaultPeriod.id },
-      { id: generateId(), teacherId: "11", day: "Понеделник", location: "Главен дежурен – западен вход 07:30-08:40 ч.", shiftNumber: 1, periodId: defaultPeriod.id },
+      { id: generateId(), teacherId: "1", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "2", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "5", day: "Понеделник", location: "Дежурни на IV-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "9", day: "Понеделник", location: "Училищен стол и пред кабинет по музика", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
+      { id: generateId(), teacherId: "11", day: "Понеделник", location: "Главен дежурен – западен вход 07:30-08:40 ч.", shiftNumber: 1, periodId: defaultPeriod.id, stage: "secondary" },
     ];
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, initialAssignments);
     return { period: defaultPeriod };
@@ -298,32 +305,60 @@ export const localDB = {
   },
 
   // Teachers
-  getTeachers(periodId?: string): DBTeacher[] {
+  getTeachers(periodId?: string, stage?: SchoolStage): DBTeacher[] {
     let teachers = getFromStorage<DBTeacher[]>(STORAGE_KEYS.TEACHERS, []);
     if (teachers.length === 0) {
       this.getPeriods();
       teachers = getFromStorage<DBTeacher[]>(STORAGE_KEYS.TEACHERS, []);
     }
-    if (!periodId) return teachers;
-    return teachers.filter((t) => t.periodId === periodId);
+    let filtered = teachers;
+    if (periodId) {
+      filtered = filtered.filter((t) => t.periodId === periodId);
+    }
+    if (stage) {
+      filtered = filtered.filter((t) => (t.stage || "secondary") === stage);
+    }
+    return filtered;
   },
 
-  addTeacher(periodIdOrName: string, maybeName?: string): DBTeacher | null {
-    let periodId: string;
-    let name: string;
-    if (maybeName !== undefined) {
-      periodId = periodIdOrName;
-      name = maybeName;
-    } else {
-      const periods = this.getPeriods();
-      periodId = periods[0]?.id || "default";
-      name = periodIdOrName;
+  addTeacher(
+    arg1: string,
+    arg2?: string | SchoolStage,
+    arg3?: SchoolStage
+  ): DBTeacher | null {
+    const periods = this.getPeriods();
+    let periodId: string = periods[0]?.id || "default";
+    let name: string = "";
+    let stage: SchoolStage = "secondary";
+
+    if (arg2 === undefined && arg3 === undefined) {
+      name = arg1;
+    } else if (arg2 === "primary" || arg2 === "secondary") {
+      name = arg1;
+      stage = arg2;
+    } else if (arg3 !== undefined) {
+      stage = arg3;
+      if (periods.some((p) => p.id === arg1)) {
+        periodId = arg1;
+        name = typeof arg2 === "string" ? arg2 : "";
+      } else {
+        periodId = typeof arg2 === "string" ? arg2 : periods[0]?.id || "default";
+        name = arg1;
+      }
+    } else if (typeof arg2 === "string") {
+      if (periods.some((p) => p.id === arg1)) {
+        periodId = arg1;
+        name = arg2;
+      } else {
+        periodId = periods[0]?.id || "default";
+        name = arg1;
+      }
     }
 
     const trimmed = name.trim();
     const teachers = this.getTeachers();
     const exists = teachers.some(
-      (t) => t.periodId === periodId && t.name.toLowerCase() === trimmed.toLowerCase()
+      (t) => t.periodId === periodId && (t.stage || "secondary") === stage && t.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (exists) return null;
 
@@ -331,6 +366,7 @@ export const localDB = {
       id: generateId(),
       name: trimmed,
       periodId,
+      stage,
     };
     setToStorage(STORAGE_KEYS.TEACHERS, [...teachers, newTeacher]);
     return newTeacher;
@@ -348,7 +384,7 @@ export const localDB = {
   },
 
   // Assignments
-  getAssignments(periodId?: string): DBAssignment[] {
+  getAssignments(periodId?: string, stage?: SchoolStage): DBAssignment[] {
     const raw = getFromStorage<DBAssignment[]>(STORAGE_KEYS.ASSIGNMENTS, []);
     const seen = new Set<string>();
     const deduplicated: DBAssignment[] = [];
@@ -372,11 +408,24 @@ export const localDB = {
       }
     }
 
-    if (!periodId) return deduplicated;
-    return deduplicated.filter((a) => a.periodId === periodId);
+    let filtered = deduplicated;
+    if (periodId) {
+      filtered = filtered.filter((a) => a.periodId === periodId);
+    }
+    if (stage) {
+      filtered = filtered.filter((a) => (a.stage || "secondary") === stage);
+    }
+    return filtered;
   },
 
-  assignTeacher(periodId: string, teacherId: string, day: string, location: string, shiftNumber: number | null = null): boolean {
+  assignTeacher(
+    periodId: string,
+    teacherId: string,
+    day: string,
+    location: string,
+    shiftNumber: number | null = null,
+    stage: SchoolStage = "secondary"
+  ): boolean {
     const assignments = this.getAssignments();
     const exists = assignments.some(
       (a) => a.periodId === periodId && a.teacherId === teacherId && a.day === day && a.location === location
@@ -390,6 +439,7 @@ export const localDB = {
       location,
       shiftNumber,
       periodId,
+      stage,
     };
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, [...assignments, newAssignment]);
     return true;
@@ -402,8 +452,12 @@ export const localDB = {
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, assignments);
   },
 
-  clearAssignmentsForPeriod(periodId: string): void {
-    const assignments = this.getAssignments().filter((a) => a.periodId !== periodId);
+  clearAssignmentsForPeriod(periodId: string, stage?: SchoolStage): void {
+    const assignments = this.getAssignments().filter((a) => {
+      if (a.periodId !== periodId) return true;
+      if (stage && (a.stage || "secondary") !== stage) return true;
+      return false;
+    });
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, assignments);
   },
 
@@ -420,6 +474,7 @@ export const localDB = {
       (a) => a.periodId === periodId && a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation
     );
     const shiftNumber = oldAssignment?.shiftNumber ?? null;
+    const stage = oldAssignment?.stage || "secondary";
 
     const filtered = assignments.filter(
       (a) => !(a.periodId === periodId && a.teacherId === teacherId && a.day === fromDay && a.location === fromLocation)
@@ -432,6 +487,7 @@ export const localDB = {
       day: toDay,
       location: toLocation,
       shiftNumber,
+      stage,
     });
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, filtered);
   },
@@ -446,9 +502,13 @@ export const localDB = {
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, assignments);
   },
 
-  setAssignmentsForPeriod(periodId: string, newAssignments: Omit<DBAssignment, "id">[]): void {
-    const otherAssignments = this.getAssignments().filter((a) => a.periodId !== periodId);
-    const withIds = newAssignments.map((a) => ({ ...a, id: generateId() }));
+  setAssignmentsForPeriod(periodId: string, newAssignments: Omit<DBAssignment, "id">[], stage?: SchoolStage): void {
+    const otherAssignments = this.getAssignments().filter((a) => {
+      if (a.periodId !== periodId) return true;
+      if (stage && (a.stage || "secondary") !== stage) return true;
+      return false;
+    });
+    const withIds = newAssignments.map((a) => ({ ...a, id: generateId(), stage: a.stage || stage || "secondary" }));
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, [...otherAssignments, ...withIds]);
   },
 

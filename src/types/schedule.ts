@@ -1,6 +1,9 @@
+export type SchoolStage = "secondary" | "primary";
+
 export interface Teacher {
   id: string;
   name: string;
+  stage?: SchoolStage;
 }
 
 export interface DutyAssignment {
@@ -8,6 +11,7 @@ export interface DutyAssignment {
   day: string;
   location: string;
   shiftNumber?: number | null;
+  stage?: SchoolStage;
 }
 
 export interface CellTeacher extends Teacher {
@@ -46,8 +50,15 @@ export const LOCATIONS = [
   "Главен дежурен – западен вход 07:30-08:40 ч.",
 ] as const;
 
+export const PRIMARY_LOCATIONS = [
+  "Главен дежурен параден вход - 07:00 ч.",
+  "Дежурен на I етаж - 07:30 ч.",
+  "Дежурен на II етаж - 07:30 ч.",
+] as const;
+
 export type Day = typeof DAYS[number];
 export type Location = typeof LOCATIONS[number];
+export type PrimaryLocation = typeof PRIMARY_LOCATIONS[number];
 
 // Available school years (can be extended)
 export const SCHOOL_YEARS = [
