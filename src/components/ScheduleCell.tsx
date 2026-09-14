@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { CellTeacher, Teacher } from "@/types/schedule";
+import { CellTeacher, Teacher, CANTEEN_DUTY_PRESETS } from "@/types/schedule";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -302,14 +302,14 @@ export function ScheduleCell({
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
-                  {["фоайе", "стол", "пред кабинет по музика"].map((preset) => (
+                  {CANTEEN_DUTY_PRESETS.map((preset) => (
                     <Button
                       key={preset}
                       type="button"
                       size="sm"
-                      variant={selectedNote.toLowerCase() === preset ? "default" : "outline"}
+                      variant={selectedNote.toLowerCase() === preset.toLowerCase() ? "default" : "outline"}
                       className="h-7 text-xs px-2.5 py-0"
-                      onClick={() => setSelectedNote(selectedNote.toLowerCase() === preset ? "" : preset)}
+                      onClick={() => setSelectedNote(selectedNote.toLowerCase() === preset.toLowerCase() ? "" : preset)}
                     >
                       {preset}
                     </Button>

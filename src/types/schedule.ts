@@ -59,6 +59,14 @@ export const PRIMARY_LOCATIONS = [
   "Дежурен на II етаж - 07:30 ч.",
 ] as const;
 
+export const CANTEEN_DUTY_PRESETS = [
+  "фоайе",
+  "столова",
+  "столова/фоайе",
+  "стол",
+  "пред кабинет по музика",
+] as const;
+
 export type Day = typeof DAYS[number];
 export type Location = typeof LOCATIONS[number];
 export type PrimaryLocation = typeof PRIMARY_LOCATIONS[number];

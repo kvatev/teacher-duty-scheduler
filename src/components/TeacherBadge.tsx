@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CANTEEN_DUTY_PRESETS } from "@/types/schedule";
 
 interface TeacherBadgeProps {
   id: string;
@@ -161,12 +162,12 @@ export function TeacherBadge({
             </div>
 
             <div className="flex flex-wrap gap-1">
-              {["фоайе", "стол", "пред кабинет по музика"].map((preset) => (
+              {CANTEEN_DUTY_PRESETS.map((preset) => (
                 <Button
                   key={preset}
                   type="button"
                   size="sm"
-                  variant={tempNote.toLowerCase() === preset ? "default" : "outline"}
+                  variant={tempNote.toLowerCase() === preset.toLowerCase() ? "default" : "outline"}
                   className="h-6 text-[11px] px-2 py-0"
                   onClick={() => {
                     setTempNote(preset);

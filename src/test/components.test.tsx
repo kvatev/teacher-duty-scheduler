@@ -139,6 +139,34 @@ describe("TeacherBadge Component", () => {
     expect(screen.getByText("Красимир Ватев")).toBeInTheDocument();
     expect(screen.getByText("фоайе")).toBeInTheDocument();
   });
+
+  it("renders allocation notes for 'столова' and 'столова/фоайе'", () => {
+    const { rerender } = render(
+      <AuthProvider>
+        <TeacherBadge
+          id="1"
+          name="Красимир Ватев"
+          count={1}
+          note="столова"
+          allowNote={true}
+        />
+      </AuthProvider>
+    );
+    expect(screen.getByText("столова")).toBeInTheDocument();
+
+    rerender(
+      <AuthProvider>
+        <TeacherBadge
+          id="1"
+          name="Красимир Ватев"
+          count={1}
+          note="столова/фоайе"
+          allowNote={true}
+        />
+      </AuthProvider>
+    );
+    expect(screen.getByText("столова/фоайе")).toBeInTheDocument();
+  });
 });
 
 describe("PWA Components", () => {
