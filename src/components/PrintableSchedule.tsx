@@ -16,10 +16,10 @@ export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableSchedulePro
 
     const locations = currentStage === "primary"
       ? [
-          settings.primary_location_1 || "Главен дежурен параден вход - 07:00 ч.",
-          settings.primary_location_2 || "Дежурен на I етаж - 07:30 ч.",
-          settings.primary_location_3 || "Дежурен на II етаж - 07:30 ч.",
-        ]
+        settings.primary_location_1 || "Главен дежурен параден вход - 07:00 ч.",
+        settings.primary_location_2 || "Дежурен на I етаж - 07:30 ч.",
+        settings.primary_location_3 || "Дежурен на II етаж - 07:30 ч.",
+      ]
       : [settings.location_1, settings.location_2, settings.location_3, settings.location_4];
     const logoSrc = settings.logo_url || defaultLogo;
     const termText = currentPeriod.term === 1 ? settings.term_1_label : settings.term_2_label;
