@@ -186,6 +186,7 @@ const Index = () => {
             <ScheduleTable
               getAssignmentsForCell={getAssignmentsForCell}
               counts={teacherAssignmentCounts}
+              assignments={assignments}
               onAssign={assignTeacher}
               onUnassign={unassignTeacher}
               onMove={moveTeacher}

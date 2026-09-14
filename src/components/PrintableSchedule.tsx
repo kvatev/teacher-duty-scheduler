@@ -1,17 +1,18 @@
 import React, { forwardRef } from "react";
 import { DAYS, CellTeacher, SchoolPeriod, SchoolStage } from "@/types/schedule";
 import { AppSettings } from "@/hooks/useAppSettings";
+import { DEFAULT_APP_SETTINGS } from "@/lib/localDB";
 import defaultLogo from "@/assets/su-konstantin-petkanов-logo.png";
 
 interface PrintableScheduleProps {
   getAssignmentsForCell: (day: string, location: string) => CellTeacher[];
   currentPeriod: SchoolPeriod;
-  settings: AppSettings;
+  settings?: AppSettings;
   currentStage?: SchoolStage;
 }
 
 export const PrintableSchedule = forwardRef<HTMLDivElement, PrintableScheduleProps>(
-  ({ getAssignmentsForCell, currentPeriod, settings, currentStage = "secondary" }, ref) => {
+  ({ getAssignmentsForCell, currentPeriod, settings = DEFAULT_APP_SETTINGS, currentStage = "secondary" }, ref) => {
     if (!currentPeriod) return null;
 
     const locations = currentStage === "primary"

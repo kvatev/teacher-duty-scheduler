@@ -22,6 +22,9 @@ interface TeacherBadgeProps {
   onDragEnd?: (e: React.DragEvent) => void;
   unavailable?: boolean;
   unavailableNote?: string | null;
+  hasDayConflict?: boolean;
+  dayConflictCount?: number;
+  dayName?: string;
   showRemove?: boolean;
   size?: "xs" | "sm" | "md";
   shiftNumber?: string | number | null;
@@ -51,6 +54,9 @@ export function TeacherBadge({
   size = "md",
   unavailable = false,
   unavailableNote,
+  hasDayConflict = false,
+  dayConflictCount,
+  dayName,
   shiftNumber,
   onShiftNumberChange,
   note,
@@ -98,7 +104,8 @@ export function TeacherBadge({
         getCountClass(count),
         size === "sm" && "px-2 py-1 text-xs",
         isXs && "px-1.5 py-0.5 text-[10px] leading-tight",
-        unavailable && "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:text-destructive-foreground",
+        hasDayConflict && "!bg-red-600 !border-red-700 !text-white hover:!bg-red-700 shadow-xs ring-1 ring-red-400/50",
+        unavailable && !hasDayConflict && "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:text-destructive-foreground",
         canDrag && !unavailable && "hover:shadow-md hover:scale-105 cursor-grab active:cursor-grabbing"
       )}
       draggable={canDrag}
@@ -108,6 +115,27 @@ export function TeacherBadge({
     >
       {canDrag && !isXs && (
         <GripVertical className="w-3 h-3 opacity-50 flex-shrink-0" />
+      )}
+      {hasDayConflict && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            toast.warning(
+              `Внимание: ${name} има ${dayConflictCount || 2} дежурства в ${dayName ? `ден ${dayName}` : "този ден"}!`,
+              { duration: 4500 }
+            );
+          }}
+          className={cn(
+            "inline-flex items-center justify-center font-black rounded-full bg-white text-red-600 hover:bg-white/90 shrink-0 shadow-xs cursor-pointer border-0 p-0 leading-none transition-transform hover:scale-110",
+            isXs ? "w-3 h-3 text-[9px]" : "w-3.5 h-3.5 text-[10px]"
+          )}
+          title={`Внимание: ${name} има ${dayConflictCount || 2} дежурства в ${dayName ? `ден ${dayName}` : "този ден"}!`}
+          aria-label={`Внимание: ${name} се повтаря ${dayConflictCount || 2} пъти в този ден`}
+        >
+          ✕
+        </button>
       )}
       {shiftNumber !== undefined && (
         isAdmin && onShiftNumberChange ? (
@@ -380,7 +408,7 @@ export function TeacherBadge({
       <span className={cn(
         "flex items-center justify-center rounded-full font-bold px-1",
         isXs ? "min-w-[16px] h-4 text-[10px]" : "min-w-[20px] h-5 text-xs",
-        unavailable ? "bg-white/20 text-destructive-foreground" : "bg-white/50"
+        hasDayConflict || unavailable ? "bg-white/20 text-white" : "bg-white/50"
       )}>
         {count}
       </span>
@@ -391,7 +419,11 @@ export function TeacherBadge({
             e.preventDefault();
             onRemove();
           }}
-          className={cn("rounded-full hover:bg-destructive/20 transition-colors", isXs ? "p-0" : "ml-0.5 p-0.5")}
+          className={cn(
+            "rounded-full transition-colors",
+            hasDayConflict ? "hover:bg-white/20 text-white/90 hover:text-white" : "hover:bg-destructive/20",
+            isXs ? "p-0" : "ml-0.5 p-0.5"
+          )}
           aria-label={`Премахни ${name}`}
         >
           <X className={isXs ? "w-2.5 h-2.5" : "w-3 h-3"} />

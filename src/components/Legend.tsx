@@ -39,6 +39,12 @@ export function Legend({ onExportPDF }: LegendProps) {
             <div className="w-4 h-4 rounded bg-red-500 border border-red-600" />
             <span>4+</span>
           </div>
+          <div className="flex items-center gap-1.5 pl-2 border-l border-border" title="Учителят има 2 или повече дежурства в един и същи ден">
+            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-600 border border-red-700 text-white text-[11px] font-medium leading-none shadow-xs">
+              <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-white text-red-600 text-[9px] font-black leading-none">✕</span>
+              <span>2+ в деня</span>
+            </div>
+          </div>
         </div>
 
         {/* PDF button - full width on mobile */}

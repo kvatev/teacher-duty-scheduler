@@ -40,6 +40,7 @@ interface ScheduleCellProps {
   isShiftLocation?: boolean;
   getTeacherName?: (teacherId: string) => string | undefined;
   isTeacherUnavailable?: (teacherId: string, day: string) => { note?: string | null } | null;
+  getTeacherDayCount?: (teacherId: string, day: string) => number;
   allTeachers?: Teacher[];
 }
 
@@ -56,6 +57,7 @@ export function ScheduleCell({
   isShiftLocation = false,
   getTeacherName,
   isTeacherUnavailable,
+  getTeacherDayCount,
   allTeachers = [],
 }: ScheduleCellProps) {
   const { isAdmin } = useAuth();
@@ -76,6 +78,18 @@ export function ScheduleCell({
       const noteSuffix = u.note ? ` (${u.note})` : "";
       toast.error(
         `${name} не е свободен този ден да бъде дежурен${noteSuffix}`,
+        { duration: 4500 }
+      );
+    }
+  };
+
+  const notifyIfConflict = (teacherId: string) => {
+    if (!getTeacherDayCount) return;
+    const currentCount = getTeacherDayCount(teacherId, day);
+    if (currentCount >= 1) {
+      const name = getTeacherName?.(teacherId) || "Учителят";
+      toast.warning(
+        `Внимание: ${name} вече има друго дежурство в ${day}! Балончето ще се оцвети в червено с малко „x“.`,
         { duration: 4500 }
       );
     }
@@ -133,6 +147,7 @@ export function ScheduleCell({
           toast.error("Този учител вече е в тази клетка!");
         } else {
           notifyIfUnavailable(teacherId);
+          notifyIfConflict(teacherId);
         }
       } else if (source === "cell") {
         const fromDay = e.dataTransfer.getData("fromDay");
@@ -141,6 +156,7 @@ export function ScheduleCell({
           if (fromDay !== day || fromLocation !== location) {
             await onMove(teacherId, fromDay, fromLocation, day, location);
             notifyIfUnavailable(teacherId);
+            notifyIfConflict(teacherId);
           }
         }
       }
@@ -171,6 +187,7 @@ export function ScheduleCell({
     const success = await onAssign(teacherId, day, location, shiftToAssign, noteToAssign);
     if (success) {
       notifyIfUnavailable(teacherId);
+      notifyIfConflict(teacherId);
       setIsPickerOpen(false);
       setSearchTeacher("");
       setSelectedNote("");
@@ -201,15 +218,17 @@ export function ScheduleCell({
         <div className={cn("flex flex-wrap items-center", teachers.length >= 4 ? "gap-1" : "gap-1.5")}>
           {teachers.map((teacher) => {
             const unavail = isTeacherUnavailable?.(teacher.id, day);
+            const dayDutyCount = getTeacherDayCount ? getTeacherDayCount(teacher.id, day) : 0;
+            const hasDayConflict = dayDutyCount >= 2;
+            const conflictTooltip = hasDayConflict ? `Внимание: ${teacher.name} има ${dayDutyCount} дежурства в ${day}!` : "";
+            const unavailTooltip = unavail ? `Не е свободен този ден${unavail.note ? ` (${unavail.note})` : ""}` : "";
+            const combinedTitle = [conflictTooltip, unavailTooltip].filter(Boolean).join(" | ");
+
             return (
               <div
                 key={teacher.id}
-                className={cn(unavail && "rounded-md")}
-                title={
-                  unavail
-                    ? `Не е свободен този ден${unavail.note ? ` (${unavail.note})` : ""}`
-                    : undefined
-                }
+                className={cn((unavail || hasDayConflict) && "rounded-md")}
+                title={combinedTitle || undefined}
               >
                 <TeacherBadge
                   id={teacher.id}
@@ -218,6 +237,9 @@ export function ScheduleCell({
                   size={teachers.length >= 4 ? "xs" : "sm"}
                   unavailable={!!unavail}
                   unavailableNote={unavail?.note}
+                  hasDayConflict={hasDayConflict}
+                  dayConflictCount={dayDutyCount}
+                  dayName={day}
                   draggable={isAdmin}
                   onDragStart={(e) => handleTeacherDragStart(e, teacher)}
                   showRemove={isAdmin}

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useMemo, useCallback, useState } from "react";
 import { AppSettings } from "@/hooks/useAppSettings";
 import { DAYS, CellTeacher, SchoolPeriod, Teacher, SchoolStage } from "@/types/schedule";
+import { DBAssignment } from "@/lib/localDB";
 import { ScheduleCell } from "./ScheduleCell";
 import { PrintableSchedule } from "./PrintableSchedule";
 import { toast } from "sonner";
@@ -49,6 +50,8 @@ interface ScheduleTableProps {
   settings?: AppSettings;
   teachers?: Teacher[];
   currentStage?: SchoolStage;
+  assignments?: DBAssignment[];
+  getTeacherDayCount?: (teacherId: string, day: string) => number;
 }
 
 export function ScheduleTable({
@@ -64,6 +67,8 @@ export function ScheduleTable({
   settings,
   teachers = [],
   currentStage = "secondary",
+  assignments = [],
+  getTeacherDayCount,
 }: ScheduleTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const printableRef = useRef<HTMLDivElement>(null);
@@ -93,11 +98,11 @@ export function ScheduleTable({
     }
     if (settings) {
       return [
-        settings.location_5 || "Дежурен на 0 етаж",
-        settings.location_1,
-        settings.location_2,
-        settings.location_3,
-        settings.location_4,
+        settings?.location_5 || "Дежурен на 0 етаж",
+        settings?.location_1 || "Дежурни на III-ти етаж",
+        settings?.location_2 || "Дежурни на IV-ти етаж",
+        settings?.location_3 || "Училищен стол и пред кабинет по музика",
+        settings?.location_4 || "Главен дежурен – западен вход 07:30-08:40 ч.",
       ];
     }
     return [
@@ -112,6 +117,39 @@ export function ScheduleTable({
   const shiftLocation = currentStage === "primary"
     ? (settings?.primary_location_1 || "Главен дежурен параден вход - 07:00 ч.")
     : (settings?.location_4 || DEFAULT_SHIFT_LOCATION);
+
+  const dayTeacherCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    if (assignments && assignments.length > 0) {
+      for (const a of assignments) {
+        if (a.day && a.teacherId) {
+          const key = `${a.day}-${a.teacherId}`;
+          map.set(key, (map.get(key) || 0) + 1);
+        }
+      }
+    } else {
+      for (const d of DAYS) {
+        for (const loc of locations) {
+          const cellTeachers = getAssignmentsForCell(d, loc);
+          for (const ct of cellTeachers) {
+            const key = `${d}-${ct.id}`;
+            map.set(key, (map.get(key) || 0) + 1);
+          }
+        }
+      }
+    }
+    return map;
+  }, [assignments, locations, getAssignmentsForCell]);
+
+  const internalGetTeacherDayCount = useCallback(
+    (teacherId: string, day: string): number => {
+      if (getTeacherDayCount) {
+        return getTeacherDayCount(teacherId, day);
+      }
+      return dayTeacherCounts.get(`${day}-${teacherId}`) || 0;
+    },
+    [getTeacherDayCount, dayTeacherCounts]
+  );
 
   const handleExportPDF = useCallback(async () => {
     if (!printableRef.current) {
@@ -279,6 +317,7 @@ export function ScheduleTable({
                     isShiftLocation={location === shiftLocation}
                     getTeacherName={getTeacherName}
                     isTeacherUnavailable={isUnavailable}
+                    getTeacherDayCount={internalGetTeacherDayCount}
                     allTeachers={teachers}
                   />
                 </div>
@@ -336,6 +375,7 @@ export function ScheduleTable({
                           isShiftLocation={location === shiftLocation}
                           getTeacherName={getTeacherName}
                           isTeacherUnavailable={isUnavailable}
+                          getTeacherDayCount={internalGetTeacherDayCount}
                           allTeachers={teachers}
                         />
                       </td>
