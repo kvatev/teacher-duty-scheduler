@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users, Download, Database, RefreshCw, GraduationCap, Backpack } from "lucide-react";
+import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users, Download, Database, RefreshCw, GraduationCap, Backpack, GitBranch, Copy, Check, CloudDownload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,6 +73,8 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
   const [confirmPass, setConfirmPass] = useState("");
   const [isChangingPass, setIsChangingPass] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSyncingGitHub, setIsSyncingGitHub] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -156,6 +158,51 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success("Архивът е свален успешно");
+  };
+
+  const handleDownloadScheduleJson = () => {
+    const data = localDB.exportBackup();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "schedule-data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Свален е файл schedule-data.json! Заменете го в public/schedule-data.json и качете в GitHub.");
+  };
+
+  const handleCopyScheduleJson = async () => {
+    try {
+      const data = localDB.exportBackup();
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 3000);
+      toast.success("Графикът (JSON) е копиран в клипборда! Можете да го поставите в чата или в GitHub.");
+    } catch {
+      toast.error("Неуспешно копиране в клипборда");
+    }
+  };
+
+  const handleSyncFromGitHub = async () => {
+    setIsSyncingGitHub(true);
+    try {
+      const updated = await localDB.syncFromPublishedSchedule(true);
+      if (updated) {
+        toast.success("Графикът беше успешно синхронизиран от GitHub!");
+        const newSettings = localDB.getSettings();
+        setDraft(newSettings);
+        setLogoPreview(newSettings.logo_url || "");
+      } else {
+        toast.info("Вече разполагате с най-новия публикуван график от GitHub.");
+      }
+    } catch {
+      toast.error("Грешка при синхронизация от GitHub");
+    } finally {
+      setIsSyncingGitHub(false);
+    }
   };
 
   const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -358,10 +405,70 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                 </TabsContent>
 
                 <TabsContent value="backup" className="space-y-6 mt-0">
-                  <div>
-                    <h4 className="text-sm font-semibold">Сваляне на резервно копие (Експорт)</h4>
+                  {/* GitHub Publishing Section */}
+                  <div className="p-4 rounded-xl border border-primary/25 bg-primary/5 space-y-3 shadow-2xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <GitBranch className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-foreground">Публикуване в GitHub за всички потребители</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Синхронизирайте актуалния график с онлайн сайта без нужда от база данни.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground bg-background/80 p-3 rounded-lg border space-y-1.5 leading-relaxed">
+                      <p className="font-semibold text-foreground">Как работи актуализацията:</p>
+                      <ol className="list-decimal list-inside space-y-1 opacity-90">
+                        <li>Свалете или копирайте обновения <strong>schedule-data.json</strong>.</li>
+                        <li>Поставете го в папка <code>public/schedule-data.json</code> в репото и направете <code>git push</code> (или ми напишете тук в чата да го обновя).</li>
+                        <li>Vercel автоматично преизгражда сайта за около 30 секунди и всички учители веднага виждат актуалния график!</li>
+                      </ol>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <Button
+                        size="sm"
+                        onClick={handleDownloadScheduleJson}
+                        className="gap-1.5 w-full sm:w-auto text-xs font-semibold shadow-xs"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Свали schedule-data.json
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyScheduleJson}
+                        className="gap-1.5 w-full sm:w-auto text-xs"
+                      >
+                        {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        {isCopied ? "Копирано!" : "Копирай JSON за GitHub"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isSyncingGitHub}
+                        onClick={handleSyncFromGitHub}
+                        className="gap-1.5 w-full sm:w-auto text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <CloudDownload className="w-3.5 h-3.5" />
+                        {isSyncingGitHub ? "Проверка..." : "Презареди от GitHub сега"}
+                      </Button>
+                    </div>
+
+                    {localDB.getLastPublishedSync() && (
+                      <p className="text-[11px] text-muted-foreground font-mono">
+                        Последна синхронизация с GitHub: {new Date(localDB.getLastPublishedSync()!).toLocaleString("bg-BG")}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold">Сваляне на пълно резервно копие (Експорт)</h4>
                     <p className="text-xs text-muted-foreground mt-1 mb-3">
-                      Запазете пълен архив на всички графици, списъци с учители, отсъствия и настройки в един JSON файл на вашия компютър.
+                      Запазете архив с дата на всички графици, списъци с учители, отсъствия и настройки в един JSON файл на вашия компютър.
                     </p>
                     <Button variant="outline" size="sm" onClick={handleExportBackup} className="gap-2 w-full sm:w-auto">
                       <Download className="w-4 h-4" />

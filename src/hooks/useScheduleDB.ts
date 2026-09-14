@@ -51,6 +51,13 @@ export function useScheduleDB() {
     loadData();
   }, [loadData]);
 
+  // Check for updated schedule published to GitHub/Vercel (public/schedule-data.json)
+  useEffect(() => {
+    localDB.syncFromPublishedSchedule().catch((err) => {
+      console.warn("Background schedule sync error:", err);
+    });
+  }, []);
+
   // Listen to cross-component database changes (e.g. backup restore)
   useEffect(() => {
     const handleDbChange = (e: Event) => {

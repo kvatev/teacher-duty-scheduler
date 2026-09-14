@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { localDB } from "@/lib/localDB";
 import { signIn } from "@/lib/auth";
 
@@ -408,6 +408,70 @@ describe("localDB - In-browser Database", () => {
     // Assignment remapped to surviving ID 'kv-1'
     const remappedAssignment = localDB.getAssignments(periodId, "secondary").find((a) => a.id === "as-dup");
     expect(remappedAssignment?.teacherId).toBe("kv-1");
+  });
+
+  it("syncFromPublishedSchedule() downloads and applies published central schedule from GitHub", async () => {
+    const mockPublishedData = {
+      version: 1,
+      exportedAt: "2026-09-14T14:30:00.000Z",
+      periods: [{ id: "github-p1", year: "2026/2027", term: 1 }],
+      teachers: [
+        { id: "gt-1", name: "Красимир Ватев", periodId: "github-p1", stage: "secondary" },
+        { id: "gt-2", name: "Албена Гарабедян", periodId: "github-p1", stage: "secondary" },
+      ],
+      assignments: [
+        { id: "ga-1", teacherId: "gt-1", day: "Сряда", location: "Дежурни на III-ти етаж", periodId: "github-p1", stage: "secondary" },
+      ],
+      unavailability: [],
+      settings: {
+        header_title: "Актуален график от GitHub",
+      },
+      broadcasts: [],
+    };
+
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockPublishedData,
+    } as unknown as Response);
+
+    try {
+      const synced = await localDB.syncFromPublishedSchedule();
+      expect(synced).toBe(true);
+
+      const periods = localDB.getPeriods();
+      expect(periods.some((p) => p.id === "github-p1")).toBe(true);
+
+      const assignments = localDB.getAssignments("github-p1", "secondary");
+      expect(assignments.length).toBe(1);
+      expect(assignments[0].teacherId).toBe("gt-1");
+
+      const settings = localDB.getSettings();
+      expect(settings.header_title).toBe("Актуален график от GitHub");
+      expect(localDB.getLastPublishedSync()).toBe("2026-09-14T14:30:00.000Z");
+
+      // Next call with same timestamp without force should return false
+      const reSync = await localDB.syncFromPublishedSchedule(false);
+      expect(reSync).toBe(false);
+
+      // Force call should return true
+      const forceSync = await localDB.syncFromPublishedSchedule(true);
+      expect(forceSync).toBe(true);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it("syncFromPublishedSchedule() gracefully handles network error or offline mode", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockRejectedValue(new Error("Network offline"));
+
+    try {
+      const synced = await localDB.syncFromPublishedSchedule();
+      expect(synced).toBe(false);
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });
 

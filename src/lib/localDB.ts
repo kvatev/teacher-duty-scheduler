@@ -61,6 +61,7 @@ export const STORAGE_KEYS = {
   BROADCASTS: "teacher_scheduler_broadcasts",
   AUTH: "teacher_scheduler_auth",
   DISMISSED_BROADCASTS: "dismissedBroadcasts",
+  PUBLISHED_SYNC: "teacher_scheduler_published_sync",
 } as const;
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -871,5 +872,60 @@ export const localDB = {
 
   syncDefaultTeachers(): void {
     syncDefaultTeachers();
+  },
+
+  getLastPublishedSync(): string | null {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(STORAGE_KEYS.PUBLISHED_SYNC);
+  },
+
+  // Synchronization with central GitHub/Vercel published schedule (public/schedule-data.json)
+  async syncFromPublishedSchedule(force = false): Promise<boolean> {
+    if (typeof window === "undefined") return false;
+    try {
+      const res = await fetch(`/schedule-data.json?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) {
+        return false;
+      }
+      const data = (await res.json()) as FullDatabaseBackup;
+      if (!data || !Array.isArray(data.periods) || !Array.isArray(data.teachers)) {
+        return false;
+      }
+
+      const lastSync = localStorage.getItem(STORAGE_KEYS.PUBLISHED_SYNC);
+      const isNewer = !lastSync || (data.exportedAt && data.exportedAt !== lastSync);
+
+      if (!isNewer && !force) {
+        return false;
+      }
+
+      // Import published schedule data
+      setToStorage(STORAGE_KEYS.PERIODS, data.periods);
+      setToStorage(STORAGE_KEYS.TEACHERS, data.teachers);
+      setToStorage(STORAGE_KEYS.ASSIGNMENTS, data.assignments || []);
+      setToStorage(STORAGE_KEYS.UNAVAILABILITY, data.unavailability || []);
+      if (data.settings) {
+        setToStorage(STORAGE_KEYS.SETTINGS, { ...DEFAULT_APP_SETTINGS, ...data.settings });
+      }
+      if (data.broadcasts) {
+        setToStorage(STORAGE_KEYS.BROADCASTS, data.broadcasts);
+      }
+      if (data.exportedAt) {
+        localStorage.setItem(STORAGE_KEYS.PUBLISHED_SYNC, data.exportedAt);
+      }
+
+      // Run default teachers normalization/sync
+      syncDefaultTeachers();
+
+      // Notify all components to re-render
+      window.dispatchEvent(new CustomEvent("local-db-change", { detail: { key: "all" } }));
+      return true;
+    } catch (e) {
+      console.warn("Could not fetch published schedule from GitHub/server (offline or unavailable):", e);
+      return false;
+    }
   },
 };
