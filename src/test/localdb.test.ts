@@ -309,24 +309,30 @@ describe("localDB - In-browser Database", () => {
     expect(updated1?.shiftNumber).toBe("1");
   });
 
-  it("initializes with all 38 default teachers for secondary stage with zero duplicates", () => {
+  it("initializes with all 44 default teachers and 79 official assignments for secondary stage", () => {
     const teachers = localDB.getTeachers(undefined, "secondary");
-    expect(teachers.length).toBe(38);
+    expect(teachers.length).toBe(44);
 
     // Verify all names are unique
     const names = teachers.map((t) => t.name.trim().toLowerCase());
     const uniqueNames = new Set(names);
-    expect(uniqueNames.size).toBe(38);
+    expect(uniqueNames.size).toBe(44);
 
-    // Check specific teachers from user request
+    // Check specific teachers from user request and official schedule image
     expect(teachers.some((t) => t.name === "Албена Гарабедян")).toBe(true);
     expect(teachers.some((t) => t.name === "Янчо Желев")).toBe(true);
     expect(teachers.some((t) => t.name === "Надя Калъбалкова")).toBe(true);
+    expect(teachers.some((t) => t.name === "Мария Златева")).toBe(true);
+    expect(teachers.some((t) => t.name === "Павлина Пеперова")).toBe(true);
     // Ensure old typo is not present
     expect(teachers.some((t) => t.name === "Надя Калъбалъкова")).toBe(false);
+
+    // Check assignments
+    const assignments = localDB.getAssignments(undefined, "secondary");
+    expect(assignments.length).toBe(79);
   });
 
-  it("syncDefaultTeachers() migrates old spelling and expands existing storage to 38 without duplicates", () => {
+  it("syncDefaultTeachers() migrates old spelling and expands existing storage to 44 without duplicates", () => {
     // Simulate an existing database that had only 3 old teachers including the typo
     const periods = localDB.getPeriods();
     const periodId = periods[0].id;
@@ -353,7 +359,7 @@ describe("localDB - In-browser Database", () => {
     localDB.syncDefaultTeachers();
 
     const syncedTeachers = localDB.getTeachers(periodId, "secondary");
-    expect(syncedTeachers.length).toBe(38);
+    expect(syncedTeachers.length).toBe(44);
 
     // Name must be normalized to 'Надя Калъбалкова'
     const nadia = syncedTeachers.find((t) => t.name === "Надя Калъбалкова");
@@ -369,7 +375,7 @@ describe("localDB - In-browser Database", () => {
 
     // Running sync again must be idempotent and not create duplicate teachers
     localDB.syncDefaultTeachers();
-    expect(localDB.getTeachers(periodId, "secondary").length).toBe(38);
+    expect(localDB.getTeachers(periodId, "secondary").length).toBe(44);
   });
 
   it("syncDefaultTeachers() deduplicates teachers if any duplicates exist in storage and retains assignments", () => {
@@ -398,7 +404,7 @@ describe("localDB - In-browser Database", () => {
     localDB.syncDefaultTeachers();
 
     const teachers = localDB.getTeachers(periodId, "secondary");
-    expect(teachers.length).toBe(38);
+    expect(teachers.length).toBe(44);
 
     // Must have only 1 'Красимир Ватев'
     const kvMatches = teachers.filter((t) => t.name.trim().toLowerCase() === "красимир ватев");

@@ -1,6 +1,7 @@
 import { AppSettings } from "@/hooks/useAppSettings";
 import { SchoolPeriod, SchoolStage, getCurrentPeriod } from "@/types/schedule";
 import { Weekday } from "@/hooks/useUnavailability";
+import { OFFICIAL_TEACHER_NAMES, getOfficialDefaultTeachers, getOfficialDefaultAssignments } from "@/data/defaultSchedule";
 
 export interface DBPeriod {
   id: string;
@@ -94,46 +95,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   pdf_schedule_description_primary: "за дежурство на учителите от начален етап (I - IV клас)",
 };
 
-export const INITIAL_TEACHER_NAMES = [
-  "Албена Гарабедян",
-  "Валерия Стоева",
-  "Георги Бараклийски",
-  "Гергана Георгиева",
-  "Гюлсюм Мустафа",
-  "Даниела Василева",
-  "Даниела Кирякова",
-  "Десислава Димитрова",
-  "Димитър Батилов",
-  "Елена Боева",
-  "Жулиета Дросева",
-  "Ива Камбурова",
-  "Ивелин Тонев",
-  "Илияна Филипова",
-  "Ирина Димитрова",
-  "Калинка Милчева",
-  "Красимир Ватев",
-  "Мария Сеферова",
-  "Мирослава Петрова",
-  "Моника Николова",
-  "Надя Калъбалкова",
-  "Николай Гочков",
-  "Нина Василева",
-  "Нина Николова",
-  "Павел Алексиев",
-  "Павлина Стоянова",
-  "Петя Иванова",
-  "Ресмие Шабан",
-  "Росица Гъчева",
-  "Росица Петкова",
-  "Светослава Николова",
-  "Силвия Инджова",
-  "Славка Терзиева",
-  "Станимир Христов",
-  "Станка Андонова",
-  "Стоян Василев",
-  "Янка Дренска",
-  "Янчо Желев",
-];
+export const INITIAL_TEACHER_NAMES = OFFICIAL_TEACHER_NAMES;
 
 // Helper to generate simple unique IDs
 export function generateId(): string {
@@ -247,21 +209,10 @@ function initializeSeedData(): { period: DBPeriod } {
     periods = [defaultPeriod];
     setToStorage(STORAGE_KEYS.PERIODS, periods);
 
-    const initialTeachers: DBTeacher[] = INITIAL_TEACHER_NAMES.map((name, i) => ({
-      id: String(i + 1),
-      name,
-      periodId: defaultPeriod.id,
-      stage: "secondary",
-    }));
+    const initialTeachers: DBTeacher[] = getOfficialDefaultTeachers(defaultPeriod.id);
     setToStorage(STORAGE_KEYS.TEACHERS, initialTeachers);
 
-    const initialAssignments: DBAssignment[] = [
-      { id: generateId(), teacherId: "8", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
-      { id: generateId(), teacherId: "14", day: "Понеделник", location: "Дежурни на III-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
-      { id: generateId(), teacherId: "34", day: "Понеделник", location: "Дежурни на IV-ти етаж", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
-      { id: generateId(), teacherId: "32", day: "Понеделник", location: "Училищен стол и пред кабинет по музика", shiftNumber: null, periodId: defaultPeriod.id, stage: "secondary" },
-      { id: generateId(), teacherId: "26", day: "Понеделник", location: "Главен дежурен – западен вход 07:30-08:40 ч.", shiftNumber: 1, periodId: defaultPeriod.id, stage: "secondary" },
-    ];
+    const initialAssignments: DBAssignment[] = getOfficialDefaultAssignments(defaultPeriod.id);
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, initialAssignments);
     return { period: defaultPeriod };
   } else {
@@ -355,6 +306,27 @@ export function syncDefaultTeachers(): void {
         currentNames.add(normalized);
         hasChanges = true;
       }
+    }
+
+    // 4. If current secondary assignments in this period are the legacy 5 dummy seed items, upgrade to official schedule
+    const secondaryAssignments = allAssignments.filter(
+      (a) => (a.periodId || period.id) === period.id && (a.stage || "secondary") === "secondary"
+    );
+    const legacySeedTeacherIds = ["8", "14", "34", "32", "26"];
+    const isLegacySeed =
+      secondaryAssignments.length === 5 &&
+      secondaryAssignments.every((a) => a.day === "Понеделник") &&
+      legacySeedTeacherIds.every((id) => secondaryAssignments.some((a) => a.teacherId === id));
+
+    if (isLegacySeed) {
+      const officialAssignments = getOfficialDefaultAssignments(period.id);
+      allAssignments = [
+        ...allAssignments.filter(
+          (a) => (a.periodId || period.id) !== period.id || (a.stage || "secondary") !== "secondary"
+        ),
+        ...officialAssignments,
+      ];
+      hasChanges = true;
     }
   }
 
