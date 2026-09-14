@@ -167,6 +167,32 @@ describe("TeacherBadge Component", () => {
     );
     expect(screen.getByText("столова/фоайе")).toBeInTheDocument();
   });
+
+  it("renders shift numbers '1', '2', '1, 2', and '1,2' on badge", () => {
+    const { rerender } = render(
+      <AuthProvider>
+        <TeacherBadge
+          id="1"
+          name="Иван Иванов"
+          count={1}
+          shiftNumber="1,2"
+        />
+      </AuthProvider>
+    );
+    expect(screen.getByText("1,2")).toBeInTheDocument();
+
+    rerender(
+      <AuthProvider>
+        <TeacherBadge
+          id="1"
+          name="Иван Иванов"
+          count={1}
+          shiftNumber="1, 2"
+        />
+      </AuthProvider>
+    );
+    expect(screen.getByText("1, 2")).toBeInTheDocument();
+  });
 });
 
 describe("PWA Components", () => {
@@ -317,7 +343,26 @@ describe("PrintableSchedule Component with Allocation Notes", () => {
 
     expect(screen.getByText(/Красимир Ватев \(фоайе\)/i)).toBeInTheDocument();
   });
+
+  it("renders teacher with shift number '1, 2' (e.g. 1, 2. Красимир Ватев)", () => {
+    render(
+      <PrintableSchedule
+        currentPeriod={dummyPeriod}
+        settings={mockSettings}
+        currentStage="secondary"
+        getAssignmentsForCell={(day, loc) => {
+          if (day === "Понеделник" && loc === mockSettings.location_4) {
+            return [{ id: "1", name: "Красимир Ватев", shiftNumber: "1, 2", note: null }];
+          }
+          return [];
+        }}
+      />
+    );
+
+    expect(screen.getByText(/1, 2\. Красимир Ватев/i)).toBeInTheDocument();
+  });
 });
+
 
 
 

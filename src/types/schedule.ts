@@ -10,15 +10,17 @@ export interface DutyAssignment {
   teacherId: string;
   day: string;
   location: string;
-  shiftNumber?: number | null;
+  shiftNumber?: string | number | null;
   stage?: SchoolStage;
   note?: string | null;
 }
 
 export interface CellTeacher extends Teacher {
-  shiftNumber?: number | null;
+  shiftNumber?: string | number | null;
   note?: string | null;
 }
+
+export const SHIFT_PRESETS = ["1", "2", "1, 2", "1,2"] as const;
 
 export interface ScheduleState {
   teachers: Teacher[];

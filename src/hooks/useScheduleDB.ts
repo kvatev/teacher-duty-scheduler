@@ -128,12 +128,13 @@ export function useScheduleDB() {
       teacherId: string,
       day: string,
       location: string,
-      shiftNumber: number | null = null,
+      shiftNumber: string | number | null = null,
       note: string | null = null
     ): Promise<boolean> => {
       if (!periodId) return false;
       const cleanNote = note && note.trim() ? note.trim() : null;
-      const success = localDB.assignTeacher(periodId, teacherId, day, location, shiftNumber, currentStage, cleanNote);
+      const cleanShift = shiftNumber !== null && shiftNumber !== undefined && String(shiftNumber).trim() !== "" ? String(shiftNumber).trim() : null;
+      const success = localDB.assignTeacher(periodId, teacherId, day, location, cleanShift, currentStage, cleanNote);
       if (!success) return false;
 
       // Deduplicate state in case loadData already updated or runs concurrently
@@ -141,7 +142,7 @@ export function useScheduleDB() {
         if (prev.some((a) => a.teacherId === teacherId && a.day === day && a.location === location)) {
           return prev;
         }
-        return [...prev, { teacherId, day, location, shiftNumber, stage: currentStage, note: cleanNote }];
+        return [...prev, { teacherId, day, location, shiftNumber: cleanShift, stage: currentStage, note: cleanNote }];
       });
       return true;
     },
@@ -214,13 +215,14 @@ export function useScheduleDB() {
   );
 
   const updateShiftNumber = useCallback(
-    async (teacherId: string, day: string, location: string, shiftNumber: number | null) => {
+    async (teacherId: string, day: string, location: string, shiftNumber: string | number | null) => {
       if (!periodId) return;
-      localDB.updateShiftNumber(periodId, teacherId, day, location, shiftNumber);
+      const cleanShift = shiftNumber !== null && shiftNumber !== undefined && String(shiftNumber).trim() !== "" ? String(shiftNumber).trim() : null;
+      localDB.updateShiftNumber(periodId, teacherId, day, location, cleanShift);
       setAssignments((prev) =>
         prev.map((a) =>
           a.teacherId === teacherId && a.day === day && a.location === location
-            ? { ...a, shiftNumber }
+            ? { ...a, shiftNumber: cleanShift }
             : a
         )
       );
@@ -294,7 +296,7 @@ export function useScheduleDB() {
     const shuffledSlots = [...allSlots].sort(() => Math.random() - 0.5);
     const shuffledTeachers = [...teachers].sort(() => Math.random() - 0.5);
 
-    const newAssignments: { periodId: string; teacherId: string; day: string; location: string; shiftNumber: number | null; stage: SchoolStage }[] = [];
+    const newAssignments: { periodId: string; teacherId: string; day: string; location: string; shiftNumber: string | number | null; stage: SchoolStage }[] = [];
     const assignedPairs = new Set<string>();
 
     shuffledSlots.forEach((slot, index) => {

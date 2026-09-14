@@ -20,7 +20,7 @@ export interface DBAssignment {
   teacherId: string;
   day: string;
   location: string;
-  shiftNumber: number | null;
+  shiftNumber: string | number | null;
   periodId: string;
   stage?: SchoolStage;
   note?: string | null;
@@ -447,7 +447,7 @@ export const localDB = {
     teacherId: string,
     day: string,
     location: string,
-    shiftNumber: number | null = null,
+    shiftNumber: string | number | null = null,
     stage: SchoolStage = "secondary",
     note: string | null = null
   ): boolean {
@@ -462,7 +462,7 @@ export const localDB = {
       teacherId,
       day,
       location,
-      shiftNumber,
+      shiftNumber: shiftNumber !== null && shiftNumber !== undefined && String(shiftNumber).trim() !== "" ? String(shiftNumber).trim() : null,
       periodId,
       stage,
       note: note && note.trim() ? note.trim() : null,
@@ -520,10 +520,11 @@ export const localDB = {
     setToStorage(STORAGE_KEYS.ASSIGNMENTS, filtered);
   },
 
-  updateShiftNumber(periodId: string, teacherId: string, day: string, location: string, shiftNumber: number | null): void {
+  updateShiftNumber(periodId: string, teacherId: string, day: string, location: string, shiftNumber: string | number | null): void {
+    const cleanShift = shiftNumber !== null && shiftNumber !== undefined && String(shiftNumber).trim() !== "" ? String(shiftNumber).trim() : null;
     const assignments = this.getAssignments().map((a) => {
       if (a.periodId === periodId && a.teacherId === teacherId && a.day === day && a.location === location) {
-        return { ...a, shiftNumber };
+        return { ...a, shiftNumber: cleanShift };
       }
       return a;
     });

@@ -283,6 +283,32 @@ describe("localDB - In-browser Database", () => {
     const moved = localDB.getAssignments(periodId, "secondary").find((a) => a.teacherId === teacher.id && a.day === "Четвъртък" && a.location === location);
     expect(moved?.note).toBe("стол");
   });
+
+  it("supports shift values '1', '2', and '1,2' (or '1, 2') at shift location", () => {
+    const periods = localDB.getPeriods();
+    const periodId = periods[0].id;
+    const teachers = localDB.getTeachers(periodId, "secondary");
+    const teacher = teachers[0];
+
+    const shiftLocation = "Главен дежурен – западен вход 07:30-08:40 ч.";
+    const day = "Понеделник";
+
+    // Assign with shift '1,2'
+    localDB.assignTeacher(periodId, teacher.id, day, shiftLocation, "1,2", "secondary");
+    const found = localDB.getAssignments(periodId, "secondary").find((a) => a.teacherId === teacher.id && a.day === day && a.location === shiftLocation);
+    expect(found?.shiftNumber).toBe("1,2");
+
+    // Update shift to '1, 2'
+    localDB.updateShiftNumber(periodId, teacher.id, day, shiftLocation, "1, 2");
+    const updated = localDB.getAssignments(periodId, "secondary").find((a) => a.teacherId === teacher.id && a.day === day && a.location === shiftLocation);
+    expect(updated?.shiftNumber).toBe("1, 2");
+
+    // Update shift to '1'
+    localDB.updateShiftNumber(periodId, teacher.id, day, shiftLocation, "1");
+    const updated1 = localDB.getAssignments(periodId, "secondary").find((a) => a.teacherId === teacher.id && a.day === day && a.location === shiftLocation);
+    expect(updated1?.shiftNumber).toBe("1");
+  });
 });
+
 
 

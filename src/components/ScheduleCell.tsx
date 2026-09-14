@@ -24,7 +24,7 @@ interface ScheduleCellProps {
     teacherId: string,
     day: string,
     location: string,
-    shiftNumber?: number | null,
+    shiftNumber?: string | number | null,
     note?: string | null
   ) => boolean | Promise<boolean>;
   onUnassign: (teacherId: string, day: string, location: string) => void | Promise<void>;
@@ -35,7 +35,7 @@ interface ScheduleCellProps {
     toDay: string,
     toLocation: string
   ) => void | Promise<void>;
-  onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
+  onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: string | number | null) => void;
   onUpdateNote?: (teacherId: string, day: string, location: string, note: string | null) => void;
   isShiftLocation?: boolean;
   getTeacherName?: (teacherId: string) => string | undefined;
@@ -63,6 +63,7 @@ export function ScheduleCell({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [searchTeacher, setSearchTeacher] = useState("");
   const [selectedNote, setSelectedNote] = useState("");
+  const [selectedShift, setSelectedShift] = useState("");
   const isDroppingRef = useRef(false);
 
   const isNoteLocation = location.toLowerCase().includes("стол") || location.toLowerCase().includes("музика");
@@ -165,13 +166,15 @@ export function ScheduleCell({
       toast.error("Този учител вече е в тази клетка!");
       return;
     }
+    const shiftToAssign = isShiftLocation && selectedShift.trim() ? selectedShift.trim() : null;
     const noteToAssign = isNoteLocation && selectedNote.trim() ? selectedNote.trim() : null;
-    const success = await onAssign(teacherId, day, location, null, noteToAssign);
+    const success = await onAssign(teacherId, day, location, shiftToAssign, noteToAssign);
     if (success) {
       notifyIfUnavailable(teacherId);
       setIsPickerOpen(false);
       setSearchTeacher("");
       setSelectedNote("");
+      setSelectedShift("");
     } else {
       toast.error("Грешка при назначаване на дежурен");
     }
@@ -278,6 +281,52 @@ export function ScheduleCell({
                 {day} • {location}
               </DialogDescription>
             </DialogHeader>
+
+            {isShiftLocation && (
+              <div className="bg-muted/40 p-2.5 rounded-md border space-y-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <span>Смяна:</span>
+                    {selectedShift && (
+                      <span className="text-[11px] font-bold text-blue-900 dark:text-blue-200 bg-blue-100 dark:bg-blue-950/80 px-1.5 py-0.5 rounded border border-blue-300 dark:border-blue-800">
+                        {selectedShift}
+                      </span>
+                    )}
+                  </label>
+                  {selectedShift && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedShift("")}
+                      className="text-[11px] text-muted-foreground hover:text-foreground underline cursor-pointer"
+                    >
+                      Изчисти
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {["1", "2", "1, 2", "1,2"].map((preset) => (
+                    <Button
+                      key={preset}
+                      type="button"
+                      size="sm"
+                      variant={selectedShift.replace(/\s+/g, "") === preset.replace(/\s+/g, "") ? "default" : "outline"}
+                      className="h-7 text-xs px-2.5 py-0 font-bold"
+                      onClick={() => setSelectedShift(selectedShift.replace(/\s+/g, "") === preset.replace(/\s+/g, "") ? "" : preset)}
+                    >
+                      {preset}
+                    </Button>
+                  ))}
+                </div>
+
+                <Input
+                  placeholder="Или въведете цифрите 1, 2 или 1,2..."
+                  value={selectedShift}
+                  onChange={(e) => setSelectedShift(e.target.value)}
+                  className="h-8 text-xs bg-background font-semibold"
+                />
+              </div>
+            )}
 
             {isNoteLocation && (
               <div className="bg-muted/40 p-2.5 rounded-md border space-y-2 mt-2">

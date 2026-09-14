@@ -31,7 +31,7 @@ interface ScheduleTableProps {
     teacherId: string,
     day: string,
     location: string,
-    shiftNumber?: number | null,
+    shiftNumber?: string | number | null,
     note?: string | null
   ) => boolean | Promise<boolean>;
   onUnassign: (teacherId: string, day: string, location: string) => void | Promise<void>;
@@ -42,7 +42,7 @@ interface ScheduleTableProps {
     toDay: string,
     toLocation: string
   ) => void | Promise<void>;
-  onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: number | null) => void;
+  onUpdateShiftNumber?: (teacherId: string, day: string, location: string, shiftNumber: string | number | null) => void;
   onUpdateNote?: (teacherId: string, day: string, location: string, note: string | null) => void;
   currentPeriod: SchoolPeriod;
   onExportReady?: (exportFn: () => Promise<void>) => void;
@@ -259,7 +259,7 @@ export function ScheduleTable({
                     </h4>
                     {location === shiftLocation && (
                       <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium">
-                        Смени 1 / 2
+                        Смени 1 / 2 / 1,2
                       </span>
                     )}
                   </div>

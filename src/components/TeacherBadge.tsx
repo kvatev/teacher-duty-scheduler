@@ -24,8 +24,8 @@ interface TeacherBadgeProps {
   unavailableNote?: string | null;
   showRemove?: boolean;
   size?: "xs" | "sm" | "md";
-  shiftNumber?: number | null;
-  onShiftNumberChange?: (shiftNumber: number | null) => void;
+  shiftNumber?: string | number | null;
+  onShiftNumberChange?: (shiftNumber: string | number | null) => void;
   note?: string | null;
   allowNote?: boolean;
   onNoteChange?: (note: string | null) => void;
@@ -60,6 +60,8 @@ export function TeacherBadge({
   const { isAdmin } = useAuth();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [tempNote, setTempNote] = useState(note || "");
+  const [isShiftPopoverOpen, setIsShiftPopoverOpen] = useState(false);
+  const [tempShift, setTempShift] = useState(shiftNumber !== null && shiftNumber !== undefined ? String(shiftNumber) : "");
 
   useEffect(() => {
     if (isPopoverOpen) {
@@ -67,7 +69,13 @@ export function TeacherBadge({
     }
   }, [isPopoverOpen, note]);
 
-  const canDrag = draggable && isAdmin && !isPopoverOpen;
+  useEffect(() => {
+    if (isShiftPopoverOpen) {
+      setTempShift(shiftNumber !== null && shiftNumber !== undefined ? String(shiftNumber) : "");
+    }
+  }, [isShiftPopoverOpen, shiftNumber]);
+
+  const canDrag = draggable && isAdmin && !isPopoverOpen && !isShiftPopoverOpen;
   const isXs = size === "xs";
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
@@ -102,27 +110,126 @@ export function TeacherBadge({
         <GripVertical className="w-3 h-3 opacity-50 flex-shrink-0" />
       )}
       {shiftNumber !== undefined && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            if (!onShiftNumberChange) return;
-            // Cycle: null -> 1 -> 2 -> null
-            if (shiftNumber === null || shiftNumber === undefined) onShiftNumberChange(1);
-            else if (shiftNumber === 1) onShiftNumberChange(2);
-            else onShiftNumberChange(null);
-          }}
-          className={cn(
-            "flex items-center justify-center rounded font-bold transition-colors",
-            isXs ? "min-w-[14px] h-4 text-[10px]" : "min-w-[18px] h-5 text-xs",
-            onShiftNumberChange ? "cursor-pointer hover:bg-white/30" : "cursor-default",
-            shiftNumber ? "bg-white/60 text-black" : "bg-white/20 text-muted-foreground"
-          )}
-          title={onShiftNumberChange ? "Натиснете за смяна: 1 → 2 → без" : undefined}
-          disabled={!onShiftNumberChange}
-        >
-          {shiftNumber || "–"}
-        </button>
+        isAdmin && onShiftNumberChange ? (
+          <Popover open={isShiftPopoverOpen} onOpenChange={setIsShiftPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                className={cn(
+                  "flex items-center justify-center rounded font-bold transition-all px-1 cursor-pointer border",
+                  isXs ? "min-w-[16px] h-4 text-[10px]" : "min-w-[20px] h-5 text-xs",
+                  shiftNumber
+                    ? "bg-white/90 text-black border-white shadow-xs hover:bg-white"
+                    : "bg-white/20 text-muted-foreground border-white/30 hover:bg-white/35"
+                )}
+                title={shiftNumber ? `Смяна: ${shiftNumber} (кликнете за промяна)` : "Задаване на смяна (1, 2 или 1,2)"}
+              >
+                {shiftNumber || "–"}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-64 p-3 space-y-2.5 z-50 shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-foreground truncate">
+                  Смяна: {name}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Изберете или въведете цифрите 1, 2 или 1,2:
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {["1", "2", "1, 2", "1,2"].map((preset) => (
+                  <Button
+                    key={preset}
+                    type="button"
+                    size="sm"
+                    variant={tempShift.replace(/\s+/g, "") === preset.replace(/\s+/g, "") ? "default" : "outline"}
+                    className="h-7 text-xs px-2.5 py-0 font-bold"
+                    onClick={() => {
+                      onShiftNumberChange(preset);
+                      setIsShiftPopoverOpen(false);
+                    }}
+                  >
+                    {preset}
+                  </Button>
+                ))}
+              </div>
+
+              <Input
+                value={tempShift}
+                onChange={(e) => setTempShift(e.target.value)}
+                placeholder="1, 2 или 1,2"
+                className="h-8 text-xs font-semibold"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    onShiftNumberChange(tempShift.trim() || null);
+                    setIsShiftPopoverOpen(false);
+                  }
+                }}
+              />
+
+              <div className="flex items-center justify-between pt-1 border-t">
+                {shiftNumber ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs text-destructive hover:bg-destructive/10 px-2"
+                    onClick={() => {
+                      onShiftNumberChange(null);
+                      setIsShiftPopoverOpen(false);
+                    }}
+                  >
+                    Без смяна
+                  </Button>
+                ) : (
+                  <span />
+                )}
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs px-2.5"
+                    onClick={() => setIsShiftPopoverOpen(false)}
+                  >
+                    Отказ
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-7 text-xs px-2.5"
+                    onClick={() => {
+                      onShiftNumberChange(tempShift.trim() || null);
+                      setIsShiftPopoverOpen(false);
+                    }}
+                  >
+                    Запази
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <span
+            className={cn(
+              "flex items-center justify-center rounded font-bold px-1 select-none",
+              isXs ? "min-w-[16px] h-4 text-[10px]" : "min-w-[20px] h-5 text-xs",
+              shiftNumber ? "bg-white/60 text-black" : "bg-white/20 text-muted-foreground"
+            )}
+          >
+            {shiftNumber || "–"}
+          </span>
+        )
       )}
       <span className={cn("truncate", isXs ? "max-w-[85px]" : "max-w-[140px]")}>{name}</span>
 
