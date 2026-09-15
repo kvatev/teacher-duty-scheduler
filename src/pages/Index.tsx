@@ -162,7 +162,7 @@ const Index = () => {
           {isAdmin && (
             <aside
               className={cn(
-                "w-full lg:w-[22%] lg:min-w-[250px] lg:max-w-[320px] flex-shrink-0 animate-in fade-in duration-200",
+                "w-full lg:w-[22%] lg:min-w-[250px] lg:max-w-[320px] flex-shrink-0 animate-in fade-in duration-200 lg:sticky lg:top-4 lg:self-start",
                 mobileSection !== "teachers" && "hidden lg:block"
               )}
             >

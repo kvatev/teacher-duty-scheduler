@@ -141,7 +141,7 @@ export function TeacherList({
   );
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm flex flex-col h-[500px] lg:h-[600px]">
+    <div className="bg-card rounded-lg border shadow-sm flex flex-col h-[calc(100svh-160px)] lg:h-[calc(100svh-130px)]">
       <div className="p-4 border-b bg-table-header rounded-t-lg flex-shrink-0">
         <div className="flex items-center gap-2 text-table-header-foreground">
           <Users className="w-5 h-5" />
