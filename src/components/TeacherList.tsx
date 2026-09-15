@@ -232,25 +232,27 @@ export function TeacherList({
                       </button>
                     </div>
                   ) : (
-                    <div className="group relative">
-                      <TeacherBadge
-                        id={teacher.id}
-                        name={teacher.name}
-                        count={counts[teacher.id] || 0}
-                        draggable={enableDrag}
-                        onDragStart={enableDrag ? (e) => handleDragStart(e, teacher) : undefined}
-                        showRemove={isAdmin}
-                        onRemove={() => onRemoveTeacher(teacher.id)}
-                      />
+                    <div className="flex items-center gap-1">
                       {isAdmin && onRenameTeacher && (
                         <button
                           onClick={() => startEditing(teacher)}
-                          className="absolute right-7 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 rounded p-0.5 text-muted-foreground hover:text-primary"
+                          className="shrink-0 text-muted-foreground hover:text-primary transition-colors p-0.5 rounded"
                           title="Преименувай учителя"
                         >
                           <Pencil className="w-3 h-3" />
                         </button>
                       )}
+                      <div className="flex-1 min-w-0">
+                        <TeacherBadge
+                          id={teacher.id}
+                          name={teacher.name}
+                          count={counts[teacher.id] || 0}
+                          draggable={enableDrag}
+                          onDragStart={enableDrag ? (e) => handleDragStart(e, teacher) : undefined}
+                          showRemove={isAdmin}
+                          onRemove={() => onRemoveTeacher(teacher.id)}
+                        />
+                      </div>
                     </div>
                   )}
                   {teacherUnavail.length > 0 && (
