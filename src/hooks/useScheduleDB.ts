@@ -130,6 +130,18 @@ export function useScheduleDB() {
     []
   );
 
+  const renameTeacher = useCallback(
+    async (teacherId: string, newName: string): Promise<boolean> => {
+      const success = localDB.renameTeacher(teacherId, newName.trim());
+      if (!success) return false;
+      setTeachers((prev) =>
+        prev.map((t) => (t.id === teacherId ? { ...t, name: newName.trim() } : t))
+      );
+      return true;
+    },
+    []
+  );
+
   const assignTeacher = useCallback(
     async (
       teacherId: string,
@@ -547,6 +559,7 @@ export function useScheduleDB() {
     changePeriod,
     addTeacher,
     removeTeacher,
+    renameTeacher,
     assignTeacher,
     unassignTeacher,
     moveTeacher,

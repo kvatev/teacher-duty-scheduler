@@ -500,6 +500,28 @@ export const localDB = {
     setToStorage(STORAGE_KEYS.UNAVAILABILITY, unavail);
   },
 
+  renameTeacher(teacherId: string, newName: string): boolean {
+    const trimmed = newName.trim();
+    if (!trimmed) return false;
+    const teachers = this.getTeachers();
+    const teacher = teachers.find((t) => t.id === teacherId);
+    if (!teacher) return false;
+    // Check for duplicate name in same period+stage
+    const duplicate = teachers.find(
+      (t) =>
+        t.id !== teacherId &&
+        t.periodId === teacher.periodId &&
+        (t.stage || "secondary") === (teacher.stage || "secondary") &&
+        t.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (duplicate) return false;
+    const updated = teachers.map((t) =>
+      t.id === teacherId ? { ...t, name: trimmed } : t
+    );
+    setToStorage(STORAGE_KEYS.TEACHERS, updated);
+    return true;
+  },
+
   // Assignments
   getAssignments(periodId?: string, stage?: SchoolStage): DBAssignment[] {
     const raw = getFromStorage<DBAssignment[]>(STORAGE_KEYS.ASSIGNMENTS, []);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Users, Shuffle, Search, CalendarOff, RotateCcw } from "lucide-react";
+import { Plus, Users, Shuffle, Search, CalendarOff, RotateCcw, Pencil, Check, X } from "lucide-react";
 import { TeacherBadge } from "./TeacherBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -36,6 +36,7 @@ interface TeacherListProps {
   counts: Record<string, number>;
   onAddTeacher: (name: string) => boolean | Promise<boolean>;
   onRemoveTeacher: (id: string) => void | Promise<void>;
+  onRenameTeacher?: (id: string, newName: string) => boolean | Promise<boolean>;
   onAutoArrange?: () => void | Promise<void>;
   onClearSchedule?: () => Promise<boolean>;
   currentStage?: SchoolStage;
@@ -46,6 +47,7 @@ export function TeacherList({
   counts,
   onAddTeacher,
   onRemoveTeacher,
+  onRenameTeacher,
   onAutoArrange,
   onClearSchedule,
   currentStage = "secondary",
@@ -58,6 +60,8 @@ export function TeacherList({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [unavailTeacher, setUnavailTeacher] = useState<Teacher | null>(null);
+  const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
   const {
     getTeacherEntries,
@@ -87,6 +91,37 @@ export function TeacherList({
         toast.error("Учител с това име вече съществува!");
       }
     }
+  };
+
+  const startEditing = (teacher: Teacher) => {
+    setEditingTeacherId(teacher.id);
+    setEditingName(teacher.name);
+  };
+
+  const cancelEditing = () => {
+    setEditingTeacherId(null);
+    setEditingName("");
+  };
+
+  const confirmRename = async (teacherId: string) => {
+    if (!editingName.trim()) {
+      cancelEditing();
+      return;
+    }
+    const teacher = teachers.find((t) => t.id === teacherId);
+    if (teacher && editingName.trim() === teacher.name) {
+      cancelEditing();
+      return;
+    }
+    if (onRenameTeacher) {
+      const success = await onRenameTeacher(teacherId, editingName.trim());
+      if (success) {
+        toast.success(`Преименуван на "${editingName.trim()}"`);
+      } else {
+        toast.error("Учител с това име вече съществува!");
+      }
+    }
+    cancelEditing();
   };
 
   const handleDragStart = (e: React.DragEvent, teacher: Teacher) => {
@@ -168,15 +203,56 @@ export function TeacherList({
                   </div>
                 )}
                 <div className="flex-1 min-w-0 overflow-hidden">
-                  <TeacherBadge
-                    id={teacher.id}
-                    name={teacher.name}
-                    count={counts[teacher.id] || 0}
-                    draggable={enableDrag}
-                    onDragStart={enableDrag ? (e) => handleDragStart(e, teacher) : undefined}
-                    showRemove={isAdmin}
-                    onRemove={() => onRemoveTeacher(teacher.id)}
-                  />
+                  {/* Inline rename editor */}
+                  {isAdmin && editingTeacherId === teacher.id ? (
+                    <div className="flex items-center gap-1 bg-background border rounded-md px-2 py-1 shadow-sm">
+                      <input
+                        autoFocus
+                        className="flex-1 min-w-0 text-sm bg-transparent outline-none"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") confirmRename(teacher.id);
+                          if (e.key === "Escape") cancelEditing();
+                        }}
+                      />
+                      <button
+                        onClick={() => confirmRename(teacher.id)}
+                        className="text-green-600 hover:text-green-700 shrink-0 p-0.5 rounded"
+                        title="Запази"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={cancelEditing}
+                        className="text-muted-foreground hover:text-destructive shrink-0 p-0.5 rounded"
+                        title="Отказ"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="group relative">
+                      <TeacherBadge
+                        id={teacher.id}
+                        name={teacher.name}
+                        count={counts[teacher.id] || 0}
+                        draggable={enableDrag}
+                        onDragStart={enableDrag ? (e) => handleDragStart(e, teacher) : undefined}
+                        showRemove={isAdmin}
+                        onRemove={() => onRemoveTeacher(teacher.id)}
+                      />
+                      {isAdmin && onRenameTeacher && (
+                        <button
+                          onClick={() => startEditing(teacher)}
+                          className="absolute right-7 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 rounded p-0.5 text-muted-foreground hover:text-primary"
+                          title="Преименувай учителя"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                   {teacherUnavail.length > 0 && (
                     <p className="text-[10px] text-destructive/80 mt-0.5 ml-1 flex items-center gap-1">
                       <CalendarOff className="w-2.5 h-2.5" />

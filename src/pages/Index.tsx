@@ -31,6 +31,7 @@ const Index = () => {
     changePeriod,
     addTeacher,
     removeTeacher,
+    renameTeacher,
     assignTeacher,
     unassignTeacher,
     moveTeacher,
@@ -170,6 +171,7 @@ const Index = () => {
                 counts={teacherAssignmentCounts}
                 onAddTeacher={addTeacher}
                 onRemoveTeacher={removeTeacher}
+                onRenameTeacher={renameTeacher}
                 onAutoArrange={autoArrangeTeachers}
                 onClearSchedule={clearSchedule}
                 currentStage={currentStage}

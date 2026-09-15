@@ -45,7 +45,7 @@ export const OFFICIAL_TEACHER_NAMES: string[] = [
   "Николай Гочков",
   "Николина Стоянова",
   "Нина Василева",
-  "Нина Велкова",
+  "Мина Велкова",
   "Нина Николова",
   "Павел Алексиев",
   "Павлина Пеперова",
@@ -220,7 +220,7 @@ export function getOfficialDefaultTeachers(periodId: string): DefaultTeacherItem
   },
   {
     "id": "26",
-    "name": "Нина Велкова",
+    "name": "Мина Велкова",
     "periodId": "period-current",
     "stage": "secondary"
   },
