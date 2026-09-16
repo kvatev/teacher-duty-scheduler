@@ -30,7 +30,7 @@ function loadPeriodFromStorage(period: SchoolPeriod): { teachers: Teacher[]; ass
         const seenNames = new Set<string>();
         const updatedTeachers: Teacher[] = [];
         parsed.teachers.forEach((t: Teacher) => {
-          const normName = t.name.trim() === "Надя Калъбалъкова" ? "Надя Калъбалкова" : t.name.trim();
+          const normName = t.name.trim() === "Надя Калъбалкова" ? "Надя Калъбалъкова" : t.name.trim();
           const lower = normName.toLowerCase();
           if (!seenNames.has(lower)) {
             seenNames.add(lower);

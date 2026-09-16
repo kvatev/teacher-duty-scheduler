@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-09-15T09:14:00.000Z",
+  "exportedAt": "2026-09-16T08:20:00.000Z",
   "periods": [
     {
       "id": "period-current",
@@ -137,7 +137,7 @@
     },
     {
       "id": "22",
-      "name": "Надя Калъбалкова",
+      "name": "Надя Калъбалъкова",
       "periodId": "period-current",
       "stage": "secondary"
     },
@@ -567,7 +567,7 @@
     },
     {
       "id": "as-30",
-      "teacherId": "32",
+      "teacherId": "6",
       "day": "Вторник",
       "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
       "shiftNumber": "2",
@@ -887,7 +887,7 @@
     },
     {
       "id": "as-62",
-      "teacherId": "6",
+      "teacherId": "32",
       "day": "Четвъртък",
       "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
       "shiftNumber": "2",
@@ -900,7 +900,7 @@
       "teacherId": "22",
       "day": "Четвъртък",
       "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-      "shiftNumber": "2",
+      "shiftNumber": "1",
       "periodId": "period-current",
       "stage": "secondary",
       "note": null

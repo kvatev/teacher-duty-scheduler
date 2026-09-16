@@ -321,11 +321,11 @@ describe("localDB - In-browser Database", () => {
     // Check specific teachers from user request and official schedule image
     expect(teachers.some((t) => t.name === "Албена Гарабедян")).toBe(true);
     expect(teachers.some((t) => t.name === "Янчо Желев")).toBe(true);
-    expect(teachers.some((t) => t.name === "Надя Калъбалкова")).toBe(true);
+    expect(teachers.some((t) => t.name === "Надя Калъбалъкова")).toBe(true);
     expect(teachers.some((t) => t.name === "Мария Златева")).toBe(true);
     expect(teachers.some((t) => t.name === "Павлина Пеперова")).toBe(true);
     // Ensure old typo is not present
-    expect(teachers.some((t) => t.name === "Надя Калъбалъкова")).toBe(false);
+    expect(teachers.some((t) => t.name === "Надя Калъбалкова")).toBe(false);
 
     // Check assignments
     const assignments = localDB.getAssignments(undefined, "secondary");
@@ -339,7 +339,7 @@ describe("localDB - In-browser Database", () => {
 
     const oldTeachers = [
       { id: "old-1", name: "Красимир Ватев", periodId, stage: "secondary" },
-      { id: "old-2", name: "Надя Калъбалъкова", periodId, stage: "secondary" },
+      { id: "old-2", name: "Надя Калъбалкова", periodId, stage: "secondary" },
       { id: "old-3", name: "Десислава Димитрова", periodId, stage: "secondary" },
     ];
     localStorage.setItem("teacher_scheduler_teachers", JSON.stringify(oldTeachers));
@@ -361,13 +361,13 @@ describe("localDB - In-browser Database", () => {
     const syncedTeachers = localDB.getTeachers(periodId, "secondary");
     expect(syncedTeachers.length).toBe(44);
 
-    // Name must be normalized to 'Надя Калъбалкова'
-    const nadia = syncedTeachers.find((t) => t.name === "Надя Калъбалкова");
+    // Name must be normalized to 'Надя Калъбалъкова'
+    const nadia = syncedTeachers.find((t) => t.name === "Надя Калъбалъкова");
     expect(nadia).toBeDefined();
     expect(nadia?.id).toBe("old-2");
 
     // Old typo must be gone
-    expect(syncedTeachers.some((t) => t.name === "Надя Калъбалъкова")).toBe(false);
+    expect(syncedTeachers.some((t) => t.name === "Надя Калъбалкова")).toBe(false);
 
     // Assignment must still exist for Nadia
     const assignments = localDB.getAssignments(periodId, "secondary");

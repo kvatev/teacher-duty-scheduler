@@ -41,7 +41,7 @@ export const OFFICIAL_TEACHER_NAMES: string[] = [
   "Мария Сеферова",
   "Мирослава Петрова",
   "Моника Николова",
-  "Надя Калъбалкова",
+  "Надя Калъбалъкова",
   "Николай Гочков",
   "Николина Стоянова",
   "Нина Василева",
@@ -196,7 +196,7 @@ export function getOfficialDefaultTeachers(periodId: string): DefaultTeacherItem
   },
   {
     "id": "22",
-    "name": "Надя Калъбалкова",
+    "name": "Надя Калъбалъкова",
     "periodId": "period-current",
     "stage": "secondary"
   },
@@ -634,7 +634,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-30",
-    "teacherId": "32",
+    "teacherId": "6",
     "day": "Вторник",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
     "shiftNumber": "2",
@@ -954,7 +954,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-62",
-    "teacherId": "6",
+    "teacherId": "32",
     "day": "Четвъртък",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
     "shiftNumber": "2",
@@ -967,7 +967,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "teacherId": "22",
     "day": "Четвъртък",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-    "shiftNumber": "2",
+    "shiftNumber": "1",
     "periodId": "period-current",
     "stage": "secondary",
     "note": null

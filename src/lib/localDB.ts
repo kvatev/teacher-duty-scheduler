@@ -233,13 +233,13 @@ export function syncDefaultTeachers(): void {
   let hasChanges = false;
 
   for (const period of periods) {
-    // 1. Normalize typo "Надя Калъбалъкова" -> "Надя Калъбалкова" and ensure periodId
+    // 1. Normalize typo "Надя Калъбалкова" -> "Надя Калъбалъкова" and ensure periodId
     allTeachers = allTeachers.map((t) => {
       const tPeriodId = t.periodId || period.id;
       if (tPeriodId === period.id && (t.stage || "secondary") === "secondary") {
         let name = t.name;
-        if (name.trim() === "Надя Калъбалъкова") {
-          name = "Надя Калъбалкова";
+        if (name.trim() === "Надя Калъбалкова") {
+          name = "Надя Калъбалъкова";
           hasChanges = true;
         }
         if (!t.periodId) {

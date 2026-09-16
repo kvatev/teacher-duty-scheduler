@@ -7,7 +7,7 @@ import {
   PRIMARY_LOCATIONS,
   SchoolPeriod,
 } from "@/types/schedule";
-import {§
+import {
   DAY_NAME_TO_WEEKDAY,
   WEEKDAY_TO_BG,
   Weekday,
