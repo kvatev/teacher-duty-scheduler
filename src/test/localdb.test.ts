@@ -468,13 +468,50 @@ describe("localDB - In-browser Database", () => {
     }
   });
 
-  it("syncFromPublishedSchedule() gracefully handles network error or offline mode", async () => {
+  it("publishToCloud() successfully sends schedule data to /api/schedule", async () => {
     const originalFetch = global.fetch;
-    global.fetch = vi.fn().mockRejectedValue(new Error("Network offline"));
+    const mockPostResponse = {
+      ok: true,
+      json: async () => ({
+        success: true,
+        storageType: "Upstash Redis / Vercel KV",
+        message: "Графикът е записан успешно!",
+      }),
+    };
+    global.fetch = vi.fn().mockResolvedValue(mockPostResponse as any);
 
     try {
-      const synced = await localDB.syncFromPublishedSchedule();
-      expect(synced).toBe(false);
+      const result = await localDB.publishToCloud();
+      expect(result.success).toBe(true);
+      expect(result.storageType).toBe("Upstash Redis / Vercel KV");
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/schedule",
+        expect.objectContaining({
+          method: "POST",
+          headers: expect.objectContaining({ "Content-Type": "application/json" }),
+        })
+      );
+      expect(localDB.getLastPublishedSync()).toBe(result.exportedAt);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it("checkCloudStatus() queries /api/schedule?status=1", async () => {
+    const originalFetch = global.fetch;
+    const mockStatusResponse = {
+      ok: true,
+      json: async () => ({
+        connected: true,
+        activeStorage: "Vercel Blob",
+      }),
+    };
+    global.fetch = vi.fn().mockResolvedValue(mockStatusResponse as any);
+
+    try {
+      const status = await localDB.checkCloudStatus();
+      expect(status.connected).toBe(true);
+      expect(status.activeStorage).toBe("Vercel Blob");
     } finally {
       global.fetch = originalFetch;
     }

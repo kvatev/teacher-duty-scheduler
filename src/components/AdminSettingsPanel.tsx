@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users, Download, Database, RefreshCw, GraduationCap, Backpack, GitBranch, Copy, Check, CloudDownload } from "lucide-react";
+import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users, Download, Database, RefreshCw, GraduationCap, Backpack, GitBranch, Copy, Check, CloudDownload, CloudUpload, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,11 +75,17 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
   const [isImporting, setIsImporting] = useState(false);
   const [isSyncingGitHub, setIsSyncingGitHub] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isPublishingCloud, setIsPublishingCloud] = useState(false);
+  const [isCheckingCloud, setIsCheckingCloud] = useState(false);
+  const [cloudStatus, setCloudStatus] = useState<{ connected: boolean; activeStorage: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setDraft(settings);
       setLogoPreview(settings.logo_url || "");
+      localDB.checkCloudStatus().then((status) => {
+        setCloudStatus(status);
+      }).catch(() => {});
     }
   }, [isOpen, settings]);
 
@@ -202,6 +208,43 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
       toast.error("Грешка при синхронизация от GitHub");
     } finally {
       setIsSyncingGitHub(false);
+    }
+  };
+
+  const handlePublishToCloud = async () => {
+    setIsPublishingCloud(true);
+    try {
+      const res = await localDB.publishToCloud();
+      if (res.success) {
+        toast.success(res.message || "Графикът е публикуван успешно в базата данни!");
+        setCloudStatus((prev) => ({
+          connected: true,
+          activeStorage: res.storageType || prev?.activeStorage || "Vercel Cloud",
+        }));
+      } else {
+        toast.error(res.message || "Грешка при публикуване в базата данни.");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Грешка при комуникация със сървъра.");
+    } finally {
+      setIsPublishingCloud(false);
+    }
+  };
+
+  const handleCheckCloudStatus = async () => {
+    setIsCheckingCloud(true);
+    try {
+      const status = await localDB.checkCloudStatus();
+      setCloudStatus(status);
+      if (status.connected) {
+        toast.success(`Връзката с базата данни е активна: ${status.activeStorage}`);
+      } else {
+        toast.info("Няма свързана Vercel база данни (активен е локален fallback режим).");
+      }
+    } catch {
+      toast.error("Грешка при проверка на връзката с базата данни.");
+    } finally {
+      setIsCheckingCloud(false);
     }
   };
 
@@ -405,47 +448,59 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                 </TabsContent>
 
                 <TabsContent value="backup" className="space-y-6 mt-0">
-                  {/* GitHub Publishing Section */}
-                  <div className="p-4 rounded-xl border border-primary/25 bg-primary/5 space-y-3 shadow-2xs">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <GitBranch className="w-4 h-4" />
+                  {/* Vercel Cloud Database Sync Section */}
+                  <div className="p-4 sm:p-5 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent space-y-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs">
+                          <CloudUpload className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm font-bold text-foreground">Облачна база данни (Vercel)</h4>
+                            <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${cloudStatus?.connected ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'}`}>
+                              {cloudStatus?.connected ? `🟢 ${cloudStatus.activeStorage}` : "🟡 Локален режим / Очаква Vercel Storage"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Моментално синхронизиране на графика към всички учители и устройства в реално време.
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-foreground">Публикуване в GitHub за всички потребители</h4>
-                        <p className="text-xs text-muted-foreground">
-                          Синхронизирайте актуалния график с онлайн сайта без нужда от база данни.
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="text-xs text-muted-foreground bg-background/80 p-3 rounded-lg border space-y-1.5 leading-relaxed">
-                      <p className="font-semibold text-foreground">Как работи актуализацията:</p>
-                      <ol className="list-decimal list-inside space-y-1 opacity-90">
-                        <li>Свалете или копирайте обновения <strong>schedule-data.json</strong>.</li>
-                        <li>Поставете го в папка <code>public/schedule-data.json</code> в репото и направете <code>git push</code> (или ми напишете тук в чата да го обновя).</li>
-                        <li>Vercel автоматично преизгражда сайта за около 30 секунди и всички учители веднага виждат актуалния график!</li>
-                      </ol>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <Button
-                        size="sm"
-                        onClick={handleDownloadScheduleJson}
-                        className="gap-1.5 w-full sm:w-auto text-xs font-semibold shadow-xs"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Свали schedule-data.json
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={handleCopyScheduleJson}
-                        className="gap-1.5 w-full sm:w-auto text-xs"
+                        onClick={handleCheckCloudStatus}
+                        disabled={isCheckingCloud}
+                        className="text-xs h-8 shrink-0 self-start sm:self-center"
                       >
-                        {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                        {isCopied ? "Копирано!" : "Копирай JSON за GitHub"}
+                        <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isCheckingCloud ? "animate-spin" : ""}`} />
+                        {isCheckingCloud ? "Проверка..." : "Тествай връзка"}
                       </Button>
+                    </div>
+
+                    <div className="p-3 bg-background/80 rounded-xl border space-y-2 text-xs text-muted-foreground leading-relaxed">
+                      <p className="font-semibold text-foreground flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                        Как работи облачното синхронизиране:
+                      </p>
+                      <p>
+                        Когато кликнете <strong>„Публикувай за всички (Vercel)“</strong>, всички промени по дежурствата и учителите се записват веднага в облака. Всички потребители на телефони, таблети и лаптопи автоматично получават обновения график за 1-2 секунди, без да е нужно сваляне на файлове или чакане на нов билд във Vercel!
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                      <Button
+                        size="sm"
+                        onClick={handlePublishToCloud}
+                        disabled={isPublishingCloud}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-semibold shadow-sm w-full sm:w-auto text-xs sm:text-sm"
+                      >
+                        <CloudUpload className="w-4 h-4" />
+                        {isPublishingCloud ? "Публикуване в базата данни..." : "🚀 Публикувай за всички (Vercel)"}
+                      </Button>
+
                       <Button
                         variant="ghost"
                         size="sm"
@@ -454,15 +509,51 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                         className="gap-1.5 w-full sm:w-auto text-xs text-muted-foreground hover:text-foreground"
                       >
                         <CloudDownload className="w-3.5 h-3.5" />
-                        {isSyncingGitHub ? "Проверка..." : "Презареди от GitHub сега"}
+                        {isSyncingGitHub ? "Проверка..." : "Презареди от облака сега"}
                       </Button>
                     </div>
 
                     {localDB.getLastPublishedSync() && (
                       <p className="text-[11px] text-muted-foreground font-mono">
-                        Последна синхронизация с GitHub: {new Date(localDB.getLastPublishedSync()!).toLocaleString("bg-BG")}
+                        Последна синхронизация: {new Date(localDB.getLastPublishedSync()!).toLocaleString("bg-BG")}
                       </p>
                     )}
+                  </div>
+
+                  {/* Secondary GitHub Publishing Section */}
+                  <div className="p-4 rounded-xl border border-muted bg-muted/20 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center shrink-0">
+                        <GitBranch className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-semibold text-foreground">Резервен метод: Публикуване през GitHub</h4>
+                        <p className="text-[11px] text-muted-foreground">
+                          Опционален вариант за съхранение на архив на файла директно в GitHub хранилището.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleDownloadScheduleJson}
+                        className="gap-1.5 w-full sm:w-auto text-xs shadow-2xs"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Свали schedule-data.json
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyScheduleJson}
+                        className="gap-1.5 w-full sm:w-auto text-xs shadow-2xs"
+                      >
+                        {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        {isCopied ? "Копирано!" : "Копирай JSON за GitHub"}
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="border-t pt-4">

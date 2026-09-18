@@ -873,15 +873,100 @@ export const localDB = {
     return localStorage.getItem(STORAGE_KEYS.PUBLISHED_SYNC);
   },
 
-  // Synchronization with central GitHub/Vercel published schedule (public/schedule-data.json)
-  async syncFromPublishedSchedule(force = false): Promise<boolean> {
-    if (typeof window === "undefined") return false;
+  // Check Vercel/cloud database status
+  async checkCloudStatus(): Promise<{
+    connected: boolean;
+    activeStorage: string;
+    storageEngines?: Record<string, boolean>;
+    timestamp?: string;
+  }> {
+    if (typeof window === "undefined") {
+      return { connected: false, activeStorage: "Неизвестен" };
+    }
     try {
-      const res = await fetch(`/schedule-data.json?t=${Date.now()}`, {
+      const res = await fetch(`/api/schedule?status=1&t=${Date.now()}`, {
         cache: "no-store",
         headers: { Accept: "application/json" },
       });
-      if (!res.ok) {
+      if (res.ok) {
+        return await res.json();
+      }
+      return { connected: false, activeStorage: "Грешка при връзка" };
+    } catch {
+      return { connected: false, activeStorage: "Офлайн режим" };
+    }
+  },
+
+  // Publish current local database to Vercel cloud database (/api/schedule)
+  async publishToCloud(): Promise<{
+    success: boolean;
+    message: string;
+    storageType?: string;
+    exportedAt?: string;
+  }> {
+    if (typeof window === "undefined") {
+      return { success: false, message: "Window is not defined" };
+    }
+    try {
+      const data = this.exportBackup();
+      const newExportedAt = new Date().toISOString();
+      data.exportedAt = newExportedAt;
+
+      const res = await fetch(`/api/schedule`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        return {
+          success: false,
+          message: result.error || result.message || "Грешка при запис в базата данни",
+        };
+      }
+
+      // Mark local storage as synced with this timestamp
+      localStorage.setItem(STORAGE_KEYS.PUBLISHED_SYNC, newExportedAt);
+      window.dispatchEvent(new CustomEvent("local-db-change", { detail: { key: "all" } }));
+
+      return {
+        success: true,
+        message: result.message || "Графикът е публикуван успешно в базата данни!",
+        storageType: result.storageType,
+        exportedAt: newExportedAt,
+      };
+    } catch (e: any) {
+      return {
+        success: false,
+        message: e?.message || "Мрежова грешка при връзка със сървъра",
+      };
+    }
+  },
+
+  // Synchronization with central Vercel cloud database / published schedule
+  async syncFromPublishedSchedule(force = false): Promise<boolean> {
+    if (typeof window === "undefined") return false;
+    try {
+      // 1. Try cloud database API first
+      let res: Response | null = await fetch(`/api/schedule?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      }).catch(() => null);
+
+      // 2. If API is not available, fallback to static public/schedule-data.json
+      if (!res || !res.ok) {
+        res = await fetch(`/schedule-data.json?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        }).catch(() => null);
+      }
+
+      if (!res || !res.ok) {
         return false;
       }
       const data = (await res.json()) as FullDatabaseBackup;
@@ -918,7 +1003,7 @@ export const localDB = {
       window.dispatchEvent(new CustomEvent("local-db-change", { detail: { key: "all" } }));
       return true;
     } catch (e) {
-      console.warn("Could not fetch published schedule from GitHub/server (offline or unavailable):", e);
+      console.warn("Could not fetch published schedule from cloud/server (offline or unavailable):", e);
       return false;
     }
   },

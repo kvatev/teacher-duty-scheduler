@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Lock, LogOut, Shield, Bell, BellRing } from "lucide-react";
+import { Lock, LogOut, Shield, Bell, BellRing, CloudUpload } from "lucide-react";
+import { localDB } from "@/lib/localDB";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,6 +95,23 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
   const [password, setPassword] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isPublishingCloud, setIsPublishingCloud] = useState(false);
+
+  const handleQuickPublish = async () => {
+    setIsPublishingCloud(true);
+    try {
+      const res = await localDB.publishToCloud();
+      if (res.success) {
+        toast.success(res.message || "Графикът е публикуван успешно в базата данни за всички!");
+      } else {
+        toast.error(res.message || "Грешка при публикуване в базата данни.");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Грешка при комуникация със сървъра.");
+    } finally {
+      setIsPublishingCloud(false);
+    }
+  };
 
   const logoSrc = settings.logo_url || defaultLogo;
 
@@ -145,6 +163,16 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
             <MobileInstallButton />
             {isAdmin && (
               <>
+                <Button
+                  size="sm"
+                  onClick={handleQuickPublish}
+                  disabled={isPublishingCloud}
+                  className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs font-semibold h-8 text-xs sm:text-sm"
+                  title="Публикувай текущия график в облачната база данни към всички потребители"
+                >
+                  <CloudUpload className={`w-3.5 h-3.5 ${isPublishingCloud ? "animate-bounce" : ""}`} />
+                  <span className="hidden md:inline">{isPublishingCloud ? "Публикуване..." : "Публикувай за всички"}</span>
+                </Button>
                 <NotificationHeaderButton />
                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-accent/20 rounded-full">
                   <Shield className="w-4 h-4" />

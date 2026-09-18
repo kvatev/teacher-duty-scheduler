@@ -1,7 +1,86 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { VitePWA } from "vite-plugin-pwa";
+
+function devScheduleApiPlugin() {
+  return {
+    name: "dev-schedule-api",
+    configureServer(server: any) {
+      server.middlewares.use(async (req: any, res: any, next: any) => {
+        if (!req.url?.startsWith("/api/schedule")) {
+          return next();
+        }
+
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Admin-Key");
+
+        if (req.method === "OPTIONS") {
+          res.statusCode = 200;
+          return res.end();
+        }
+
+        const filePath = path.resolve(__dirname, "./public/schedule-data.json");
+
+        if (req.url.includes("status=1") || req.url.includes("status=true")) {
+          res.setHeader("Content-Type", "application/json");
+          res.statusCode = 200;
+          return res.end(
+            JSON.stringify({
+              connected: true,
+              storageEngines: { dev: true },
+              activeStorage: "Vite Dev Server (public/schedule-data.json)",
+              timestamp: new Date().toISOString(),
+            })
+          );
+        }
+
+        if (req.method === "GET") {
+          if (fs.existsSync(filePath)) {
+            const data = fs.readFileSync(filePath, "utf-8");
+            res.setHeader("Content-Type", "application/json");
+            res.statusCode = 200;
+            return res.end(data);
+          }
+          res.statusCode = 404;
+          return res.end(JSON.stringify({ error: "File not found" }));
+        }
+
+        if (req.method === "POST") {
+          let bodyStr = "";
+          req.on("data", (chunk: any) => {
+            bodyStr += chunk;
+          });
+          req.on("end", () => {
+            try {
+              const parsed = JSON.parse(bodyStr);
+              parsed.exportedAt = new Date().toISOString();
+              fs.writeFileSync(filePath, JSON.stringify(parsed, null, 2), "utf-8");
+              res.setHeader("Content-Type", "application/json");
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  success: true,
+                  storageType: "Vite Dev Server (public/schedule-data.json)",
+                  exportedAt: parsed.exportedAt,
+                  message: "Успешно записано в public/schedule-data.json!",
+                })
+              );
+            } catch (err: any) {
+              res.statusCode = 400;
+              return res.end(JSON.stringify({ error: err.message || "Invalid JSON" }));
+            }
+          });
+          return;
+        }
+
+        next();
+      });
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
@@ -13,6 +92,7 @@ export default defineConfig(() => ({
     },
   },
   plugins: [
+    devScheduleApiPlugin(),
     react(),
     VitePWA({
       registerType: "autoUpdate",

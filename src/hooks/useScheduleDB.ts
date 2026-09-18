@@ -51,11 +51,23 @@ export function useScheduleDB() {
     loadData();
   }, [loadData]);
 
-  // Check for updated schedule published to GitHub/Vercel (public/schedule-data.json)
+  // Check for updated schedule published to Vercel cloud database / static schedule on mount, focus, and periodic interval
   useEffect(() => {
-    localDB.syncFromPublishedSchedule().catch((err) => {
-      console.warn("Background schedule sync error:", err);
-    });
+    const doSync = () => {
+      localDB.syncFromPublishedSchedule().catch((err) => {
+        console.warn("Background schedule sync error:", err);
+      });
+    };
+
+    doSync();
+
+    window.addEventListener("focus", doSync);
+    const interval = setInterval(doSync, 120000);
+
+    return () => {
+      window.removeEventListener("focus", doSync);
+      clearInterval(interval);
+    };
   }, []);
 
   // Listen to cross-component database changes (e.g. backup restore)
