@@ -219,8 +219,24 @@ export default async function handler(req: any, res: any) {
               return res.status(200).json(blobData);
             }
           }
-        } catch (blobErr) {
-          console.warn("Blob read error or not created yet:", blobErr);
+        } catch {
+          // If Blob does not exist yet in the store, automatically seed it!
+          try {
+            const localFilePath = path.join(process.cwd(), "public", "schedule-data.json");
+            if (fs.existsSync(localFilePath)) {
+              const fileContent = fs.readFileSync(localFilePath, "utf-8");
+              await put("schedule-data.json", fileContent, {
+                access: "public",
+                addRandomSuffix: false,
+                token: storage.blobToken,
+              }).catch(() => null);
+              res.setHeader("Cache-Control", "s-maxage=10, stale-while-revalidate=59");
+              res.setHeader("X-Storage-Engine", "blob-seeded");
+              return res.status(200).json(JSON.parse(fileContent));
+            }
+          } catch (seedErr) {
+            console.warn("Could not seed Blob on first GET:", seedErr);
+          }
         }
       }
 

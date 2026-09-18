@@ -29,6 +29,7 @@ export const OFFICIAL_TEACHER_NAMES: string[] = [
   "Даниела Кирякова",
   "Десислава Димитрова",
   "Димитър Батилов",
+  "Екатерина Зафирова",
   "Елена Боева",
   "Жулиета Дросева",
   "Ива Камбурова",
@@ -327,8 +328,14 @@ export function getOfficialDefaultTeachers(periodId: string): DefaultTeacherItem
     "stage": "secondary"
   },
   {
-    "id": "44",
+        "id": "44",
     "name": "Янчо Желев",
+    "periodId": "period-current",
+    "stage": "secondary"
+  },
+  {
+    "id": "45",
+    "name": "Екатерина Зафирова",
     "periodId": "period-current",
     "stage": "secondary"
   }
@@ -347,7 +354,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "teacherId": "44",
     "day": "Понеделник",
     "location": "Дежурен на 0 етаж",
-    "shiftNumber": null,
+    "shiftNumber": "1",
     "periodId": "period-current",
     "stage": "secondary",
     "note": null
@@ -424,7 +431,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-9",
-    "teacherId": "42",
+    "teacherId": "40",
     "day": "Понеделник",
     "location": "Дежурни на IV-ти етаж",
     "shiftNumber": null,
@@ -507,7 +514,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "teacherId": "36",
     "day": "Вторник",
     "location": "Дежурен на 0 етаж",
-    "shiftNumber": null,
+    "shiftNumber": "1",
     "periodId": "period-current",
     "stage": "secondary",
     "note": null
@@ -544,7 +551,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-21",
-    "teacherId": "10",
+    "teacherId": "45",
     "day": "Вторник",
     "location": "Дежурни на III-ти етаж",
     "shiftNumber": null,
@@ -564,16 +571,6 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-23",
-    "teacherId": "39",
-    "day": "Вторник",
-    "location": "Дежурни на IV-ти етаж",
-    "shiftNumber": null,
-    "periodId": "period-current",
-    "stage": "secondary",
-    "note": null
-  },
-  {
-    "id": "as-24",
     "teacherId": "35",
     "day": "Вторник",
     "location": "Дежурни на IV-ти етаж",
@@ -583,8 +580,18 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "note": null
   },
   {
-    "id": "as-25",
+    "id": "as-24",
     "teacherId": "22",
+    "day": "Вторник",
+    "location": "Дежурни на IV-ти етаж",
+    "shiftNumber": null,
+    "periodId": "period-current",
+    "stage": "secondary",
+    "note": null
+  },
+  {
+    "id": "as-25",
+    "teacherId": "13",
     "day": "Вторник",
     "location": "Дежурни на IV-ти етаж",
     "shiftNumber": null,
@@ -624,26 +631,16 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-29",
-    "teacherId": "2",
+    "teacherId": "39",
     "day": "Вторник",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-    "shiftNumber": "2",
+    "shiftNumber": "1",
     "periodId": "period-current",
     "stage": "secondary",
     "note": null
   },
   {
     "id": "as-30",
-    "teacherId": "6",
-    "day": "Вторник",
-    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-    "shiftNumber": "2",
-    "periodId": "period-current",
-    "stage": "secondary",
-    "note": null
-  },
-  {
-    "id": "as-31",
     "teacherId": "43",
     "day": "Вторник",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
@@ -653,11 +650,21 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "note": null
   },
   {
-    "id": "as-32",
-    "teacherId": "13",
+    "id": "as-31",
+    "teacherId": "2",
     "day": "Вторник",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-    "shiftNumber": "1",
+    "shiftNumber": "2",
+    "periodId": "period-current",
+    "stage": "secondary",
+    "note": null
+  },
+  {
+    "id": "as-32",
+    "teacherId": "6",
+    "day": "Вторник",
+    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
+    "shiftNumber": "2",
     "periodId": "period-current",
     "stage": "secondary",
     "note": null
@@ -667,7 +674,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "teacherId": "12",
     "day": "Сряда",
     "location": "Дежурен на 0 етаж",
-    "shiftNumber": null,
+    "shiftNumber": "1",
     "periodId": "period-current",
     "stage": "secondary",
     "note": null
@@ -714,7 +721,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-38",
-    "teacherId": "43",
+    "teacherId": "10",
     "day": "Сряда",
     "location": "Дежурни на IV-ти етаж",
     "shiftNumber": null,
@@ -744,7 +751,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-41",
-    "teacherId": "40",
+    "teacherId": "42",
     "day": "Сряда",
     "location": "Дежурни на IV-ти етаж",
     "shiftNumber": null,
@@ -770,7 +777,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "shiftNumber": null,
     "periodId": "period-current",
     "stage": "secondary",
-    "note": "фоайе"
+    "note": "столова"
   },
   {
     "id": "as-44",
@@ -780,20 +787,10 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "shiftNumber": null,
     "periodId": "period-current",
     "stage": "secondary",
-    "note": "столова"
+    "note": "фоайе"
   },
   {
     "id": "as-45",
-    "teacherId": "4",
-    "day": "Сряда",
-    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-    "shiftNumber": "2",
-    "periodId": "period-current",
-    "stage": "secondary",
-    "note": null
-  },
-  {
-    "id": "as-46",
     "teacherId": "32",
     "day": "Сряда",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
@@ -803,7 +800,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "note": null
   },
   {
-    "id": "as-47",
+    "id": "as-46",
     "teacherId": "21",
     "day": "Сряда",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
@@ -813,8 +810,18 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "note": null
   },
   {
-    "id": "as-48",
+    "id": "as-47",
     "teacherId": "42",
+    "day": "Сряда",
+    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
+    "shiftNumber": "2",
+    "periodId": "period-current",
+    "stage": "secondary",
+    "note": null
+  },
+  {
+    "id": "as-48",
+    "teacherId": "4",
     "day": "Сряда",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
     "shiftNumber": "2",
@@ -827,7 +834,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "teacherId": "37",
     "day": "Четвъртък",
     "location": "Дежурен на 0 етаж",
-    "shiftNumber": null,
+    "shiftNumber": "1",
     "periodId": "period-current",
     "stage": "secondary",
     "note": null
@@ -844,7 +851,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-51",
-    "teacherId": "21",
+    "teacherId": "43",
     "day": "Четвъртък",
     "location": "Дежурни на III-ти етаж",
     "shiftNumber": null,
@@ -854,7 +861,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-52",
-    "teacherId": "16",
+    "teacherId": "8",
     "day": "Четвъртък",
     "location": "Дежурни на III-ти етаж",
     "shiftNumber": null,
@@ -914,7 +921,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
   },
   {
     "id": "as-58",
-    "teacherId": "23",
+    "teacherId": "45",
     "day": "Четвъртък",
     "location": "Училищен стол и пред кабинет по музика",
     "shiftNumber": null,
@@ -930,40 +937,20 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "shiftNumber": null,
     "periodId": "period-current",
     "stage": "secondary",
-    "note": "столова"
+    "note": "фоайе"
   },
   {
     "id": "as-60",
-    "teacherId": "10",
+    "teacherId": "3",
     "day": "Четвъртък",
     "location": "Училищен стол и пред кабинет по музика",
     "shiftNumber": null,
     "periodId": "period-current",
     "stage": "secondary",
-    "note": "фоайе"
+    "note": "столова"
   },
   {
     "id": "as-61",
-    "teacherId": "1",
-    "day": "Четвъртък",
-    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-    "shiftNumber": "2",
-    "periodId": "period-current",
-    "stage": "secondary",
-    "note": null
-  },
-  {
-    "id": "as-62",
-    "teacherId": "32",
-    "day": "Четвъртък",
-    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-    "shiftNumber": "2",
-    "periodId": "period-current",
-    "stage": "secondary",
-    "note": null
-  },
-  {
-    "id": "as-63",
     "teacherId": "22",
     "day": "Четвъртък",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
@@ -973,7 +960,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "note": null
   },
   {
-    "id": "as-64",
+    "id": "as-62",
     "teacherId": "8",
     "day": "Четвъртък",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
@@ -983,18 +970,38 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "note": null
   },
   {
+    "id": "as-63",
+    "teacherId": "1",
+    "day": "Четвъртък",
+    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
+    "shiftNumber": "2",
+    "periodId": "period-current",
+    "stage": "secondary",
+    "note": null
+  },
+  {
+    "id": "as-64",
+    "teacherId": "32",
+    "day": "Четвъртък",
+    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
+    "shiftNumber": "2",
+    "periodId": "period-current",
+    "stage": "secondary",
+    "note": null
+  },
+  {
     "id": "as-65",
     "teacherId": "31",
     "day": "Петък",
     "location": "Дежурен на 0 етаж",
-    "shiftNumber": null,
+    "shiftNumber": "1",
     "periodId": "period-current",
     "stage": "secondary",
     "note": null
   },
   {
     "id": "as-66",
-    "teacherId": "8",
+    "teacherId": "16",
     "day": "Петък",
     "location": "Дежурни на III-ти етаж",
     "shiftNumber": null,
@@ -1080,7 +1087,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "shiftNumber": null,
     "periodId": "period-current",
     "stage": "secondary",
-    "note": "столова"
+    "note": "фоайе"
   },
   {
     "id": "as-75",
@@ -1100,20 +1107,10 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "shiftNumber": null,
     "periodId": "period-current",
     "stage": "secondary",
-    "note": "фоайе"
+    "note": "столова"
   },
   {
     "id": "as-77",
-    "teacherId": "4",
-    "day": "Петък",
-    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
-    "shiftNumber": "2",
-    "periodId": "period-current",
-    "stage": "secondary",
-    "note": null
-  },
-  {
-    "id": "as-78",
     "teacherId": "29",
     "day": "Петък",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
@@ -1123,7 +1120,7 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "note": null
   },
   {
-    "id": "as-79",
+    "id": "as-78",
     "teacherId": "5",
     "day": "Петък",
     "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
@@ -1131,8 +1128,18 @@ export function getOfficialDefaultAssignments(periodId: string): DefaultAssignme
     "periodId": "period-current",
     "stage": "secondary",
     "note": null
+  },
+  {
+    "id": "as-79",
+    "teacherId": "4",
+    "day": "Петък",
+    "location": "Главен дежурен – западен вход 07:30-08:40 ч.",
+    "shiftNumber": "2",
+    "periodId": "period-current",
+    "stage": "secondary",
+    "note": null
   }
-];
+  ];
   return list.map((a, i) => ({
     ...a,
     id: "as-off-" + (i + 1),
