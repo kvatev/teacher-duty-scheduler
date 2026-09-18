@@ -214,6 +214,25 @@ export default async function handler(req: any, res: any) {
             const blobRes = await fetch(`${blobInfo.url}?t=${Date.now()}`);
             if (blobRes.ok) {
               const blobData = await blobRes.json();
+              const hasZafirova = blobData.teachers?.some((t: any) => t.name?.includes("Зафирова"));
+              const hasFullAssignments = (blobData.assignments?.length || 0) >= 79;
+
+              // If Blob has outdated schedule (missing Ekaterina Zafirova or < 79 assignments), reseed it!
+              if (!hasZafirova || !hasFullAssignments) {
+                const localFilePath = path.join(process.cwd(), "public", "schedule-data.json");
+                if (fs.existsSync(localFilePath)) {
+                  const fileContent = fs.readFileSync(localFilePath, "utf-8");
+                  await put("schedule-data.json", fileContent, {
+                    access: "public",
+                    addRandomSuffix: false,
+                    token: storage.blobToken,
+                  }).catch(() => null);
+                  res.setHeader("Cache-Control", "no-cache");
+                  res.setHeader("X-Storage-Engine", "blob-reseeded");
+                  return res.status(200).json(JSON.parse(fileContent));
+                }
+              }
+
               res.setHeader("Cache-Control", "s-maxage=10, stale-while-revalidate=59");
               res.setHeader("X-Storage-Engine", "blob");
               return res.status(200).json(blobData);

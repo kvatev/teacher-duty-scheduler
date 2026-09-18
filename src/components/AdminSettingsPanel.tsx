@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users, Download, Database, RefreshCw, GraduationCap, Backpack, GitBranch, Copy, Check, CloudDownload, CloudUpload, Sparkles } from "lucide-react";
+import { Settings, Save, X, Upload, Image, KeyRound, Megaphone, Users, Download, Database, RefreshCw, GraduationCap, Backpack, GitBranch, Copy, Check, CloudDownload, CloudUpload, Sparkles, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -284,6 +284,14 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
     setDraft(newSettings);
     setLogoPreview(newSettings.logo_url || "");
     toast.success("Възстановени са началните училищни данни");
+  };
+
+  const handleResetToOfficial = () => {
+    localDB.resetToOfficialSchedule();
+    const newSettings = localDB.getSettings();
+    setDraft(newSettings);
+    setLogoPreview(newSettings.logo_url || "");
+    toast.success("Официалният утвърден график от директора е зареден успешно!");
   };
 
   const canSettings = isSuperAdmin || permissions.canManageSettings;
@@ -588,6 +596,25 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
                     >
                       <Upload className="w-4 h-4" />
                       {isImporting ? "Възстановяване..." : "Избери файл за възстановяване"}
+                    </Button>
+                  </div>
+
+                  <div className="border-t pt-4 bg-primary/5 p-3 rounded-lg border border-primary/20">
+                    <h4 className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                      <FileCheck className="w-4 h-4" />
+                      Официален утвърден график от директора (I срок 2026/2027)
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1 mb-3">
+                      Презарежда всички 79 официални дежурства и 45 учители (вкл. Екатерина Зафирова) точно по утвърдения от директора график.
+                    </p>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleResetToOfficial}
+                      className="gap-2 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Зареди официалния график от директора
                     </Button>
                   </div>
 

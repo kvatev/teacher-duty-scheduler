@@ -63,7 +63,10 @@ export const STORAGE_KEYS = {
   AUTH: "teacher_scheduler_auth",
   DISMISSED_BROADCASTS: "dismissedBroadcasts",
   PUBLISHED_SYNC: "teacher_scheduler_published_sync",
+  SCHEDULE_VERSION: "teacher_scheduler_schedule_version",
 } as const;
+
+export const OFFICIAL_SCHEDULE_VERSION = "2026-09-18-official-director-pdf-v3";
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   header_title: "График за дежурства",
@@ -227,12 +230,16 @@ export function syncDefaultTeachers(): void {
   const periods = getFromStorage<DBPeriod[]>(STORAGE_KEYS.PERIODS, []);
   if (periods.length === 0) return;
 
+  const appliedVersion = typeof localStorage !== "undefined" ? localStorage.getItem(STORAGE_KEYS.SCHEDULE_VERSION) : null;
+  const needsOfficialUpgrade = appliedVersion !== OFFICIAL_SCHEDULE_VERSION;
+
   let allTeachers = getFromStorage<DBTeacher[]>(STORAGE_KEYS.TEACHERS, []);
   let allAssignments = getFromStorage<DBAssignment[]>(STORAGE_KEYS.ASSIGNMENTS, []);
   let allUnavailabilities = getFromStorage<DBUnavailability[]>(STORAGE_KEYS.UNAVAILABILITY, []);
   let hasChanges = false;
 
   for (const period of periods) {
+
     // 1. Normalize typo "Надя Калъбалкова" -> "Надя Калъбалъкова" and ensure periodId
     allTeachers = allTeachers.map((t) => {
       const tPeriodId = t.periodId || period.id;
@@ -308,7 +315,7 @@ export function syncDefaultTeachers(): void {
       }
     }
 
-    // 4. If current secondary assignments in this period are the legacy 5 dummy seed items, upgrade to official schedule
+    // 4. If current secondary assignments in this period are legacy seed or missing official Zafirova assignments, upgrade to official schedule
     const secondaryAssignments = allAssignments.filter(
       (a) => (a.periodId || period.id) === period.id && (a.stage || "secondary") === "secondary"
     );
@@ -318,7 +325,12 @@ export function syncDefaultTeachers(): void {
       secondaryAssignments.every((a) => a.day === "Понеделник") &&
       legacySeedTeacherIds.every((id) => secondaryAssignments.some((a) => a.teacherId === id));
 
-    if (isLegacySeed) {
+    const isMissingOfficialZafirova =
+      (period.year === "2026/2027" || period.id === "period-current") &&
+      secondaryAssignments.length > 5 &&
+      !secondaryAssignments.some((a) => a.teacherId === "45");
+
+    if (isLegacySeed || isMissingOfficialZafirova) {
       const officialAssignments = getOfficialDefaultAssignments(period.id);
       allAssignments = [
         ...allAssignments.filter(
@@ -328,6 +340,28 @@ export function syncDefaultTeachers(): void {
       ];
       hasChanges = true;
     }
+
+    if (isMissingOfficialZafirova) {
+      const hasZafirova45 = allTeachers.some(
+        (t) => (t.periodId || period.id) === period.id && t.name.includes("Зафирова") && t.id === "45"
+      );
+      if (!hasZafirova45) {
+        allTeachers = allTeachers.filter(
+          (t) => !((t.periodId || period.id) === period.id && t.name.includes("Зафирова"))
+        );
+        allTeachers.push({
+          id: "45",
+          name: "Екатерина Зафирова",
+          periodId: period.id,
+          stage: "secondary",
+        });
+        hasChanges = true;
+      }
+    }
+  }
+
+  if (needsOfficialUpgrade && typeof localStorage !== "undefined") {
+    localStorage.setItem(STORAGE_KEYS.SCHEDULE_VERSION, OFFICIAL_SCHEDULE_VERSION);
   }
 
   if (hasChanges) {
@@ -864,6 +898,23 @@ export const localDB = {
     window.dispatchEvent(new CustomEvent("local-db-change", { detail: { key: "all" } }));
   },
 
+  resetToOfficialSchedule(): void {
+    if (typeof window === "undefined") return;
+    const periods = this.getPeriods();
+    const period = periods[0] || { id: "period-current", year: "2026/2027", term: 1 as const };
+    
+    const officialTeachers = getOfficialDefaultTeachers(period.id);
+    const officialAssignments = getOfficialDefaultAssignments(period.id);
+
+    setToStorage(STORAGE_KEYS.TEACHERS, officialTeachers);
+    setToStorage(STORAGE_KEYS.ASSIGNMENTS, officialAssignments);
+    setToStorage(STORAGE_KEYS.PERIODS, [period]);
+    localStorage.setItem(STORAGE_KEYS.SCHEDULE_VERSION, OFFICIAL_SCHEDULE_VERSION);
+    localStorage.setItem(STORAGE_KEYS.PUBLISHED_SYNC, new Date().toISOString());
+
+    window.dispatchEvent(new CustomEvent("local-db-change", { detail: { key: "all" } }));
+  },
+
   syncDefaultTeachers(): void {
     syncDefaultTeachers();
   },
@@ -974,10 +1025,14 @@ export const localDB = {
         return false;
       }
 
+      const currentTeachers = getFromStorage<DBTeacher[]>(STORAGE_KEYS.TEACHERS, []);
+      const currentHasZafirova = currentTeachers.some((t) => t.name.includes("Зафирова"));
+      const incomingHasZafirova = data.teachers?.some((t) => t.name?.includes("Зафирова"));
+
       const lastSync = localStorage.getItem(STORAGE_KEYS.PUBLISHED_SYNC);
       const isNewer = !lastSync || (data.exportedAt && data.exportedAt !== lastSync);
 
-      if (!isNewer && !force) {
+      if (!isNewer && !force && (!incomingHasZafirova || currentHasZafirova)) {
         return false;
       }
 
