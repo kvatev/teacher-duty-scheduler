@@ -981,6 +981,12 @@ export const localDB = {
         return false;
       }
 
+      const previousBroadcasts = getFromStorage<DBBroadcast[]>(STORAGE_KEYS.BROADCASTS, []);
+      const prevIds = new Set(previousBroadcasts.map((b) => b.id));
+      const incomingBroadcasts = data.broadcasts || [];
+      const newBroadcasts = incomingBroadcasts.filter((b) => !prevIds.has(b.id));
+      const isActualUpdate = Boolean(lastSync && data.exportedAt && data.exportedAt !== lastSync);
+
       // Import published schedule data
       setToStorage(STORAGE_KEYS.PERIODS, data.periods);
       setToStorage(STORAGE_KEYS.TEACHERS, data.teachers);
@@ -1001,6 +1007,19 @@ export const localDB = {
 
       // Notify all components to re-render
       window.dispatchEvent(new CustomEvent("local-db-change", { detail: { key: "all" } }));
+
+      // Dispatch event to trigger native system notifications and in-app alerts
+      if (isActualUpdate || newBroadcasts.length > 0) {
+        window.dispatchEvent(
+          new CustomEvent("schedule-cloud-updated", {
+            detail: {
+              exportedAt: data.exportedAt,
+              newBroadcasts,
+              isActualUpdate,
+            },
+          })
+        );
+      }
       return true;
     } catch (e) {
       console.warn("Could not fetch published schedule from cloud/server (offline or unavailable):", e);

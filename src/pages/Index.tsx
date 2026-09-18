@@ -65,7 +65,21 @@ const Index = () => {
         duration: 9000,
       });
     });
-    return unsubscribe;
+
+    const handleScheduleCloudUpdated = (e: Event) => {
+      const custom = e as CustomEvent<{ isActualUpdate?: boolean; newBroadcasts?: any[] }>;
+      if (custom.detail?.isActualUpdate && (!custom.detail.newBroadcasts || custom.detail.newBroadcasts.length === 0)) {
+        toast.info("📅 Графикът за дежурства беше автоматично обновен с последните промени!", {
+          duration: 6000,
+        });
+      }
+    };
+    window.addEventListener("schedule-cloud-updated", handleScheduleCloudUpdated);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("schedule-cloud-updated", handleScheduleCloudUpdated);
+    };
   }, []);
 
   useEffect(() => {

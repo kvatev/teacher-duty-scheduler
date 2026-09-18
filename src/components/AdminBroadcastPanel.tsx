@@ -77,6 +77,9 @@ export function AdminBroadcastPanel() {
       // Trigger system notifications on phones & desktop and in current window
       await notifyBroadcast(created);
 
+      // Auto-publish to cloud database so all remote devices get the notification
+      localDB.publishToCloud().catch((err) => console.warn("Auto-publish broadcast error:", err));
+
       // Show immediate prominent toast popup with the actual message content
       const popupTitle =
         created.priority === "urgent"

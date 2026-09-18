@@ -260,9 +260,37 @@ export function initBroadcastListener(onNewBroadcast?: (b: DBBroadcast) => void)
 
   window.addEventListener("storage", handleStorageChange);
 
+  // Listen for cloud database updates received on this device
+  const handleCloudUpdate = async (e: Event) => {
+    const custom = e as CustomEvent<{
+      exportedAt: string;
+      newBroadcasts: DBBroadcast[];
+      isActualUpdate: boolean;
+    }>;
+    const { newBroadcasts, isActualUpdate } = custom.detail || {};
+
+    // 1. If new broadcast messages were received from the cloud, notify the user
+    if (newBroadcasts && newBroadcasts.length > 0) {
+      for (const b of newBroadcasts) {
+        onNewBroadcast?.(b);
+        await notifyBroadcast(b);
+      }
+    } else if (isActualUpdate) {
+      // 2. If the duty schedule itself was updated, trigger a system notification
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        await sendSystemNotification("📅 Обновен график за дежурства", {
+          body: "Публикуван е актуален график за дежурствата. Промените са заредени!",
+          tag: "schedule-cloud-update",
+        });
+      }
+    }
+  };
+  window.addEventListener("schedule-cloud-updated", handleCloudUpdate);
+
   return () => {
     channel?.close();
     window.removeEventListener("new-broadcast-received", handleLocal);
     window.removeEventListener("storage", handleStorageChange);
+    window.removeEventListener("schedule-cloud-updated", handleCloudUpdate);
   };
 }
