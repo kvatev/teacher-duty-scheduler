@@ -1,4 +1,5 @@
-import { defineConfig } from "vite";
+import { defineConfig, type ViteDevServer, type Connect } from "vite";
+import type { ServerResponse } from "http";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import fs from "fs";
@@ -7,8 +8,8 @@ import { VitePWA } from "vite-plugin-pwa";
 function devScheduleApiPlugin() {
   return {
     name: "dev-schedule-api",
-    configureServer(server: any) {
-      server.middlewares.use(async (req: any, res: any, next: any) => {
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use(async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
         if (!req.url?.startsWith("/api/schedule")) {
           return next();
         }
@@ -50,7 +51,7 @@ function devScheduleApiPlugin() {
 
         if (req.method === "POST") {
           let bodyStr = "";
-          req.on("data", (chunk: any) => {
+          req.on("data", (chunk: Buffer | string) => {
             bodyStr += chunk;
           });
           req.on("end", () => {
@@ -68,9 +69,10 @@ function devScheduleApiPlugin() {
                   message: "Успешно записано в public/schedule-data.json!",
                 })
               );
-            } catch (err: any) {
+            } catch (err: unknown) {
               res.statusCode = 400;
-              return res.end(JSON.stringify({ error: err.message || "Invalid JSON" }));
+              const errMsg = err instanceof Error ? err.message : "Invalid JSON";
+              return res.end(JSON.stringify({ error: errMsg }));
             }
           });
           return;

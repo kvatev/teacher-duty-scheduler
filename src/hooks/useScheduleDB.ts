@@ -81,7 +81,8 @@ export function useScheduleDB() {
         key !== "all" &&
         key !== STORAGE_KEYS.ASSIGNMENTS &&
         key !== STORAGE_KEYS.TEACHERS &&
-        key !== STORAGE_KEYS.PERIODS
+        key !== STORAGE_KEYS.PERIODS &&
+        key !== STORAGE_KEYS.SETTINGS
       ) {
         return;
       }
@@ -288,20 +289,27 @@ export function useScheduleDB() {
         ]
       : [
           settings.location_5 || "Дежурен на 0 етаж",
-          settings.location_1,
-          settings.location_2,
-          settings.location_3,
-          settings.location_4,
+          settings.location_1 || "Дежурни на III-ти етаж",
+          settings.location_2 || "Дежурни на IV-ти етаж",
+          settings.location_3 || "Училищен стол и пред кабинет по музика",
+          settings.location_4 || "Главен дежурен – западен вход 07:30-08:40 ч.",
         ];
 
-    const getTeachersPerLocation = (location: string, _index: number): number => {
+    const getTeachersPerLocation = (location: string, index: number): number => {
       if (currentStage === "primary") {
         return 1;
       }
-      if (location.includes("0") || location.toLowerCase().includes("етаж 0")) {
+      if (index === 0 || location.includes("0") || location.toLowerCase().includes("етаж 0")) {
         return 2;
       }
-      if (location.includes("III-ти") || location.includes("IV-ти")) {
+      if (
+        index === 1 ||
+        index === 2 ||
+        location.includes("III") ||
+        location.includes("IV") ||
+        location.includes("3") ||
+        location.includes("4")
+      ) {
         return 4;
       }
       return 3;

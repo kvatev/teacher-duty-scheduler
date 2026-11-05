@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useScheduleDB } from "@/hooks/useScheduleDB";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppSettings } from "@/hooks/useAppSettings";
+import type { DBBroadcast } from "@/lib/localDB";
 import { Calendar, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -67,7 +68,7 @@ const Index = () => {
     });
 
     const handleScheduleCloudUpdated = (e: Event) => {
-      const custom = e as CustomEvent<{ isActualUpdate?: boolean; newBroadcasts?: any[] }>;
+      const custom = e as CustomEvent<{ isActualUpdate?: boolean; newBroadcasts?: DBBroadcast[] }>;
       if (custom.detail?.isActualUpdate && (!custom.detail.newBroadcasts || custom.detail.newBroadcasts.length === 0)) {
         toast.info("📅 Графикът за дежурства беше автоматично обновен с последните промени!", {
           duration: 6000,
@@ -126,6 +127,8 @@ const Index = () => {
               onAddPeriod={addPeriod}
               onDeletePeriod={deletePeriod}
               onCopyTeachers={copyTeachersFromPeriod}
+              term1Label={settings.term_1_label}
+              term2Label={settings.term_2_label}
             />
             <div className="hidden sm:block w-px h-8 bg-border/60" />
             <StageSelector

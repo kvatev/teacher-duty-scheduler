@@ -106,8 +106,9 @@ export function Header({ settings, onSaveSettings }: HeaderProps) {
       } else {
         toast.error(res.message || "Грешка при публикуване в базата данни.");
       }
-    } catch (e: any) {
-      toast.error(e?.message || "Грешка при комуникация със сървъра.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Грешка при комуникация със сървъра.";
+      toast.error(msg);
     } finally {
       setIsPublishingCloud(false);
     }

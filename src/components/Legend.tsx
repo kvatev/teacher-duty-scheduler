@@ -1,16 +1,18 @@
 import React from "react";
 import { Info, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface LegendProps {
   onExportPDF?: () => void;
+  className?: string;
 }
 
-export function Legend({ onExportPDF }: LegendProps) {
+export function Legend({ onExportPDF, className }: LegendProps) {
   return (
-    <div className="bg-card rounded-lg border shadow-sm p-4">
+    <div className={cn("rounded-lg p-2.5 sm:p-3 bg-muted/20 border text-xs sm:text-sm", className)}>
       {/* Mobile: stack vertically | Desktop: single row */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+      <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
         {/* Title */}
         <div className="flex items-center gap-2">
           <Info className="w-4 h-4 text-muted-foreground" />

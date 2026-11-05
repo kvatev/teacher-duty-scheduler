@@ -48,6 +48,8 @@ interface PeriodSelectorProps {
   onAddPeriod: (year: string, term: 1 | 2) => Promise<boolean>;
   onDeletePeriod: (year: string, term: number) => Promise<boolean>;
   onCopyTeachers: (sourceYear: string, sourceTerm: number, includeAssignments: boolean) => Promise<boolean>;
+  term1Label?: string;
+  term2Label?: string;
 }
 
 export function PeriodSelector({
@@ -59,6 +61,8 @@ export function PeriodSelector({
   onAddPeriod,
   onDeletePeriod,
   onCopyTeachers,
+  term1Label,
+  term2Label,
 }: PeriodSelectorProps) {
   const { isAdmin } = useAuth();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -134,24 +138,31 @@ export function PeriodSelector({
   const copySourceTerms = copySourceYear ? getTermsForYear(copySourceYear) : [];
   const availableTermsForCurrentYear = getTermsForYear(currentPeriod.year);
 
+  const term1 = term1Label || "I срок";
+  const term2 = term2Label || "II срок";
+  const termsList = [
+    { value: 1 as const, label: term1 },
+    { value: 2 as const, label: term2 },
+  ];
+
   const displayedYears = availableYears.length > 0
     ? (availableYears.includes(currentPeriod.year) ? availableYears : [currentPeriod.year, ...availableYears])
     : [currentPeriod.year];
 
   const displayedTerms = availableTermsForCurrentYear.length > 0
-    ? TERMS.filter(term => availableTermsForCurrentYear.includes(term.value))
-    : TERMS;
+    ? termsList.filter(term => availableTermsForCurrentYear.includes(term.value))
+    : termsList;
 
   return (
-    <div className="flex flex-wrap items-start sm:items-center gap-3 p-3 sm:p-4 bg-card rounded-lg border shadow-sm">
+    <div className="flex flex-wrap items-center gap-2.5">
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Calendar className="w-5 h-5" />
-        <span className="font-medium text-foreground">Период:</span>
+        <Calendar className="w-4 h-4 text-primary" />
+        <span className="font-semibold text-sm text-foreground">Период:</span>
       </div>
       
       <div className="flex flex-wrap items-center gap-2">
         <Select value={currentPeriod.year} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[130px] sm:w-[140px] h-9 text-xs sm:text-sm">
             <SelectValue placeholder="Учебна година" />
           </SelectTrigger>
           <SelectContent>
@@ -164,7 +175,7 @@ export function PeriodSelector({
         </Select>
 
         <Select value={currentPeriod.term.toString()} onValueChange={handleTermChange}>
-          <SelectTrigger className="w-[100px]">
+          <SelectTrigger className="w-[95px] sm:w-[110px] h-9 text-xs sm:text-sm">
             <SelectValue placeholder="Срок" />
           </SelectTrigger>
           <SelectContent>
@@ -211,8 +222,8 @@ export function PeriodSelector({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">I срок</SelectItem>
-                        <SelectItem value="2">II срок</SelectItem>
+                        <SelectItem value="1">{term1}</SelectItem>
+                        <SelectItem value="2">{term2}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

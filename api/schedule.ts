@@ -8,8 +8,21 @@ export const config = {
   maxDuration: 15,
 };
 
+interface ApiRequest {
+  method?: string;
+  query?: Record<string, string | string[] | undefined>;
+  body?: unknown;
+}
+
+interface ApiResponse {
+  setHeader: (name: string, value: string) => void;
+  status: (code: number) => ApiResponse;
+  json: (data: unknown) => void;
+  end: () => void;
+}
+
 // Cross-Origin Resource Sharing helper
-function setCorsHeaders(res: any) {
+function setCorsHeaders(res: ApiResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Admin-Key");
@@ -43,7 +56,7 @@ function getStorageConfig() {
   };
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   setCorsHeaders(res);
 
   if (req.method === "OPTIONS") {
@@ -124,7 +137,7 @@ export default async function handler(req: any, res: any) {
           });
         } catch {
           blob = await put("schedule-data.json", jsonString, {
-            access: "private" as any,
+            access: "public",
             addRandomSuffix: false,
             token: storage.blobToken,
           });
@@ -172,7 +185,7 @@ export default async function handler(req: any, res: any) {
             exportedAt: updatedSchedule.exportedAt,
             message: "Записан в public/schedule-data.json. За глобална база данни свържете Storage във Vercel.",
           });
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.warn("Could not write to local public file:", e);
         }
       }
@@ -181,9 +194,10 @@ export default async function handler(req: any, res: any) {
         success: false,
         error: "Няма активирана Vercel база данни. Моля активирайте 'Redis (Upstash)', 'Blob' или 'Postgres' в таблото на Vercel (раздел Storage).",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error saving schedule to Vercel database:", err);
-      return res.status(500).json({ error: err.message || "Грешка при запис в базата данни" });
+      const errMsg = err instanceof Error ? err.message : "Грешка при запис в базата данни";
+      return res.status(500).json({ error: errMsg });
     }
   }
 
@@ -214,7 +228,7 @@ export default async function handler(req: any, res: any) {
             const blobRes = await fetch(`${blobInfo.url}?t=${Date.now()}`);
             if (blobRes.ok) {
               const blobData = await blobRes.json();
-              const hasZafirova = blobData.teachers?.some((t: any) => t.name?.includes("Зафирова"));
+              const hasZafirova = Array.isArray(blobData.teachers) && blobData.teachers.some((t: { name?: string }) => t.name?.includes("Зафирова"));
               const hasFullAssignments = (blobData.assignments?.length || 0) >= 79;
 
               // If Blob has outdated schedule (missing Ekaterina Zafirova or < 79 assignments), reseed it!
@@ -283,9 +297,10 @@ export default async function handler(req: any, res: any) {
       }
 
       return res.status(404).json({ error: "Няма намерен график" });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error reading schedule from Vercel database:", err);
-      return res.status(500).json({ error: err.message || "Грешка при четене на графика" });
+      const errMsg = err instanceof Error ? err.message : "Грешка при четене на графика";
+      return res.status(500).json({ error: errMsg });
     }
   }
 

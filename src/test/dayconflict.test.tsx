@@ -5,6 +5,7 @@ import { TeacherBadge } from "@/components/TeacherBadge";
 import { ScheduleCell } from "@/components/ScheduleCell";
 import { ScheduleTable } from "@/components/ScheduleTable";
 import { AuthProvider } from "@/contexts/AuthContext";
+import type { DBAssignment } from "@/lib/localDB";
 import { toast } from "sonner";
 
 vi.mock("sonner", () => ({
@@ -125,7 +126,7 @@ describe("Day Conflict Check - Multiple Duties in Same Day", () => {
         <ScheduleTable
           getAssignmentsForCell={getAssignmentsForCell}
           counts={{ "t-1": 2, "t-2": 1 }}
-          assignments={assignments as any}
+          assignments={assignments as DBAssignment[]}
           onAssign={vi.fn()}
           onUnassign={vi.fn()}
           onMove={vi.fn()}

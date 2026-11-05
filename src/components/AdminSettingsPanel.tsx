@@ -224,8 +224,9 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
       } else {
         toast.error(res.message || "Грешка при публикуване в базата данни.");
       }
-    } catch (e: any) {
-      toast.error(e?.message || "Грешка при комуникация със сървъра.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Грешка при комуникация със сървъра.";
+      toast.error(msg);
     } finally {
       setIsPublishingCloud(false);
     }
@@ -320,7 +321,7 @@ export function AdminSettingsPanel({ settings, onSave }: AdminSettingsPanelProps
 
         <Tabs defaultValue={defaultTab} className="flex flex-col flex-1 min-h-0">
           <div className="px-3 sm:px-6 py-2.5 border-b bg-muted/15 shrink-0">
-            <TabsList className="flex flex-wrap items-center justify-start gap-1 sm:gap-1.5 p-1 bg-muted/60 rounded-xl h-auto w-full">
+            <TabsList className="flex items-center justify-start gap-1 sm:gap-1.5 p-1 bg-muted/60 rounded-xl h-auto w-full overflow-x-auto sm:flex-wrap">
               {canSettings && (
                 <>
                   <TabsTrigger value="general" className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-xs">Общи</TabsTrigger>

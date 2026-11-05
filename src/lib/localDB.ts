@@ -767,6 +767,41 @@ export const localDB = {
   saveSettings(updates: Partial<AppSettings>): AppSettings {
     const current = this.getSettings();
     const merged = { ...current, ...updates };
+
+    // Migrate existing assignments if location names were updated in settings
+    const locationKeys: (keyof AppSettings)[] = [
+      "location_1",
+      "location_2",
+      "location_3",
+      "location_4",
+      "location_5",
+      "primary_location_1",
+      "primary_location_2",
+      "primary_location_3",
+    ];
+
+    let assignments = getFromStorage<DBAssignment[]>(STORAGE_KEYS.ASSIGNMENTS, []);
+    let assignmentsMigrated = false;
+
+    for (const key of locationKeys) {
+      const oldLoc = current[key];
+      const newLoc = updates[key];
+      if (oldLoc && newLoc && oldLoc !== newLoc && typeof newLoc === "string" && newLoc.trim() !== "") {
+        const trimmedNew = newLoc.trim();
+        assignments = assignments.map((a) => {
+          if (a.location === oldLoc) {
+            assignmentsMigrated = true;
+            return { ...a, location: trimmedNew };
+          }
+          return a;
+        });
+      }
+    }
+
+    if (assignmentsMigrated) {
+      setToStorage(STORAGE_KEYS.ASSIGNMENTS, assignments);
+    }
+
     setToStorage(STORAGE_KEYS.SETTINGS, merged);
     return merged;
   },
@@ -991,10 +1026,11 @@ export const localDB = {
         storageType: result.storageType,
         exportedAt: newExportedAt,
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Мрежова грешка при връзка със сървъра";
       return {
         success: false,
-        message: e?.message || "Мрежова грешка при връзка със сървъра",
+        message: msg,
       };
     }
   },

@@ -479,7 +479,7 @@ describe("localDB - In-browser Database", () => {
         message: "Графикът е записан успешно!",
       }),
     };
-    global.fetch = vi.fn().mockResolvedValue(mockPostResponse as any);
+    global.fetch = vi.fn().mockResolvedValue(mockPostResponse as unknown as Response);
 
     try {
       const result = await localDB.publishToCloud();
@@ -507,7 +507,7 @@ describe("localDB - In-browser Database", () => {
         activeStorage: "Vercel Blob",
       }),
     };
-    global.fetch = vi.fn().mockResolvedValue(mockStatusResponse as any);
+    global.fetch = vi.fn().mockResolvedValue(mockStatusResponse as unknown as Response);
 
     try {
       const status = await localDB.checkCloudStatus();
